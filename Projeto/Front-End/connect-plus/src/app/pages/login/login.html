@@ -1,0 +1,130 @@
+<div class="login-page">
+  <div class="efeito efeito-esquerda"></div>
+  <div class="efeito efeito-direita"></div>
+
+  <div class="login-card">
+    <div class="login-header">
+      <h1>{{ titulo }}</h1>
+      <div class="linha-logo"></div>
+    </div>
+
+    @if (mensagemErro) {
+      <div class="alerta erro">
+        {{ mensagemErro }}
+      </div>
+    }
+
+    @if (mensagemSucesso) {
+      <div class="alerta sucesso">
+        {{ mensagemSucesso }}
+      </div>
+    }
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+      <div class="campo">
+        <label for="email">Login</label>
+
+        <div class="input-box" [class.input-box-invalido]="email.touched && email.invalid">
+          <span class="icone">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" stroke="currentColor" stroke-width="2"/>
+              <path d="M4 22C4 18.6863 7.58172 16 12 16C16.4183 16 20 18.6863 20 22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </span>
+
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            placeholder="Digite seu login"
+          />
+        </div>
+
+        @if (email.touched && email.invalid) {
+          <small class="mensagem-validacao">
+            @if (email.errors?.['required']) {
+              <span>O e-mail é obrigatório.</span>
+            }
+            @if (email.errors?.['email']) {
+              <span>Digite um e-mail válido.</span>
+            }
+          </small>
+        }
+      </div>
+
+      <div class="campo">
+        <label for="senha">Senha</label>
+
+        <div class="input-box" [class.input-box-invalido]="senha.touched && senha.invalid">
+          <span class="icone">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M7 11V8C7 5.23858 9.23858 3 12 3C14.7614 3 17 5.23858 17 8V11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" stroke-width="2"/>
+              <path d="M12 15V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </span>
+
+          <input
+            id="senha"
+            [type]="mostrarSenha ? 'text' : 'password'"
+            formControlName="senha"
+            placeholder="Digite sua senha"
+          />
+
+          <button
+            type="button"
+            class="btn-olho"
+            (click)="alternarSenha()"
+          >
+            @if (mostrarSenha) {
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M3 3L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M10.58 10.58C10.21 10.95 10 11.46 10 12C10 13.1 10.9 14 12 14C12.54 14 13.05 13.79 13.42 13.42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M9.88 5.09C10.56 4.89 11.27 4.78 12 4.78C16.5 4.78 20.27 8.11 21.54 12C21.15 13.19 20.53 14.29 19.73 15.23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M6.61 6.61C4.62 7.88 3.13 9.76 2.46 12C3.73 15.89 7.5 19.22 12 19.22C13.73 19.22 15.35 18.73 16.73 17.88" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            } @else {
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M2.46 12C3.73 8.11 7.5 4.78 12 4.78C16.5 4.78 20.27 8.11 21.54 12C20.27 15.89 16.5 19.22 12 19.22C7.5 19.22 3.73 15.89 2.46 12Z" stroke="currentColor" stroke-width="2"/>
+                <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            }
+          </button>
+        </div>
+
+        @if (senha.touched && senha.invalid) {
+          <small class="mensagem-validacao">
+            @if (senha.errors?.['required']) {
+              <span>A senha é obrigatória.</span>
+            }
+            @if (senha.errors?.['minlength']) {
+              <span>A senha deve ter no mínimo 6 caracteres.</span>
+            }
+          </small>
+        }
+      </div>
+
+      <button
+        type="submit"
+        class="btn-acessar"
+        [disabled]="loginForm.invalid || carregando"
+      >
+        @if (carregando) {
+          <span>Entrando...</span>
+        } @else {
+          <span>Acessar</span>
+        }
+      </button>
+    </form>
+
+    <div class="divisor">
+      <span>ou</span>
+    </div>
+
+    <a href="#" class="link-secundario">Esqueci a senha?</a>
+
+  <a routerLink="/cadastro-empresa" class="btn-cadastrar-empresa">
+  Cadastrar nova empresa
+</a>
+  </div>
+</div>
