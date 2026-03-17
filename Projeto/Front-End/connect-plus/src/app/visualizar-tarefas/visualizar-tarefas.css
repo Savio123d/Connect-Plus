@@ -1,0 +1,373 @@
+:host {
+  display: block;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.pagina-kanban {
+  min-height: 100vh;
+  background: #f5f7ff;
+  color: #1e293b;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.layout-kanban {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 270px;
+  background: rgba(255, 255, 255, 0.85);
+  border-right: 1px solid #e2e8f0;
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(10px);
+}
+
+.logo {
+  font-size: 42px;
+  font-weight: 800;
+  margin: 0;
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.logo-subtitulo {
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+.menu-lateral {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 28px;
+}
+
+.menu-item {
+  border: none;
+  background: transparent;
+  color: #334155;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.menu-item:hover {
+  background: #f3f0ff;
+  color: #6d28d9;
+}
+
+.menu-item.ativo {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.card-meta {
+  margin-top: 28px;
+  padding: 20px;
+  border-radius: 24px;
+  color: white;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  box-shadow: 0 18px 35px rgba(124, 58, 237, 0.18);
+}
+
+.card-meta-label {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.card-meta-valor {
+  margin: 12px 0 8px;
+  font-size: 42px;
+  font-weight: 800;
+}
+
+.card-meta-texto {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  opacity: 0.92;
+}
+
+.sidebar-rodape {
+  margin-top: auto;
+  padding-top: 30px;
+}
+
+.sidebar-linha {
+  width: 90px;
+  height: 2px;
+  border-radius: 999px;
+  background: #cbd5e1;
+}
+
+.conteudo {
+  flex: 1;
+  padding: 28px;
+}
+
+.topo-workspace {
+  background: linear-gradient(90deg, #e7f0ff, #eef2ff, #f2e8ff);
+  border: 1px solid #dde3ff;
+  border-radius: 32px;
+  padding: 28px;
+  box-shadow: 0 10px 24px rgba(148, 163, 184, 0.08);
+}
+
+.topo-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.topo-tag {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #7c3aed;
+  font-weight: 700;
+}
+
+.topo-titulo {
+  margin: 10px 0 8px;
+  font-size: 38px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.topo-texto {
+  margin: 0;
+  max-width: 760px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #64748b;
+}
+
+.btn-nova-tarefa {
+  border: none;
+  border-radius: 999px;
+  padding: 14px 22px;
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 12px 24px rgba(124, 58, 237, 0.18);
+  transition: transform 0.2s ease;
+}
+
+.btn-nova-tarefa:hover {
+  transform: translateY(-1px);
+}
+
+.resumo-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.resumo-card {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 24px;
+  padding: 18px 20px;
+  box-shadow: 0 6px 18px rgba(148, 163, 184, 0.08);
+}
+
+.resumo-label {
+  margin: 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+.resumo-numero {
+  margin: 10px 0 4px;
+  font-size: 34px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.resumo-texto {
+  margin: 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.kanban {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(240px, 1fr));
+  gap: 20px;
+  margin-top: 28px;
+}
+
+.coluna {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 28px;
+  padding: 18px;
+  box-shadow: 0 6px 18px rgba(148, 163, 184, 0.08);
+  min-height: 420px;
+}
+
+.coluna-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.coluna-titulo {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.coluna-contador {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.coluna-contador.azul {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.coluna-contador.roxo {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+.coluna-contador.verde {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.lista-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.card-tarefa {
+  background: #fbfcff;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  padding: 16px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.card-tarefa:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px rgba(148, 163, 184, 0.12);
+}
+
+.card-topo {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.card-titulo {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.badge-prioridade {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 7px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.badge-alta {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.badge-media {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.badge-baixa {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.card-info {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card-info p {
+  margin: 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.card-info strong {
+  color: #334155;
+}
+
+@media (max-width: 1200px) {
+  .kanban {
+    grid-template-columns: repeat(2, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .layout-kanban {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+  }
+
+  .resumo-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .kanban {
+    grid-template-columns: 1fr;
+  }
+
+}

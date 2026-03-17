@@ -1,0 +1,200 @@
+<div class="pagina-kanban">
+  <div class="layout-kanban">
+    <aside class="sidebar">
+      <div>
+        <h1 class="logo">Connect+</h1>
+        <p class="logo-subtitulo">
+          Dashboard colaborativo com foco em produtividade e organização.
+        </p>
+      </div>
+
+      <nav class="menu-lateral">
+        <button
+          *ngFor="let item of menuItems"
+          class="menu-item"
+          [class.ativo]="item === 'Quadro de tarefas'"
+        >
+          {{ item }}
+        </button>
+      </nav>
+
+      <div class="sidebar-rodape">
+        <div class="sidebar-linha"></div>
+      </div>
+    </aside>
+    <main class="conteudo">
+      <section class="topo-workspace">
+        <div class="topo-header">
+          <div>
+            <p class="topo-tag">Workspace</p>
+            <h2 class="topo-titulo">Quadro de tarefas</h2>
+            <p class="topo-texto">
+              Organize o fluxo da sprint, acompanhe o andamento das entregas e mova os cards entre as etapas do quadro.
+            </p>
+          </div>
+
+        <div class="resumo-cards">
+          <div class="resumo-card">
+            <p class="resumo-label">Tarefas hoje</p>
+            <h3 class="resumo-numero">{{ tarefasHoje }}</h3>
+            <p class="resumo-texto">Entre backlog, execução e concluídas</p>
+          </div>
+
+          <div class="resumo-card">
+            <p class="resumo-label">Em andamento</p>
+            <h3 class="resumo-numero">{{ fazendo.length }}</h3>
+            <p class="resumo-texto">Cards em desenvolvimento agora</p>
+          </div>
+
+          <div class="resumo-card">
+            <p class="resumo-label">Concluídas</p>
+            <h3 class="resumo-numero">{{ concluida.length }}</h3>
+            <p class="resumo-texto">Entrega finalizada nesta sprint</p>
+          </div>
+        </div>
+      <section class="kanban">
+        <div class="coluna">
+          <div class="coluna-topo">
+            <h3 class="coluna-titulo">Backlog</h3>
+            <span class="coluna-contador">{{ backlog.length }}</span>
+          </div>
+
+          <div
+            class="lista-cards"
+          >
+            <article
+              *ngFor="let tarefa of backlog"
+              class="card-tarefa"
+              cdkDrag
+            >
+              <div class="card-topo">
+                <h4 class="card-titulo">{{ tarefa.titulo }}</h4>
+
+                <span
+                  class="badge-prioridade"
+                  [ngClass]="{
+                    'badge-alta': tarefa.prioridade === 'Alta',
+                    'badge-media': tarefa.prioridade === 'Média',
+                    'badge-baixa': tarefa.prioridade === 'Baixa'
+                  }"
+                >
+                  {{ tarefa.prioridade }}
+                </span>
+              </div>
+
+              <div class="card-info">
+                <p><strong>Responsável:</strong> {{ tarefa.responsavel }}</p>
+                <p><strong>Prazo:</strong> {{ tarefa.prazo }}</p>
+              </div>
+            </article>
+          </div>
+        </div>
+        <div class="coluna">
+          <div class="coluna-topo">
+            <h3 class="coluna-titulo">A Fazer</h3>
+            <span class="coluna-contador azul">{{ aFazer.length }}</span>
+          </div>
+
+          <div
+            class="lista-cards"
+          >
+            <article
+              *ngFor="let tarefa of aFazer"
+              class="card-tarefa"
+              cdkDrag
+            >
+              <div class="card-topo">
+                <h4 class="card-titulo">{{ tarefa.titulo }}</h4>
+
+                <span
+                  class="badge-prioridade"
+                  [ngClass]="{
+                    'badge-alta': tarefa.prioridade === 'Alta',
+                    'badge-media': tarefa.prioridade === 'Média',
+                    'badge-baixa': tarefa.prioridade === 'Baixa'
+                  }"
+                >
+                  {{ tarefa.prioridade }}
+                </span>
+              </div>
+
+              <div class="card-info">
+                <p><strong>Responsável:</strong> {{ tarefa.responsavel }}</p>
+                <p><strong>Prazo:</strong> {{ tarefa.prazo }}</p>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <div class="coluna">
+          <div class="coluna-topo">
+            <h3 class="coluna-titulo">Fazendo</h3>
+            <span class="coluna-contador roxo">{{ fazendo.length }}</span>
+          </div>
+
+          <div
+            class="lista-cards"
+          >
+            <article
+              *ngFor="let tarefa of fazendo"
+              class="card-tarefa"
+            >
+              <div class="card-topo">
+                <h4 class="card-titulo">{{ tarefa.titulo }}</h4>
+
+                <span
+                  class="badge-prioridade"
+                  [ngClass]="{
+                    'badge-alta': tarefa.prioridade === 'Alta',
+                    'badge-media': tarefa.prioridade === 'Média',
+                    'badge-baixa': tarefa.prioridade === 'Baixa'
+                  }"
+                >
+                  {{ tarefa.prioridade }}
+                </span>
+              </div>
+
+              <div class="card-info">
+                <p><strong>Responsável:</strong> {{ tarefa.responsavel }}</p>
+                <p><strong>Prazo:</strong> {{ tarefa.prazo }}</p>
+              </div>
+            </article>
+          </div>
+        </div>
+        <div class="coluna">
+          <div class="coluna-topo">
+            <h3 class="coluna-titulo">Concluída</h3>
+            <span class="coluna-contador verde">{{ concluida.length }}</span>
+          </div>
+
+          <div
+            class="lista-cards"
+          >
+            <article
+              *ngFor="let tarefa of concluida"
+              class="card-tarefa"
+            >
+              <div class="card-topo">
+                <h4 class="card-titulo">{{ tarefa.titulo }}</h4>
+
+                <span
+                  class="badge-prioridade"
+                  [ngClass]="{
+                    'badge-alta': tarefa.prioridade === 'Alta',
+                    'badge-media': tarefa.prioridade === 'Média',
+                    'badge-baixa': tarefa.prioridade === 'Baixa'
+                  }"
+                >
+                  {{ tarefa.prioridade }}
+                </span>
+              </div>
+
+              <div class="card-info">
+                <p><strong>Responsável:</strong> {{ tarefa.responsavel }}</p>
+                <p><strong>Prazo:</strong> {{ tarefa.prazo }}</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+  </div>
