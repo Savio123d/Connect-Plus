@@ -1,5 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import {
+  DragDropModule,
+  CdkDragDrop,
+  moveItemInArray,
+  transferArrayItem,
+} from '@angular/cdk/drag-drop';
 
 interface Tarefa {
   id: number;
@@ -13,12 +20,18 @@ interface Tarefa {
 @Component({
   selector: 'app-visualizar-tarefas',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, DragDropModule],
   templateUrl: './visualizar-tarefas.html',
   styleUrl: './visualizar-tarefas.css',
 })
 export class VisualizarTarefasComponent {
   menuItems = ['Home', 'Feedback', 'Perfil', 'Quadro de tarefas', 'Chat', 'Projetos'];
+
+  modalAberto = false;
+  modoModal: 'criar' | 'editar' = 'criar';
+  tarefaEditandoId: number | null = null;
+
+  formTarefa: Tarefa = this.criarFormularioVazio();
 
   backlog: Tarefa[] = [
     {
@@ -64,7 +77,102 @@ export class VisualizarTarefasComponent {
     },
   ];
 
+  criarFormularioVazio(): Tarefa {
+    return {
+      id: 0,
+      titulo: '',
+      descricao: '',
+      responsavel: '',
+      prioridade: 'Média',
+      prazo: '',
+    };
+  }
+
   get tarefasHoje(): number {
     return this.backlog.length + this.aFazer.length + this.fazendo.length + this.concluida.length;
+  }
+
+  abrirCriacao(): void {
+    this.modoModal = 'criar';
+    this.tarefaEditandoId = null;
+    this.formTarefa = this.criarFormularioVazio();
+    this.modalAberto = true;
+  }
+
+  fecharModal(): void {
+    this.modalAberto = false;
+    this.tarefaEditandoId = null;
+    this.formTarefa = this.criarFormularioVazio();
+  }
+
+  salvarTarefa(): void {
+    if (
+      !this.formTarefa.titulo.trim() ||
+      !this.formTarefa.descricao.trim() ||
+      !this.formTarefa.responsavel.trim() ||
+      !this.formTarefa.prazo.trim()
+    ) {
+      alert('Preencha título, descrição, responsável e prazo.');
+      return;
+    }
+
+    if (this.modoModal === 'criar') {
+      const novaTarefa: Tarefa = {
+        ...this.formTarefa,
+        id: this.gerarNovoId(),
+      };
+
+      this.backlog.push(novaTarefa);
+    } else {
+      this.atualizarTarefaExistente();
+    }
+
+    this.fecharModal();
+  }
+
+  gerarNovoId(): number {
+    const todas = [...this.backlog, ...this.aFazer, ...this.fazendo, ...this.concluida];
+    if (todas.length === 0) {
+      return 1;
+    }
+
+    return Math.max(...todas.map((t) => t.id)) + 1;
+  }
+
+  atualizarTarefaExistente(): void {
+    if (this.tarefaEditandoId === null) {
+      return;
+    }
+
+    const listas = [this.backlog, this.aFazer, this.fazendo, this.concluida];
+
+    for (const lista of listas) {
+      const index = lista.findIndex((t) => t.id === this.tarefaEditandoId);
+
+      if (index !== -1) {
+        lista[index] = {
+          ...lista[index],
+          titulo: this.formTarefa.titulo,
+          descricao: this.formTarefa.descricao,
+          responsavel: this.formTarefa.responsavel,
+          prioridade: this.formTarefa.prioridade,
+          prazo: this.formTarefa.prazo,
+        };
+        return;
+      }
+    }
+  }
+
+  drop(event: CdkDragDrop<Tarefa[]>): void {
+    if (event.previousContainer === event.container) {
+      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+    } else {
+      transferArrayItem(
+        event.previousContainer.data,
+        event.container.data,
+        event.previousIndex,
+        event.currentIndex,
+      );
+    }
   }
 }

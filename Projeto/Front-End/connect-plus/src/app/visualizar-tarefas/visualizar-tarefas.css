@@ -347,6 +347,131 @@
   color: #334155;
 }
 
+.overlay-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.26);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 999;
+}
+
+.modal-tarefa {
+  width: 100%;
+  max-width: 760px;
+  background: #fff;
+  border-radius: 30px;
+  padding: 28px;
+  box-shadow: 0 25px 50px rgba(76, 29, 149, 0.18);
+}
+
+.modal-topo {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.modal-tag {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #7c3aed;
+  font-weight: 700;
+}
+
+.modal-titulo {
+  margin: 10px 0 0;
+  font-size: 28px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.btn-fechar {
+  border: none;
+  background: #f1f5f9;
+  color: #475569;
+  border-radius: 999px;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.form-grupo {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-grupo.full {
+  grid-column: span 2;
+}
+
+.form-grupo label {
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.form-grupo input,
+.form-grupo textarea,
+.form-grupo select {
+  width: 100%;
+  border: 1px solid #d8ddff;
+  background: #fafbff;
+  border-radius: 18px;
+  padding: 14px 16px;
+  font-size: 14px;
+  color: #1e293b;
+  outline: none;
+}
+
+.form-grupo input:focus,
+.form-grupo textarea:focus,
+.form-grupo select:focus {
+  border-color: #8b5cf6;
+}
+
+.form-acoes {
+  grid-column: span 2;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.btn-secundario {
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  border-radius: 999px;
+  padding: 12px 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-primario {
+  border: none;
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
+  color: #fff;
+  border-radius: 999px;
+  padding: 12px 20px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 12px 24px rgba(124, 58, 237, 0.18);
+}
+
 @media (max-width: 1200px) {
   .kanban {
     grid-template-columns: repeat(2, minmax(240px, 1fr));
@@ -370,4 +495,30 @@
     grid-template-columns: 1fr;
   }
 
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grupo.full,
+  .form-acoes {
+    grid-column: span 1;
+  }
+
+  .cdk-drag-preview {
+    box-sizing: border-box;
+    border-radius: 24px;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+  }
+
+  .cdk-drag-placeholder {
+    opacity: 0.35;
+  }
+
+  .cdk-drag-animating {
+    transition: transform 200ms ease;
+  }
+
+  .cdk-drop-list-dragging .cdk-drag {
+    transition: transform 200ms ease;
+  }
 }
