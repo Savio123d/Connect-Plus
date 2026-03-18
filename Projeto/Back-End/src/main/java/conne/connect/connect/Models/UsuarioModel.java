@@ -2,11 +2,17 @@ package conne.connect.connect.Models;
 
 import conne.connect.connect.Enums.StatusUsuario;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "usuario")
+@Getter
+@Setter
+@NoArgsConstructor
 public class UsuarioModel {
 
     @Id
@@ -42,9 +48,6 @@ public class UsuarioModel {
     @Transient
     private int nivelAtual;
 
-    public UsuarioModel() {
-    }
-
     @PrePersist
     public void prePersist() {
         LocalDateTime agora = LocalDateTime.now();
@@ -64,87 +67,5 @@ public class UsuarioModel {
     public void preUpdate() {
         dataAtualizacao = LocalDateTime.now();
     }
-
-    public void setIdUsuario(Long idUsuario) {
-        this.idUsuario = idUsuario;
-    }
-
-    public Long getIdUsuario() {
-        return idUsuario;
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getSenha() {
-        return senha;
-    }
-
-    public void setSenha(String senha) {
-        this.senha = senha;
-    }
-
-    public StatusUsuario getStatus() {
-        return status;
-    }
-
-    public void setStatus(StatusUsuario status) {
-        this.status = status;
-    }
-
-    public LocalDateTime getDataCriacao() {
-        return dataCriacao;
-    }
-
-    public void setDataCriacao(LocalDateTime dataCriacao) {
-        this.dataCriacao = dataCriacao;
-    }
-
-    public LocalDateTime getDataAtualizacao() {
-        return dataAtualizacao;
-    }
-
-    public void setDataAtualizacao(LocalDateTime dataAtualizacao) {
-        this.dataAtualizacao = dataAtualizacao;
-    }
-
-    public String getAvatar() {
-        return avatar;
-    }
-
-    public void setAvatar(String avatar) {
-        this.avatar = avatar;
-    }
-
-    public String getTemaPerfil() {
-        return temaPerfil;
-    }
-
-    public void setTemaPerfil(String temaPerfil) {
-        this.temaPerfil = temaPerfil;
-    }
-
-    public int getNivelAtual() {
-        return nivelAtual;
-    }
-
-    public void setNivelAtual(int nivelAtual) {
-        this.nivelAtual = nivelAtual;
-    }
-
-
 }
 
