@@ -32,12 +32,16 @@ public class UsuarioRequestDTO {
 
     public UsuarioModel toModel() {
         UsuarioModel usuarioModel = new UsuarioModel();
+        applyToModel(usuarioModel);
+        return usuarioModel;
+    }
+
+    public void applyToModel(UsuarioModel usuarioModel) {
         usuarioModel.setNome(nome);
         usuarioModel.setEmail(email);
         usuarioModel.setSenha(senha);
         usuarioModel.setAvatar(avatar);
         usuarioModel.setTemaPerfil(temaPerfil);
-        return usuarioModel;
     }
 
     public String getNome() {

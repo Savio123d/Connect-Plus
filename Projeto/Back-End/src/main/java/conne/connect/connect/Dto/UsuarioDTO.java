@@ -38,6 +38,15 @@ public class UsuarioDTO {
         }
 
         return new UsuarioDTO(
+                usuarioModel.getIdUsuario(),
+                usuarioModel.getNome(),
+                usuarioModel.getEmail(),
+                usuarioModel.getStatus(),
+                usuarioModel.getDataCriacao(),
+                usuarioModel.getDataAtualizacao(),
+                usuarioModel.getAvatar(),
+                usuarioModel.getTemaPerfil(),
+                usuarioModel.getNivelAtual()
         );
     }
 
