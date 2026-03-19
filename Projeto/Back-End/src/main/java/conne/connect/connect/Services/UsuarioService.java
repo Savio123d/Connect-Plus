@@ -27,6 +27,7 @@ public class UsuarioService {
     public UsuarioDTO criarUsuario(UsuarioRequestDTO usuarioRequestDTO){
         validarEmailDisponivel(usuarioRequestDTO.getEmail(), null);
         UsuarioModel usuarioModel = usuarioRequestDTO.toModel();
+        usuarioModel.setSenha(passwordEncoder.encode(usuarioRequestDTO.getSenha()));
         return UsuarioDTO.fromModel(usuarioRepository.save(usuarioModel));
     }
 
