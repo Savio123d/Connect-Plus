@@ -99,6 +99,13 @@ export class VisualizarTarefasComponent {
     this.modalAberto = true;
   }
 
+  abrirEdicao(tarefa: Tarefa): void {
+    this.modoModal = 'editar';
+    this.tarefaEditandoId = tarefa.id;
+    this.formTarefa = { ...tarefa };
+    this.modalAberto = true;
+  }
+
   fecharModal(): void {
     this.modalAberto = false;
     this.tarefaEditandoId = null;

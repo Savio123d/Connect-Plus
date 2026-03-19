@@ -4,7 +4,7 @@
       <div>
         <h1 class="logo">Connect+</h1>
         <p class="logo-subtitulo">
-          Dashboard colaborativo com foco em produtividade e organização.
+          Conectando pessoas, fotalecendo equipes.
         </p>
       </div>
 
@@ -77,6 +77,7 @@
               *ngFor="let tarefa of backlog"
               class="card-tarefa"
               cdkDrag
+              (dblclick)="abrirEdicao(tarefa)"
             >
               <div class="card-topo">
                 <h4 class="card-titulo">{{ tarefa.titulo }}</h4>
@@ -100,10 +101,9 @@
             </article>
           </div>
         </div>
-
         <div class="coluna">
           <div class="coluna-topo">
-            <h3 class="coluna-titulo">A Fazer</h3>
+            <h3 class="coluna-titulo">A começar</h3>
             <span class="coluna-contador azul">{{ aFazer.length }}</span>
           </div>
 
@@ -119,6 +119,7 @@
               *ngFor="let tarefa of aFazer"
               class="card-tarefa"
               cdkDrag
+              (dblclick)="abrirEdicao(tarefa)"
             >
               <div class="card-topo">
                 <h4 class="card-titulo">{{ tarefa.titulo }}</h4>
@@ -142,10 +143,9 @@
             </article>
           </div>
         </div>
-
         <div class="coluna">
           <div class="coluna-topo">
-            <h3 class="coluna-titulo">Fazendo</h3>
+            <h3 class="coluna-titulo">Em execução</h3>
             <span class="coluna-contador roxo">{{ fazendo.length }}</span>
           </div>
 
@@ -161,6 +161,7 @@
               *ngFor="let tarefa of fazendo"
               class="card-tarefa"
               cdkDrag
+              (dblclick)="abrirEdicao(tarefa)"
             >
               <div class="card-topo">
                 <h4 class="card-titulo">{{ tarefa.titulo }}</h4>
@@ -184,7 +185,6 @@
             </article>
           </div>
         </div>
-
         <div class="coluna">
           <div class="coluna-topo">
             <h3 class="coluna-titulo">Concluída</h3>
@@ -203,6 +203,7 @@
               *ngFor="let tarefa of concluida"
               class="card-tarefa"
               cdkDrag
+              (dblclick)="abrirEdicao(tarefa)"
             >
               <div class="card-topo">
                 <h4 class="card-titulo">{{ tarefa.titulo }}</h4>
@@ -229,7 +230,6 @@
       </section>
     </main>
   </div>
-
   <div
     *ngIf="modalAberto"
     (click)="fecharModal()"
