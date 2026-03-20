@@ -1,0 +1,57 @@
+<div class="pagina-cadastro">
+  <div class="card-cadastro">
+    <div class="logo-area">
+      <h1>Connect <span>+</span></h1>
+      <div class="linha-logo"></div>
+    </div>
+
+    <h2>Cadastro de Usuário</h2>
+
+    <div class="grupo-input">
+      <label for="nome">Nome</label>
+      <div class="input-box">
+
+        <input
+          #nomeInput
+          id="nome"
+          type="text"
+          placeholder="Digite seu nome"
+        />
+      </div>
+    </div>
+
+    <div class="grupo-input">
+      <label for="email">E-mail</label>
+      <div class="input-box">
+
+        <input
+          #emailInput
+          id="email"
+          type="email"
+          placeholder="Digite seu e-mail"
+        />
+      </div>
+    </div>
+
+    <div class="grupo-input">
+      <label for="cargo">Cargo</label>
+      <div class="input-box">
+
+        <input
+          #cargoInput
+          id="cargo"
+          type="text"
+          placeholder="Digite seu cargo"
+        />
+      </div>
+    </div>
+
+    <button
+      class="btn-cadastrar"
+      type="button"
+      (click)="cadastrar(nomeInput.value, emailInput.value, cargoInput.value)"
+    >
+      Cadastrar <span>→</span>
+    </button>
+  </div>
+</div>

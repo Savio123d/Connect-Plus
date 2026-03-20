@@ -1,3 +1,6 @@
 import { Routes } from '@angular/router';
-
-export const routes: Routes = [];
+import { CadastroUsuario } from './cadastro-usuario/cadastro-usuario';
+export const routes: Routes = [
+  { path: '', redirectTo: 'cadastro', pathMatch: 'full' },
+  { path: 'cadastro', component: CadastroUsuario },
+];
