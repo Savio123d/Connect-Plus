@@ -4,13 +4,13 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'dashboard-gestor',
+    redirectTo: 'dashboard',
   },
   {
-    path: 'dashboard-gestor',
+    path: 'dashboard',
     loadComponent: () =>
-      import('../dashboardGestor/dashboard-gestor').then(
-        (module) => module.DashboardGestor,
+      import('../dashboard/dashboard').then(
+        (module) => module.Dashboard,
       ),
   },
 ];
