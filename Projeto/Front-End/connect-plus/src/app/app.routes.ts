@@ -4,14 +4,7 @@ export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'dashboard-usuario',
-  },
-  {
-    path: 'dashboard-usuario',
-    loadComponent: () =>
-      import('../dashboardUsuario/dashboard-usuario').then(
-        (module) => module.DashboardUsuario,
-      ),
+    redirectTo: 'dashboard-gestor',
   },
   {
     path: 'dashboard-gestor',
