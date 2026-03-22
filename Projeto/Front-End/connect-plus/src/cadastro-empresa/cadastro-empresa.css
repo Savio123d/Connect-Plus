@@ -1,0 +1,21 @@
+/* src/app/app.component.css */
+form {
+  display: flex;
+  flex-direction: column;
+  max-width: 300px;
+}
+
+label {
+  margin-top: 10px;
+}
+
+input {
+  padding: 5px;
+  margin-bottom: 5px;
+}
+
+.error {
+  color: red;
+  font-size: 0.8em;
+}
+
