@@ -71,11 +71,11 @@ type DashboardData = {
     MatToolbarModule,
     BaseChartDirective,
   ],
-  templateUrl: './dashboard-gestor.html',
-  styleUrl: './dashboard-gestor.css',
+  templateUrl: './dashboard.html',
+  styleUrl: './dashboard.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Dashboard {
+export class Menu {
   readonly menuItems: readonly MenuItem[] = [
     { label: 'Home', icon: 'home', active: true },
     { label: 'Feedback', icon: 'campaign' },
@@ -98,7 +98,7 @@ export class Dashboard {
     timeline: [],
     chart: {
       labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'],
-      // aqui muda os valores do xp 
+      // aqui muda os valores do xp
       accumulatedXp: [3, 10, 15, 20, 26, 31, 100],
       expectedXp: [5, 12, 18, 24, 30, 36, 50],
     },
