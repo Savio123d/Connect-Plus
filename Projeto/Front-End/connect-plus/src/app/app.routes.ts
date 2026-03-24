@@ -10,7 +10,7 @@ export const routes: Routes = [
   {
     path: 'cadastro-empresa',
     loadComponent: () =>
-      import('../cadastro-empresa/cadastro-empresa-page').then(
+      import('../cadastro-empresa/cadastro-empresa').then(
         (module) => module.CadastroEmpresa,
       ),
   },
