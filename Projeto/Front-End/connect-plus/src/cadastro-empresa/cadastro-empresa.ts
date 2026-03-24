@@ -1,217 +1,229 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
-type CompanyControlName = 'corporateName' | 'tradeName' | 'cnpj';
-type SubmitState = 'idle' | 'success' | 'error';
-
-type RegistrationStep = {
-  readonly title: string;
-  readonly detail: string;
-  readonly complete: boolean;
+type ConsultaCnpjResponse = {
+  readonly cnpj: string;
+  readonly razao_social: string;
+  readonly nome_fantasia?: string | null;
+  readonly descricao_situacao_cadastral: string | null;
+  readonly municipio?: string | null;
+  readonly uf?: string | null;
 };
 
-type SummaryBadge = {
-  readonly label: string;
-  readonly value: string;
-};
-
-type HelperNote = {
-  readonly title: string;
-  readonly detail: string;
+type RegisteredCompany = {
+  readonly corporateName: string;
+  readonly tradeName: string;
+  readonly cnpj: string;
+  readonly status: string;
+  readonly city: string;
+  readonly uf: string;
 };
 
 const EMPTY_COMPANY_FORM = {
-  corporateName: '',
-  tradeName: '',
   cnpj: '',
 };
-
-const CNPJ_PATTERN = /^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/;
-const CNPJ_MAX_DIGITS = 14;
 
 @Component({
   selector: 'app-cadastro-empresa',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './cadastro-empresa.html',
-  styleUrl: './cadastro-empresa-page.css',
+  styleUrl: './cadastro-empresa.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CadastroEmpresa {
-  private readonly fb = inject(FormBuilder);
 
-  readonly totalFields = Object.keys(EMPTY_COMPANY_FORM).length;
-  readonly helperNotes: readonly HelperNote[] = [
-    {
-      title: 'Razao social',
-      detail: 'Use o nome registrado no contrato social ou no cartao CNPJ.',
-    },
-    {
-      title: 'Nome fantasia',
-      detail: 'Esse nome pode ser exibido para usuarios e parceiros na plataforma.',
-    },
-    {
-      title: 'CNPJ valido',
-      detail: 'O campo aceita mascara automatica no formato 00.000.000/0000-00.',
-    },
-  ];
+export class CadastroEmpresa {
+  //aqui confere se cnpj é valido no governo
+  private readonly fb = inject(FormBuilder);
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = 'https://brasilapi.com.br/api/cnpj/v1';
+  private lastFetchedCnpj = '';
 
   readonly companyForm = this.fb.nonNullable.group({
-    corporateName: ['', [Validators.required, Validators.minLength(3)]],
-    tradeName: ['', [Validators.required, Validators.minLength(2)]],
-    cnpj: ['', [Validators.required, Validators.pattern(CNPJ_PATTERN)]],
+    cnpj: ['', [Validators.required]],
   });
 
-  submitState: SubmitState = 'idle';
+  //mensagem de erros
+  readonly loading = signal(false);
+  readonly errorMessage = signal('');
+  readonly successMessage = signal('');
+  readonly consultationResult = signal<ConsultaCnpjResponse | null>(null);
+  readonly registeredCompanies = signal<readonly RegisteredCompany[]>([]);
 
   get controls() {
     return this.companyForm.controls;
   }
 
-  get filledFieldsCount(): number {
-    return Object.values(this.companyForm.getRawValue()).filter((value) => value.trim().length > 0).length;
+  get totalCompanies(): number {
+    return this.registeredCompanies().length;
   }
 
-  get completionPercent(): number {
-    return Math.round((this.filledFieldsCount / this.totalFields) * 100);
-  }
-
-  get cnpjDigitsCount(): number {
-    return this.extractDigits(this.controls.cnpj.value).length;
-  }
-
-  get registrationSteps(): readonly RegistrationStep[] {
-    return [
-      {
-        title: 'Identificacao juridica',
-        detail: 'Razao social preenchida corretamente.',
-        complete: this.controls.corporateName.valid,
-      },
-      {
-        title: 'Marca da empresa',
-        detail: 'Nome fantasia pronto para exibicao.',
-        complete: this.controls.tradeName.valid,
-      },
-      {
-        title: 'Documento fiscal',
-        detail: 'CNPJ com mascara completa e valido no formulario.',
-        complete: this.controls.cnpj.valid,
-      },
-    ];
-  }
-
-  get summaryBadges(): readonly SummaryBadge[] {
-    return [
-      {
-        label: 'Campos preenchidos',
-        value: `${this.filledFieldsCount}/${this.totalFields}`,
-      },
-      {
-        label: 'Digitos do CNPJ',
-        value: `${this.cnpjDigitsCount}/14`,
-      },
-      {
-        label: 'Status atual',
-        value: this.statusLabel,
-      },
-    ];
-  }
-
-  get companyPreviewName(): string {
-    return this.controls.corporateName.value || 'Sua empresa aparecera aqui';
-  }
-
-  get tradeNamePreview(): string {
-    return this.controls.tradeName.value || 'Nome fantasia para exibicao';
-  }
-
-  get cnpjPreview(): string {
-    return this.controls.cnpj.value || '00.000.000/0000-00';
-  }
-
-  get statusLabel(): string {
-    if (this.submitState === 'success') {
-      return 'Validado';
-    }
-
-    if (this.companyForm.valid) {
-      return 'Pronto para envio';
-    }
-
-    return 'Em preenchimento';
-  }
-
-  onFieldInteraction(): void {
-    if (this.submitState !== 'idle') {
-      this.submitState = 'idle';
-    }
+  get lastConsultedStatus(): string {
+    return this.consultationResult()?.descricao_situacao_cadastral ?? 'Nenhuma consulta feita';
   }
 
   onCnpjInput(): void {
+  // classes para formatar o cnpj no formato visual
     const formattedValue = this.formatCnpj(this.controls.cnpj.value);
+    const normalizedCnpj = this.normalizeCnpj(formattedValue);
 
     if (formattedValue !== this.controls.cnpj.value) {
       this.controls.cnpj.setValue(formattedValue, { emitEvent: false });
     }
 
-    this.onFieldInteraction();
-  }
-
-  onSubmit(): void {
-    this.onCnpjInput();
-
-    if (this.companyForm.invalid) {
-      this.submitState = 'error';
-      this.companyForm.markAllAsTouched();
+    if (!normalizedCnpj) {
+      this.consultationResult.set(null);
+      this.lastFetchedCnpj = '';
+      this.clearMessages();
       return;
     }
 
-    this.submitState = 'success';
-    this.companyForm.markAsPristine();
-    console.log('Cadastro empresarial pronto para envio:', this.companyForm.getRawValue());
+    if (
+      this.consultationResult() &&
+      this.normalizeCnpj(this.consultationResult()!.cnpj) !== normalizedCnpj
+    ) {
+      this.consultationResult.set(null);
+    }
+
+    this.clearMessages();
+
+    if (normalizedCnpj.length < 14) {
+      return;
+    }
+
+    if (!this.validarCnpj(normalizedCnpj)) {
+      this.errorMessage.set('CNPJ invalido.');
+      return;
+    }
+
+    if (!this.loading() && this.lastFetchedCnpj !== normalizedCnpj) {
+      this.fetchCompanyData(normalizedCnpj);
+    }
+  }
+
+  saveCompany(): void {
+    this.clearMessages();
+    this.onCnpjInput();
+
+    if (this.companyForm.invalid) {
+      this.companyForm.markAllAsTouched();
+      this.errorMessage.set('Informe um CNPJ antes de salvar.');
+      return;
+    }
+
+    const normalizedCnpj = this.normalizeCnpj(this.controls.cnpj.value);
+
+    if (!this.validarCnpj(normalizedCnpj)) {
+      this.errorMessage.set('CNPJ invalido.');
+      return;
+    }
+
+    if (this.registeredCompanies().some((company) => this.normalizeCnpj(company.cnpj) === normalizedCnpj)) {
+      this.errorMessage.set('Esse CNPJ ja foi salvo no vetor local.');
+      return;
+    }
+
+    const currentResult = this.consultationResult();
+    const currentResultCnpj = currentResult ? this.normalizeCnpj(currentResult.cnpj) : '';
+
+    if (currentResult && currentResultCnpj === normalizedCnpj) {
+      this.finishSave(currentResult);
+      return;
+    }
+
+    this.fetchCompanyData(normalizedCnpj, true);
   }
 
   clearForm(): void {
     this.companyForm.reset(EMPTY_COMPANY_FORM);
-    this.submitState = 'idle';
+    this.consultationResult.set(null);
+    this.lastFetchedCnpj = '';
+    this.clearMessages();
   }
 
-  shouldShowError(controlName: CompanyControlName): boolean {
-    const control = this.controls[controlName];
-    return control.invalid && (control.touched || control.dirty || this.submitState === 'error');
+  shouldShowError(): boolean {
+    const control = this.controls.cnpj;
+    return control.invalid && (control.touched || control.dirty);
   }
 
-  errorMessage(controlName: CompanyControlName): string {
-    const control = this.controls[controlName];
-
-    if (control.hasError('required')) {
-      return `${this.getFieldLabel(controlName)} e obrigatorio.`;
-    }
-
-    if (control.hasError('minlength')) {
-      return `${this.getFieldLabel(controlName)} precisa ter mais caracteres.`;
-    }
-
-    if (control.hasError('pattern')) {
-      return 'Informe o CNPJ no formato 00.000.000/0000-00.';
-    }
-
-    return 'Confira este campo antes de continuar.';
-  }
-
-  private getFieldLabel(controlName: CompanyControlName): string {
-    const fieldLabels: Record<CompanyControlName, string> = {
-      corporateName: 'Razao social',
-      tradeName: 'Nome fantasia',
-      cnpj: 'CNPJ',
+  private finishSave(response: ConsultaCnpjResponse): void {
+    const company: RegisteredCompany = {
+      //depois de verificar se cnpj é valido ele puxar da api as informaçoes cadastrada no sistema do governo
+      corporateName: response.razao_social,
+      tradeName: response.nome_fantasia || 'Sem nome fantasia',
+      cnpj: this.formatCnpj(response.cnpj || this.controls.cnpj.value),
+      status: response.descricao_situacao_cadastral || 'Sem informacao',
+      city: response.municipio || 'Nao informado',
+      uf: response.uf || 'Nao informado',
     };
 
-    return fieldLabels[controlName];
+    this.registeredCompanies.update((companies) => [company, ...companies]);
+    this.successMessage.set('Empresa validada e salva no vetor local.');
+    this.controls.cnpj.setValue(this.formatCnpj(response.cnpj));
   }
 
-  private formatCnpj(value: string): string {
-    const digits = this.extractDigits(value).slice(0, CNPJ_MAX_DIGITS);
+  private clearMessages(): void {
+    this.errorMessage.set('');
+    this.successMessage.set('');
+  }
+
+  private fetchCompanyData(normalizedCnpj: string, saveAfterFetch = false): void {
+    this.loading.set(true);
+    this.lastFetchedCnpj = normalizedCnpj;
+
+    this.http.get<ConsultaCnpjResponse>(`${this.apiUrl}/${normalizedCnpj}`).subscribe({
+      next: (response) => {
+        this.loading.set(false);
+
+        if (this.normalizeCnpj(this.controls.cnpj.value) !== normalizedCnpj) {
+          return;
+        }
+        //onde puxar os dados da api
+        this.consultationResult.set(response);
+        this.controls.cnpj.setValue(this.formatCnpj(response.cnpj), { emitEvent: false });
+        this.successMessage.set('Dados carregados automaticamente pelo CNPJ.');
+
+        if (saveAfterFetch) {
+          this.finishSave(response);
+        }
+      },
+      error: () => {
+        this.loading.set(false);
+
+        if (this.normalizeCnpj(this.controls.cnpj.value) !== normalizedCnpj) {
+          return;
+        }
+
+        this.lastFetchedCnpj = '';
+        this.errorMessage.set('Nao foi possivel consultar o CNPJ agora.');
+      },
+    });
+  }
+
+    //validação antes de mandar para api
+  private validarCnpj(cnpj: string): boolean {
+    const normalizedCnpj = this.normalizeCnpj(cnpj);
+
+    if (normalizedCnpj.length !== 14 || /^(\d)\1{13}$/.test(normalizedCnpj)) {
+      return false;
+    }
+
+    const base = normalizedCnpj.slice(0, 12);
+    const firstDigit = this.calculateDigit(base);
+    const secondDigit = this.calculateDigit(`${base}${firstDigit}`);
+
+    return normalizedCnpj === `${base}${firstDigit}${secondDigit}`;
+  }
+
+  private normalizeCnpj(cnpj: string): string {
+    return cnpj.replace(/\D/g, '');
+  }
+
+//converto para ficar no padrão
+  private formatCnpj(cnpj: string): string {
+    const digits = this.normalizeCnpj(cnpj).slice(0, 14);
     const firstBlock = digits.slice(0, 2);
     const secondBlock = digits.slice(2, 5);
     const thirdBlock = digits.slice(5, 8);
@@ -239,7 +251,21 @@ export class CadastroEmpresa {
     return formattedValue;
   }
 
-  private extractDigits(value: string): string {
-    return value.replace(/\D/g, '');
+  //proprio nome ja diz com é feito o calculo 
+  private calculateDigit(base: string): number {
+    let sum = 0;
+    let weight = base.length - 7;
+
+    for (const digit of base) {
+      sum += Number(digit) * weight;
+      weight -= 1;
+
+      if (weight < 2) {
+        weight = 9;
+      }
+    }
+
+    const remainder = sum % 11;
+    return remainder < 2 ? 0 : 11 - remainder;
   }
 }
