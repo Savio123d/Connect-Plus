@@ -1,194 +1,167 @@
-  <div class="registration-shell">
-  <div class="glow glow-left"></div>
-  <div class="glow glow-right"></div>
-
-  <div class="registration-frame">
-    <aside class="sidebar">
-      <div class="brand-block">
-        <p class="brand-mark">Connect <span>+</span></p>
-        <p class="brand-copy">Cadastro empresarial</p>
-      </div>
-
-      <section class="sidebar-panel">
-        <span class="eyebrow">Etapas</span>
-
-        <div class="step-list">
-          @for (step of registrationSteps; track step.title) {
-            <article class="step-card" [class.complete]="step.complete">
-              <span class="step-index">{{ $index + 1 }}</span>
-
-              <div>
-                <strong>{{ step.title }}</strong>
-                <p>{{ step.detail }}</p>
-              </div>
-            </article>
-          }
-        </div>
-      </section>
-
-      <section class="sidebar-panel sidebar-note">
-        <span class="eyebrow">Orientacao</span>
-        <p>Preencha os dados da empresa exatamente como estao no documento oficial para evitar retrabalho depois.</p>
-      </section>
-    </aside>
-
-    <main class="content">
-      <header class="toolbar">
-        <div class="toolbar-copy">
-          <span class="eyebrow">Onboarding</span>
-          <h1>Finalize o cadastro da sua empresa</h1>
-          <p>Faltam so os dados principais para liberar o perfil empresarial no Connect+.</p>
-        </div>
-
-        <div class="toolbar-status">
-          <strong>{{ completionPercent }}%</strong>
-          <span>do cadastro concluido</span>
-        </div>
-      </header>
-
-      <section class="hero">
-        <div class="hero-copy">
-          <span class="eyebrow">Conta empresarial</span>
-          <h2>Deixe o perfil pronto para seguir para a proxima etapa.</h2>
-          <p>O formulario faz a validacao basica dos campos e aplica mascara automatica no CNPJ para voce.</p>
-        </div>
-
-        <div class="hero-badges">
-          @for (badge of summaryBadges; track badge.label) {
+<section class="container py-4 py-lg-5 cadastro-wrapper">
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4 p-lg-5">
+          <div class="d-flex flex-column flex-lg-row align-items-lg-start justify-content-between gap-3 mb-4">
             <div>
-              <strong>{{ badge.value }}</strong>
-              <span>{{ badge.label }}</span>
-            </div>
-          }
-        </div>
-      </section>
-
-      <section class="form-layout">
-        <article class="panel form-panel">
-          <div class="panel-header">
-            <div>
-              <span class="eyebrow">Formulario</span>
-              <h3>Informacoes da empresa</h3>
+              <p class="text-uppercase text-secondary fw-semibold small mb-2">Cadastro empresarial</p>
+              <h1 class="h3 mb-2">Consulta automatica por CNPJ</h1>
+              <p class="text-secondary mb-0">
+                Digite um CNPJ valido. Quando ele fechar 14 digitos validos, a tela busca automaticamente
+                nome, nome fantasia, situacao, cidade e UF.
+              </p>
             </div>
 
-            <span class="panel-chip">{{ filledFieldsCount }}/{{ totalFields }} campos</span>
+            <div class="badge-box text-lg-end">
+              <span class="text-secondary small d-block">Empresas  cadastrada</span>
+              <strong class="display-6 fw-semibold text-primary">{{ totalCompanies }}</strong>
+            </div>
           </div>
 
-          <form class="company-form" [formGroup]="companyForm" (ngSubmit)="onSubmit()" novalidate>
-            <div class="field-grid">
-              <label class="field" [class.invalid]="shouldShowError('corporateName')">
-                <span>Razao social</span>
-                <input
-                  type="text"
-                  formControlName="corporateName"
-                  placeholder="Ex.: Connect Plus Tecnologia Ltda."
-                  maxlength="80"
-                  (input)="onFieldInteraction()"
-                />
+          <form [formGroup]="companyForm" (ngSubmit)="saveCompany()" novalidate>
+            <div class="row g-3 align-items-end">
+              <div class="col-12">
+                <label for="cnpj" class="form-label fw-semibold">CNPJ</label>
+                <div class="input-group input-group-lg">
+                  <span class="input-group-text">#</span>
+                  <input
+                    id="cnpj"
+                    type="text"
+                    class="form-control"
+                    formControlName="cnpj"
+                    placeholder="00.000.000/0000-00"
+                    inputmode="numeric"
+                    maxlength="18"
+                    (input)="onCnpjInput()"
+                  />
+                  @if (loading()) {
+                    <span class="input-group-text">
+                      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                    </span>
+                  }
+                </div>
 
-                @if (shouldShowError('corporateName')) {
-                  <small class="error-text">{{ errorMessage('corporateName') }}</small>
+                @if (shouldShowError()) {
+                  <div class="text-danger small mt-2">Informe um CNPJ.</div>
                 }
-              </label>
-
-              <label class="field" [class.invalid]="shouldShowError('tradeName')">
-                <span>Nome fantasia</span>
-                <input
-                  type="text"
-                  formControlName="tradeName"
-                  placeholder="Ex.: Connect Plus"
-                  maxlength="80"
-                  (input)="onFieldInteraction()"
-                />
-
-                @if (shouldShowError('tradeName')) {
-                  <small class="error-text">{{ errorMessage('tradeName') }}</small>
-                }
-              </label>
-
-              <label class="field field-full" [class.invalid]="shouldShowError('cnpj')">
-                <span>CNPJ</span>
-                <input
-                  type="text"
-                  formControlName="cnpj"
-                  placeholder="00.000.000/0000-00"
-                  inputmode="numeric"
-                  maxlength="18"
-                  (input)="onCnpjInput()"
-                />
-
-                @if (shouldShowError('cnpj')) {
-                  <small class="error-text">{{ errorMessage('cnpj') }}</small>
-                }
-              </label>
+              </div>
             </div>
 
-            <div class="form-footer">
-              <div class="status-banner" [class.success]="submitState === 'success'" [class.error-state]="submitState === 'error'">
-                @if (submitState === 'success') {
-                  <div>
-                    <strong>Formulario validado com sucesso.</strong>
-                    <p>Os dados ja estao organizados para voce conectar o envio com a API depois.</p>
-                  </div>
-                } @else if (submitState === 'error') {
-                  <div>
-                    <strong>Revise os campos destacados.</strong>
-                    <p>Todos os tres campos precisam estar completos antes de continuar.</p>
-                  </div>
-                } @else {
-                  <div>
-                    <strong>Preencha os dados oficiais da empresa.</strong>
-                    <p>Assim que tudo estiver valido, o cadastro fica pronto para envio.</p>
-                  </div>
-                }
+            @if (errorMessage()) {
+              <div class="alert alert-danger mt-3 mb-0" role="alert">
+                {{ errorMessage() }}
               </div>
+            }
 
-              <div class="actions">
-                <button type="button" class="secondary-button" (click)="clearForm()">Limpar</button>
-                <button type="submit" class="primary-button">Continuar cadastro</button>
+            @if (successMessage()) {
+              <div class="alert alert-info mt-3 mb-0" role="alert">
+                {{ successMessage() }}
               </div>
+            }
+
+            <div class="d-flex flex-column flex-sm-row justify-content-end gap-2 mt-4">
+              <button type="button" class="btn btn-outline-secondary" (click)="clearForm()">
+                Limpar
+              </button>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                [disabled]="loading() || !consultationResult()"
+              >
+                Salvar no vetor
+              </button>
             </div>
           </form>
-        </article>
+        </div>
+      </div>
+    </div>
 
-        <article class="panel preview-panel">
-          <div class="panel-header">
+    <div class="col-12 col-xl-7">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
             <div>
-              <span class="eyebrow">Preview</span>
-              <h3>Como a empresa vai aparecer</h3>
-            </div>
-
-            <span class="panel-chip">{{ statusLabel }}</span>
-          </div>
-
-          <div class="preview-card">
-            <span class="preview-label">Perfil empresarial</span>
-            <strong>{{ companyPreviewName }}</strong>
-            <p>{{ tradeNamePreview }}</p>
-          </div>
-
-          <div class="preview-meta">
-            <div>
-              <span>CNPJ</span>
-              <strong>{{ cnpjPreview }}</strong>
-            </div>
-
-            <div>
-              <span>Conferencia</span>
-              <strong>{{ cnpjDigitsCount }}/14 digitos</strong>
+              <h2 class="h5 mb-1">Dados retornados</h2>
+              <p class="text-secondary mb-0">Status atual: {{ lastConsultedStatus }}</p>
             </div>
           </div>
 
-          <div class="helper-list">
-            @for (note of helperNotes; track note.title) {
-              <article class="helper-item">
-                <strong>{{ note.title }}</strong>
-                <p>{{ note.detail }}</p>
-              </article>
-            }
-          </div>
-        </article>
-      </section>
-    </main>
+          @if (consultationResult(); as result) {
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">Razao social</label>
+                <input class="form-control" [value]="result.razao_social" readonly />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Nome fantasia</label>
+                <input class="form-control" [value]="result.nome_fantasia || 'Sem nome fantasia'" readonly />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">CNPJ</label>
+                <input class="form-control" [value]="result.cnpj" readonly />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Situacao</label>
+                <input class="form-control" [value]="result.descricao_situacao_cadastral || 'Sem informacao'" readonly />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Cidade</label>
+                <input class="form-control" [value]="result.municipio || 'Nao informado'" readonly />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">UF</label>
+                <input class="form-control" [value]="result.uf || 'Nao informado'" readonly />
+              </div>
+            </div>
+          } @else {
+            <div class="alert alert-light border mb-0">
+              Nenhum dado carregado ainda. Digite um CNPJ valido para preencher os campos automaticamente.
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-xl-5">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body p-4">
+          <h2 class="h5 mb-1">Vetor</h2>
+          <p class="text-secondary mb-3">Lista local por enquanto</p>
+
+          @if (registeredCompanies().length) {
+            <div class="table-responsive">
+              <table class="table table-sm align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Nome</th>
+                    <th>CNPJ</th>
+                    <th>Situacao</th>
+                    <th>Cidade/UF</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (company of registeredCompanies(); track company.cnpj) {
+                    <tr>
+                      <td>
+                        <div class="fw-semibold">{{ company.tradeName }}</div>
+                        <div class="small text-secondary">{{ company.corporateName }}</div>
+                      </td>
+                      <td>{{ company.cnpj }}</td>
+                      <td>{{ company.status }}</td>
+                      <td>{{ company.city }}/{{ company.uf }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <div class="alert alert-light border mb-0">
+              Nenhuma empresa salva no vetor local.
+            </div>
+          }
+        </div>
+      </div>
+    </div>
   </div>
-</div>
+</section>
