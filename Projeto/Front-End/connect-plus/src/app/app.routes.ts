@@ -1,5 +1,8 @@
 import { Menu } from './../pages/dashboard/dashboard';
 import { Routes } from '@angular/router';
+import { Login } from './pages/login/login';
+import { Dashboard } from './pages/dashboard/dashboard';
+import { CadastroEmpresa } from './pages/cadastro-empresa/cadastro-empresa';
 
 export const routes: Routes = [
   {
