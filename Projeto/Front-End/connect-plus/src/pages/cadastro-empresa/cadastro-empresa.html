@@ -1,167 +1,99 @@
-<section class="container py-4 py-lg-5 cadastro-wrapper">
-  <div class="row g-4">
-    <div class="col-12">
-      <div class="card shadow-sm border-0">
-        <div class="card-body p-4 p-lg-5">
-          <div class="d-flex flex-column flex-lg-row align-items-lg-start justify-content-between gap-3 mb-4">
-            <div>
-              <p class="text-uppercase text-secondary fw-semibold small mb-2">Cadastro empresarial</p>
-              <h1 class="h3 mb-2">Consulta automatica por CNPJ</h1>
-              <p class="text-secondary mb-0">
-                Digite um CNPJ valido. Quando ele fechar 14 digitos validos, a tela busca automaticamente
-                nome, nome fantasia, situacao, cidade e UF.
-              </p>
-            </div>
-
-            <div class="badge-box text-lg-end">
-              <span class="text-secondary small d-block">Empresas  cadastrada</span>
-              <strong class="display-6 fw-semibold text-primary">{{ totalCompanies }}</strong>
-            </div>
+<div class="cadastro-wrapper container">
+  
+  <div class="card mb-4">
+    <div class="card-body">
+      <h2 class="mb-4">Cadastro de Empresa</h2>
+      
+      <form [formGroup]="empresaC" (ngSubmit)="onSubmit()">
+        <div class="row g-3"> <div class="col-md-6">
+            <label for="razaoSocial" class="form-label">Razão Social:</label>
+            <input id="razaoSocial" type="text" class="form-control" formControlName="razaoSocial" />
           </div>
 
-          <form [formGroup]="companyForm" (ngSubmit)="saveCompany()" novalidate>
-            <div class="row g-3 align-items-end">
-              <div class="col-12">
-                <label for="cnpj" class="form-label fw-semibold">CNPJ</label>
-                <div class="input-group input-group-lg">
-                  <span class="input-group-text">#</span>
-                  <input
-                    id="cnpj"
-                    type="text"
-                    class="form-control"
-                    formControlName="cnpj"
-                    placeholder="00.000.000/0000-00"
-                    inputmode="numeric"
-                    maxlength="18"
-                    (input)="onCnpjInput()"
-                  />
-                  @if (loading()) {
-                    <span class="input-group-text">
-                      <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
-                    </span>
-                  }
-                </div>
-
-                @if (shouldShowError()) {
-                  <div class="text-danger small mt-2">Informe um CNPJ.</div>
-                }
-              </div>
-            </div>
-
-            @if (errorMessage()) {
-              <div class="alert alert-danger mt-3 mb-0" role="alert">
-                {{ errorMessage() }}
-              </div>
-            }
-
-            @if (successMessage()) {
-              <div class="alert alert-info mt-3 mb-0" role="alert">
-                {{ successMessage() }}
-              </div>
-            }
-
-            <div class="d-flex flex-column flex-sm-row justify-content-end gap-2 mt-4">
-              <button type="button" class="btn btn-outline-secondary" (click)="clearForm()">
-                Limpar
-              </button>
-              <button
-                type="submit"
-                class="btn btn-primary"
-                [disabled]="loading() || !consultationResult()"
-              >
-                Salvar no vetor
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-12 col-xl-7">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-body p-4">
-          <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
-            <div>
-              <h2 class="h5 mb-1">Dados retornados</h2>
-              <p class="text-secondary mb-0">Status atual: {{ lastConsultedStatus }}</p>
-            </div>
+          <div class="col-md-6">
+            <label for="nomeFantasia" class="form-label">Nome Fantasia:</label>
+            <input id="nomeFantasia" type="text" class="form-control" formControlName="nomeFantasia" />
           </div>
 
-          @if (consultationResult(); as result) {
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label">Razao social</label>
-                <input class="form-control" [value]="result.razao_social" readonly />
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Nome fantasia</label>
-                <input class="form-control" [value]="result.nome_fantasia || 'Sem nome fantasia'" readonly />
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">CNPJ</label>
-                <input class="form-control" [value]="result.cnpj" readonly />
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Situacao</label>
-                <input class="form-control" [value]="result.descricao_situacao_cadastral || 'Sem informacao'" readonly />
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Cidade</label>
-                <input class="form-control" [value]="result.municipio || 'Nao informado'" readonly />
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">UF</label>
-                <input class="form-control" [value]="result.uf || 'Nao informado'" readonly />
-              </div>
-            </div>
-          } @else {
-            <div class="alert alert-light border mb-0">
-              Nenhum dado carregado ainda. Digite um CNPJ valido para preencher os campos automaticamente.
-            </div>
-          }
-        </div>
-      </div>
-    </div>
+          <div class="col-md-4">
+            <label for="cnpj" class="form-label">CNPJ:</label>
+            <input id="cnpj" type="text" class="form-control" formControlName="cnpj"  maxlength="14"/>
+          </div>
 
-    <div class="col-12 col-xl-5">
-      <div class="card shadow-sm border-0 h-100">
-        <div class="card-body p-4">
-          <h2 class="h5 mb-1">Vetor</h2>
-          <p class="text-secondary mb-3">Lista local por enquanto</p>
+          <div class="col-md-4">
+            <label for="cidade" class="form-label">Cidade:</label>
+            <input id="cidade" type="text" class="form-control" formControlName="cidade" />
+          </div>
 
-          @if (registeredCompanies().length) {
-            <div class="table-responsive">
-              <table class="table table-sm align-middle mb-0">
-                <thead>
-                  <tr>
-                    <th>Nome</th>
-                    <th>CNPJ</th>
-                    <th>Situacao</th>
-                    <th>Cidade/UF</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (company of registeredCompanies(); track company.cnpj) {
-                    <tr>
-                      <td>
-                        <div class="fw-semibold">{{ company.tradeName }}</div>
-                        <div class="small text-secondary">{{ company.corporateName }}</div>
-                      </td>
-                      <td>{{ company.cnpj }}</td>
-                      <td>{{ company.status }}</td>
-                      <td>{{ company.city }}/{{ company.uf }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          } @else {
-            <div class="alert alert-light border mb-0">
-              Nenhuma empresa salva no vetor local.
-            </div>
-          }
+          <div class="col-md-2">
+            <label for="situacao" class="form-label">Situação:</label>
+            <select id="situacao" class="form-control" formControlName="situacao">
+              <option [value]="Status.Ativo">Ativo</option>
+              <option [value]="Status.Baixada">Baixada</option>
+            </select>
+
+          </div>
+
+          <div class="col-md-2">
+            <label for="uf" class="form-label">UF:</label>
+            <select id="uf" class="form-control" formControlName="uf">
+              @for (estado of estados; track estado) {
+                <option [value]="estado">{{ estado }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="col-12 mt-3">
+            <button type="submit" class="btn btn-primary px-4 py-2">
+              Salvar Empresa
+            </button>
+          </div>
+
         </div>
-      </div>
+      </form>
     </div>
   </div>
-</section>
+
+  <div class="card">
+    <div class="card-body">
+      <h3 class="mb-4">Empresas Cadastradas</h3>
+      
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Razão Social</th>
+              <th>Nome Fantasia</th>
+              <th>CNPJ</th>
+              <th>Cidade</th>
+              <th>Situação</th>
+              <th>UF</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (empresa of empresas; track empresa.cnpj) {
+              <tr>
+                <td><strong>{{ empresa.razaoSocial }}</strong></td>
+                <td>{{ empresa.nomeFantasia }}</td>
+                <td>{{ empresa.cnpj }}</td>
+                <td>{{ empresa.cidade }}</td>
+                <td>
+                  <span class="badge" [ngClass]="empresa.situacao === 'A' ? 'bg-success' : 'bg-danger'">
+                    {{ empresa.situacao === 'A' ? 'Ativo' : 'Baixada' }}
+                  </span>
+                </td>
+                <td>{{ empresa.uf }}</td>
+                    <td>
+                    <button class="btn btn-sm btn-danger" (click)="Delete(empresas.indexOf(empresa))">
+                        Excluir
+                    </button>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      
+    </div>
+  </div>
+
+</div>
