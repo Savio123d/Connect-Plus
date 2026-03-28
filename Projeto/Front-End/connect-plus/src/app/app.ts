@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 @Component({
@@ -6,9 +6,8 @@ import { RouterOutlet } from '@angular/router';
   standalone: true,
   imports: [RouterOutlet],
   templateUrl: './app.html',
-  styleUrl: './app.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './app.css'
 })
 export class App {
-  readonly title = 'Connect Plus';
+   title = 'Connect Plus';
 }
