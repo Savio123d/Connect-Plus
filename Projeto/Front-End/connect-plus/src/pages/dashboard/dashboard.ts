@@ -3,7 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { RouterLink, RouterLinkActive } from '@angular/router'; // Para fazer o menu funcionar
+import { RouterLink, RouterLinkActive } from '@angular/router'; 
 
 type MenuItem = {
   label: string;
@@ -27,7 +27,6 @@ type MenuItem = {
 })
 
 export class Menu {
-  // Menu simples apontando para as telas que você já criou!
   menuItems: MenuItem[] = [
     { label: 'Início', icon: 'home', route: '/dashboard' },
     { label: 'Feedbacks', icon: 'feedback', route: '/feedbacks' },
