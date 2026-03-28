@@ -1,11 +1,34 @@
+import { Menu } from './../pages/dashboard/dashboard';
 import { Routes } from '@angular/router';
 import { Login } from './pages/login/login';
 import { Dashboard } from './pages/dashboard/dashboard';
 import { CadastroEmpresa } from './pages/cadastro-empresa/cadastro-empresa';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
-  { path: 'login', component: Login },
-  { path: 'dashboard', component: Dashboard },
-  { path: 'cadastro-empresa', component: CadastroEmpresa }
+  {
+    path: '',
+    pathMatch: 'full',
+    redirectTo: 'login',
+  },
+  {
+    path: 'cadastro-empresa',
+    loadComponent: () =>
+      import('../pages/cadastro-empresa/cadastro-empresa').then(
+        (module) => module.CadastroEmpresa,
+      ),
+  },
+  {
+    path: 'dashboard',
+    loadComponent: () =>
+      import('../pages/dashboard/dashboard').then(
+        (module) => module.Menu,
+      ),
+  },
+  {
+    path: 'login',
+    loadComponent: () =>
+      import('../pages/login/login').then(
+        (module) => module.Login,
+      ),
+  }
 ];
