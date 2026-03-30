@@ -1,0 +1,58 @@
+:host {
+  display: block;
+  height: 100vh;
+}
+
+.dashboard-shell {
+  height: 100vh;
+  background-color: #f4f6f9; 
+}
+
+.sidebar {
+  width: 260px;
+  background: #ffffff;
+  border-right: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.menu-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-link {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  text-decoration: none;
+  color: #6676a3;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+.menu-link mat-icon {
+  color: #a0abc0;
+  transition: color 0.2s ease;
+}
+
+.menu-link:hover, 
+.menu-link.active {
+  background: rgba(124, 86, 255, 0.08);
+  color: #243aa7;
+  border-right: 4px solid #7c56ff;
+}
+
+.menu-link:hover mat-icon, 
+.menu-link.active mat-icon {
+  color: #7c56ff;
+}
+
+.content {
+  background-color: #f4f6f9;
+}
+
+.toolbar {
+  background: #ffffff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  height: 70px;
+}

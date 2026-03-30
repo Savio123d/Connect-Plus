@@ -1,5 +1,35 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+:root {
+  --connect-bg:
+    radial-gradient(circle at top left, rgba(159, 186, 255, 0.52) 0%, rgba(159, 186, 255, 0) 28%),
+    radial-gradient(
+      circle at right center,
+      rgba(145, 118, 255, 0.28) 0%,
+      rgba(145, 118, 255, 0) 26%
+    ),
+    linear-gradient(180deg, #f6f7fb 0%, #f1f3ff 100%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
 
 body {
   margin: 0;
+  background: var(--connect-bg);
+  color: #16235f;
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
