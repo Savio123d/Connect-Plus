@@ -1,0 +1,74 @@
+:host {
+  display: block;
+}
+
+.layout-usuarios {
+  display: flex;
+  min-height: 100vh;
+  background: #f4f5fb;
+}
+
+.conteudo-usuarios {
+  flex: 1;
+  padding: 32px;
+  background: #f4f5fb;
+}
+
+.titulo-usuarios {
+  margin: 0;
+  color: #1f2a44;
+  font-size: 2.2rem;
+  font-weight: 700;
+}
+
+.tabela-card {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+}
+
+.acoes-usuarios {
+  width: 220px;
+  min-height: 100vh;
+  background: #ffffff;
+  border-left: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+}
+
+.botoes-acoes {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  align-items: center;
+}
+
+.btn-usuario {
+  width: 90px;
+  height: 50px;
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 0;
+}
+
+@media (max-width: 700px) {
+  .layout-usuarios {
+    flex-direction: column;
+  }
+
+  .acoes-usuarios {
+    width: 100%;
+    min-height: auto;
+    border-left: none;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .botoes-acoes {
+    flex-direction: row;
+    justify-content: center;
+  }
+}

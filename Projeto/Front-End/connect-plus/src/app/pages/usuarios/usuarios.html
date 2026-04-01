@@ -1,0 +1,50 @@
+<div class="layout-usuarios">
+  <app-sidebar></app-sidebar>
+
+  <main class="conteudo-usuarios">
+    <h1 class="titulo-usuarios">Visualização de Usuários</h1>
+
+    <div *ngIf="carregando" class="alert alert-light border">
+      Carregando usuários...
+    </div>
+
+    <div *ngIf="erro" class="alert alert-danger">
+      {{ erro }}
+    </div>
+
+    <div *ngIf="!carregando && !erro" class="tabela-card">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>E-mail</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let usuario of usuarios">
+            <td>{{ usuario.id }}</td>
+            <td>{{ usuario.nome }}</td>
+            <td>{{ usuario.email }}</td>
+            <td>{{ usuario.status }}</td>
+          </tr>
+
+          <tr *ngIf="usuarios.length === 0">
+            <td colspan="4" class="text-center text-muted py-4">
+              Nenhum usuário cadastrado.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+<aside class="acoes-usuarios">
+  <div class="botoes-acoes">
+    <button class="btn btn-outline-primary btn-usuario">Editar</button>
+    <button class="btn btn-primary btn-usuario">Novo</button>
+  </div>
+</aside>
+</div>
