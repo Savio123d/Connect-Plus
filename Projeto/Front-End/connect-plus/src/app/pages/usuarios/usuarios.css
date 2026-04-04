@@ -1,0 +1,73 @@
+:host {
+  display: block;
+}
+
+.layout-usuarios {
+  display: flex;
+  min-height: 100vh;
+  background: #f4f5fb;
+}
+
+.area-usuarios {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #f4f5fb;
+}
+
+.topo-usuarios {
+  height: 70px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+}
+
+.topo-usuarios h1 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1f2a44;
+}
+
+.conteudo-usuarios {
+  flex: 1;
+  padding: 24px 28px;
+  background: #f4f5fb;
+}
+
+.tabela-card {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+}
+
+.acoes-usuarios {
+  width: 220px;
+  min-height: 100vh;
+  background: #ffffff;
+  border-left: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+}
+
+.botoes-acoes {
+  width: 100%;
+  display: flex;
+  flex-direction: column !important;
+  align-items: center;
+  gap: 16px;
+}
+
+.btn-usuario {
+  display: block;
+  width: 100px;
+  height: 55px;
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 0;
+}
