@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -26,8 +28,9 @@ public class SetorModel {
     @Column(name = "id")
     private Long idSetor;
 
-    @Column(name = "empresa_id", nullable = false)
-    private Long idEmpresa;
+    @ManyToOne
+    @JoinColumn(name = "empresa_id", nullable = false)
+    private EmpresaModel idEmpresa;
 
     @Column(name = "nome", nullable = false, length = 100)
     private String nome;
