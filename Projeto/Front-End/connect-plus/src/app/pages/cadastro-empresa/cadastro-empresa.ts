@@ -1,28 +1,43 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { EmpresaService, Empresa } from './service_empresa';
 
 // Enum de Status
-enum Status {
+export enum Status {
   Ativo = 'A',
   Baixada = 'B',
 }
 
 // Definir um tipo para os estados brasileiros
-type Estado =
-  | 'AC' | 'AL' | 'AP' | 'AM' | 'BA' | 'CE' | 'DF' | 'ES'
-  | 'GO' | 'MA' | 'MT' | 'MS' | 'MG' | 'PA' | 'PB' | 'PR'
-  | 'PE' | 'PI' | 'RJ' | 'RN' | 'RS' | 'RO' | 'RR' | 'SC'
-  | 'SP' | 'SE' | 'TO';
-
-interface Empresa {
-  razaoSocial: string;
-  nomeFantasia: string;
-  cnpj: string;
-  cidade: string;
-  situacao: Status;
-  uf: Estado;
-}
+export type Estado =
+  | 'AC'
+  | 'AL'
+  | 'AP'
+  | 'AM'
+  | 'BA'
+  | 'CE'
+  | 'DF'
+  | 'ES'
+  | 'GO'
+  | 'MA'
+  | 'MT'
+  | 'MS'
+  | 'MG'
+  | 'PA'
+  | 'PB'
+  | 'PR'
+  | 'PE'
+  | 'PI'
+  | 'RJ'
+  | 'RN'
+  | 'RS'
+  | 'RO'
+  | 'RR'
+  | 'SC'
+  | 'SP'
+  | 'SE'
+  | 'TO';
 
 @Component({
   selector: 'app-cadastro-empresa',
@@ -31,35 +46,84 @@ interface Empresa {
   styleUrls: ['./cadastro-empresa.css'],
   imports: [ReactiveFormsModule, CommonModule],
 })
-export class CadastroEmpresa {
+export class CadastroEmpresa implements OnInit {
   Status = Status;
-  empresas: Empresa[] = []; // Lista de empresas cadastradas
+  empresas: Empresa[] = [];
 
+  // O vetor de estados para o menu suspenso (Select)
   estados: Estado[] = [
-    'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES',
-    'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR',
-    'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC',
-    'SP', 'SE', 'TO'
+    'AC',
+    'AL',
+    'AP',
+    'AM',
+    'BA',
+    'CE',
+    'DF',
+    'ES',
+    'GO',
+    'MA',
+    'MT',
+    'MS',
+    'MG',
+    'PA',
+    'PB',
+    'PR',
+    'PE',
+    'PI',
+    'RJ',
+    'RN',
+    'RS',
+    'RO',
+    'RR',
+    'SC',
+    'SP',
+    'SE',
+    'TO',
   ];
 
   empresaC = new FormGroup({
     razaoSocial: new FormControl(''),
     nomeFantasia: new FormControl(''),
-    cnpj: new FormControl("", Validators.maxLength(14)),
+    cnpj: new FormControl('', Validators.maxLength(14)),
     cidade: new FormControl(''),
-    situacao: new FormControl(Status.Ativo), 
+    situacao: new FormControl(Status.Ativo),
     uf: new FormControl(''),
   });
 
-  // Função de submit para adicionar uma nova empresa no vetor
+  constructor(private empresaService: EmpresaService) {}
+
+  ngOnInit(): void {
+    this.listarEmpresas();
+  }
+
   onSubmit(): void {
-    const empresa = this.empresaC.value as Empresa; 
-    this.empresas.push(empresa);  
-    console.log(this.empresas);  // Exibe as empresas no console
+    const dadosParaSalvar = this.empresaC.value as Empresa;
+
+    this.empresaService.salvar(dadosParaSalvar).subscribe({
+      next: (empresaSalva: Empresa) => {
+        this.empresas.push(empresaSalva);
+        this.empresaC.reset({ situacao: Status.Ativo }); // Reseta mantendo o Ativo padrão
+      },
+      error: (err) => console.error('Erro ao salvar', err),
+    });
   }
 
-  Delete(index: number): void {
-    this.empresas.splice(index, 1); 
+  listarEmpresas(): void {
+    this.empresaService.listar().subscribe({
+      next: (dados) => (this.empresas = dados),
+      error: (err) => console.error('Erro ao listar:', err),
+    });
   }
 
+  deleta(empresa: Empresa): void {
+    if (empresa.idEmpresa) {
+      this.empresaService.deleta(empresa.idEmpresa).subscribe({
+        next: () => {
+          this.empresas = this.empresas.filter((e) => e.idEmpresa !== empresa.idEmpresa);
+          alert('Empresa removida! ✅');
+        },
+        error: (err) => console.error('Erro ao deletar:', err),
+      });
+    }
+  }
 }
