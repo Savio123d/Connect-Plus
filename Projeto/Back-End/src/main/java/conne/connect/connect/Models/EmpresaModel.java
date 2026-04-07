@@ -38,6 +38,12 @@ public class EmpresaModel {
     @Column(name = "cnpj", unique = true, length = 18)
     private String cnpj;
 
+    @Column(name = "cidade", length = 100)
+    private String cidade;
+
+    @Column(name = "uf", length = 2)
+    private String uf;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private StatusEmpresa status;
