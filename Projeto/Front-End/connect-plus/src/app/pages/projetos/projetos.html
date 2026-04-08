@@ -1,0 +1,56 @@
+<div class="layout-dashboard">
+  <app-sidebar></app-sidebar>
+
+  <section class="area-dashboard">
+    <header class="topo-dashboard">
+      <h1>Projetos</h1>
+    </header>
+
+    <main class="conteudo-dashboard">
+      <div class="projetos-header">
+        <span class="projetos-tag">WORKSPACE</span>
+        <h2 class="projetos-titulo">Projetos</h2>
+        <p class="projetos-subtitulo">
+          Visualize todos os projetos já criados no sistema.
+        </p>
+      </div>
+
+      <div class="projetos-layout">
+        <section class="projetos-card">
+          <div class="projetos-table-header">
+            <span>ID</span>
+            <span>Nome</span>
+            <span>Cor</span>
+          </div>
+
+          <div
+            class="projetos-row"
+            *ngFor="let projeto of projetos"
+            [class.selecionado]="projetoSelecionado?.id === projeto.id"
+            (click)="selecionarProjeto(projeto)"
+          >
+            <span>{{ projeto.id }}</span>
+            <span>{{ projeto.nome }}</span>
+            <span class="cor-info">
+              <span
+                class="cor-bolinha"
+                [style.backgroundColor]="projeto.cor"
+              ></span>
+              {{ projeto.cor }}
+            </span>
+          </div>
+        </section>
+
+        <aside class="acoes-laterais">
+          <button class="btn-editar" (click)="editarProjeto()">
+            Editar Projeto
+          </button>
+
+          <button class="btn-criar" (click)="criarProjeto()">
+            Criar Projeto
+          </button>
+        </aside>
+      </div>
+    </main>
+  </section>
+</div>
