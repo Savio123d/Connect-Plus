@@ -1,0 +1,25 @@
+<div class="layout-dashboard">
+  <app-sidebar></app-sidebar>
+
+  <section class="area-dashboard">
+    <header class="topo-dashboard">
+      <h1>Visão Geral</h1>
+    </header>
+
+    <main class="conteudo-dashboard">
+      <div class="cards-dashboard">
+        <div class="card-info">
+          <mat-icon class="icone-card icone-empresa">apartment</mat-icon>
+          <h2>Empresas</h2>
+          <p>{{ totalEmpresasCadastradas }}</p>
+        </div>
+
+        <div class="card-info">
+          <mat-icon class="icone-card icone-usuarios">groups</mat-icon>
+          <h2>Usuários Ativos</h2>
+          <p>{{ usuariosAtivos }}</p>
+        </div>
+      </div>
+    </main>
+  </section>
+</div>
