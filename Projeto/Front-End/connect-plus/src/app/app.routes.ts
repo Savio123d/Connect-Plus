@@ -33,5 +33,19 @@ export const routes: Routes = [
       import('./pages/usuarios/usuarios').then(
         (module) => module.Usuarios,
       ),
+  },
+    {
+    path: 'usuarios/novo',
+    loadComponent: () =>
+      import('./pages/usuario-form/usuario-form').then(
+        (module) => module.UsuarioForm
+      ),
+  },
+  {
+    path: 'usuarios/editar/:id',
+    loadComponent: () =>
+      import('./pages/usuario-form/usuario-form').then(
+        (module) => module.UsuarioForm
+      ),
   }
 ];
