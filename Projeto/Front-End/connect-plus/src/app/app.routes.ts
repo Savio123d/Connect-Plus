@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-
+import { Loja } from './pages/loja/loja';
 export const routes: Routes = [
   {
     path: '',
@@ -33,5 +33,12 @@ export const routes: Routes = [
       import('./pages/usuarios/usuarios').then(
         (module) => module.Usuarios,
       ),
-  }
+  },
+  {
+    path: 'loja',
+    loadComponent: () =>
+      import('./pages/loja/loja').then(
+        (module) => module.Loja,
+      ),
+    }
 ];
