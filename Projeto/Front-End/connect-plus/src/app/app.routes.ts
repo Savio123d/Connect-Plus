@@ -34,17 +34,17 @@ export const routes: Routes = [
         (module) => module.Usuarios,
       ),
   },
-    {
+  {
     path: 'usuarios/novo',
     loadComponent: () =>
-      import('./pages/usuario-form/usuario-form').then(
+      import('./pages/usuarios/usuario-form/usuario-form').then(
         (module) => module.UsuarioForm
       ),
   },
   {
     path: 'usuarios/editar/:id',
     loadComponent: () =>
-      import('./pages/usuario-form/usuario-form').then(
+      import('./pages/usuarios/usuario-form/usuario-form').then(
         (module) => module.UsuarioForm
       ),
   }

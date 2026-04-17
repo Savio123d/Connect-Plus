@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Sidebar } from '../../components/sidebar/sidebar';
-import { Usuario, UsuarioService } from '../../services/usuario.service';
+import { Usuario, UsuarioService } from './usuario.service';
 
 @Component({
   selector: 'app-usuarios',

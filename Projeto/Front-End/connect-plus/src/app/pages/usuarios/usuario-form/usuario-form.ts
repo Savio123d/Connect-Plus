@@ -2,8 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Sidebar } from '../../components/sidebar/sidebar';
-import { UsuarioRequest, UsuarioService } from '../../services/usuario.service';
+import { Sidebar } from '../../../components/sidebar/sidebar';
+import { UsuarioRequest, UsuarioService } from '../usuario.service';
 
 @Component({
   selector: 'app-usuario-form',
