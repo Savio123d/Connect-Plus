@@ -2,8 +2,7 @@ package conne.connect.connect.Repositories;
 
 import conne.connect.connect.Models.UsuarioModel;
 import org.springframework.data.jpa.repository.JpaRepository;
-
-import java.util.Optional;
+import conne.connect.connect.Enums.StatusUsuario;
 
 public interface UsuarioRepository extends JpaRepository<UsuarioModel, Long> {
 
@@ -11,5 +10,5 @@ public interface UsuarioRepository extends JpaRepository<UsuarioModel, Long> {
 
     boolean existsByEmailAndIdUsuarioNot(String email, Long idUsuario);
 
-    Optional<UsuarioModel> findByEmail(String email);
+    long countByStatus(StatusUsuario status);
 }
