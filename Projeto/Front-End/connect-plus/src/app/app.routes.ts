@@ -9,7 +9,7 @@ export const routes: Routes = [
   {
     path: 'cadastro-empresa',
     loadComponent: () =>
-      import('./pages/cadastro-empresa/cadastro-empresa').then((module) => module.CadastroEmpresa),
+      import('./pages/cadastro-empresa/cadastro-empresa').then((module) => module.default),
   },
   {
     path: 'dashboard',
