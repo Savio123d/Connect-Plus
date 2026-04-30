@@ -94,8 +94,12 @@
                         [ngClass]="empresa.situacao === 'A' ? 'bg-success bg-opacity-75' : 'bg-danger bg-opacity-75'">
                     {{ empresa.situacao === 'A' ? 'Ativo' : 'Baixada' }}
                   </span>
-
                 </td>
+
+                <button class="btn btn-sm btn-outline-primary btn-action me-2" (click)="prepararEdicao(empresa)">
+                  Editar
+                </button>
+
                 <td class="uf-text fw-bold">{{ empresa.uf }}</td>
                 <td class="actions-cell text-center">
                   <button class="btn btn-sm btn-outline-danger btn-action" (click)="deleta(empresa)">
