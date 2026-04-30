@@ -3,6 +3,9 @@ import { FormGroup, FormControl, ReactiveFormsModule, Validators } from '@angula
 import { CommonModule } from '@angular/common';
 import { EmpresaService, Empresa } from './service_empresa';
 
+
+
+
 // Enum de Status
 export enum Status {
   Ativo = 'A',
@@ -95,17 +98,28 @@ export class CadastroEmpresa implements OnInit {
   ngOnInit(): void {
     this.listarEmpresas();
   }
+  prepararEdicao(empresa: Empresa): void {
+    // @ts-ignore
+    this.empresaC.patchValue(empresa);
+  }
 
   onSubmit(): void {
+    if (this.empresaC.invalid) {return}
+
     const dadosParaSalvar = this.empresaC.value as Empresa;
 
-    this.empresaService.salvar(dadosParaSalvar).subscribe({
-      next: (empresaSalva: Empresa) => {
-        this.empresas.push(empresaSalva);
-        this.empresaC.reset({ situacao: Status.Ativo }); // Reseta mantendo o Ativo padrão
-      },
-      error: (err) => console.error('Erro ao salvar', err),
-    });
+    if (dadosParaSalvar.idEmpresa) {
+      this.atualizar();
+    }else{
+      this.empresaService.salvar(dadosParaSalvar).subscribe({
+        next: (empresaSalva: Empresa) => {
+          this.empresas.push(empresaSalva);
+          this.empresaC.reset({ situacao: Status.Ativo }); // Reseta mantendo o Ativo padrão
+        },
+        error: (err) => console.error('Erro ao salvar', err),
+      });
+    }
+
   }
 
   listarEmpresas(): void {
@@ -126,4 +140,18 @@ export class CadastroEmpresa implements OnInit {
       });
     }
   }
-}
+
+  atualizar(): void {
+    this.empresaService.upadate(this.empresaC.value as Empresa).subscribe({
+      next: (empresaAtualizada: any) => {
+        const index = this.empresas.findIndex((e) => e.idEmpresa === empresaAtualizada.idEmpresa);
+
+        if (index !== -1) {
+          this.empresas[index] = empresaAtualizada;
+        }
+      },
+      error: (err) => console.error('Erro ao atualizar:', err),
+    })}}
+
+export default CadastroEmpresa
+
