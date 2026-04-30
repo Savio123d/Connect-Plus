@@ -15,6 +15,7 @@ export interface Empresa {
 @Injectable({
   providedIn: 'root',
 })
+
 export class EmpresaService {
   private apiUrl = 'http://localhost:8020/api/empresas';
 
@@ -31,4 +32,10 @@ export class EmpresaService {
   deleta(idEmpresa: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${idEmpresa}`);
   }
+
+  upadate(empresa: Empresa) {
+    return this.http.put<Empresa>(`${this.apiUrl}/${empresa.idEmpresa}`, empresa);
+  }
+
+
 }
