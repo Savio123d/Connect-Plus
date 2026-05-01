@@ -85,6 +85,7 @@ export class CadastroEmpresa implements OnInit {
   ];
 
   empresaC = new FormGroup({
+    idEmpresa: new FormControl(""),
     razaoSocial: new FormControl(''),
     nomeFantasia: new FormControl(''),
     cnpj: new FormControl('', Validators.maxLength(14)),
@@ -99,8 +100,16 @@ export class CadastroEmpresa implements OnInit {
     this.listarEmpresas();
   }
   prepararEdicao(empresa: Empresa): void {
-    // @ts-ignore
-    this.empresaC.patchValue(empresa);
+    this.empresaC.patchValue({
+      // @ts-ignore
+
+      idEmpresa: empresa.idEmpresa,
+      razaoSocial: empresa.razaoSocial,
+      nomeFantasia: empresa.nomeFantasia,
+      cnpj: empresa.cnpj,
+      cidade: empresa.cidade,
+      situacao: empresa.situacao as any,
+      uf: empresa.uf});
   }
 
   onSubmit(): void {
