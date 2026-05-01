@@ -1,0 +1,77 @@
+<div class="layout-usuario-form">
+  <app-sidebar></app-sidebar>
+
+  <section class="area-usuario-form">
+    <header class="topo-usuario-form">
+      <h1>{{ tituloPagina }}</h1>
+    </header>
+
+    <main class="conteudo-usuario-form">
+      <div *ngIf="carregando" class="alert alert-light border mt-3">
+        Carregando dados do usuário...
+      </div>
+
+      <div *ngIf="mensagemErro" class="alert alert-danger mt-3">
+        {{ mensagemErro }}
+      </div>
+
+      <div *ngIf="mensagemSucesso" class="alert alert-success mt-3">
+        {{ mensagemSucesso }}
+      </div>
+
+      <div *ngIf="!carregando" class="form-card mt-3">
+        <form [formGroup]="usuarioForm" (ngSubmit)="salvar()">
+          <div class="mb-3">
+            <label for="nome" class="form-label">Nome</label>
+            <input
+              id="nome"
+              type="text"
+              class="form-control"
+              formControlName="nome"
+              placeholder="Digite o nome do usuário"
+            />
+
+            <div *ngIf="nome.touched && nome.invalid" class="text-danger mt-1 small">
+              <span *ngIf="nome.errors?.['required']">O nome é obrigatório.</span>
+              <span *ngIf="nome.errors?.['minlength']">O nome deve ter no mínimo 3 caracteres.</span>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="email" class="form-label">E-mail</label>
+            <input
+              id="email"
+              type="email"
+              class="form-control"
+              formControlName="email"
+              placeholder="Digite o e-mail do usuário"
+            />
+
+            <div *ngIf="email.touched && email.invalid" class="text-danger mt-1 small">
+              <span *ngIf="email.errors?.['required']">O e-mail é obrigatório.</span>
+              <span *ngIf="email.errors?.['email']">Digite um e-mail válido.</span>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label for="status" class="form-label">Status</label>
+            <select id="status" class="form-select" formControlName="status">
+              <option value="ativo">Ativo</option>
+              <option value="inativo">Inativo</option>
+            </select>
+          </div>
+
+          <div class="acoes-formulario">
+            <button type="button" class="btn btn-outline-secondary" (click)="voltar()">
+              Voltar
+            </button>
+
+            <button type="submit" class="btn btn-primary" [disabled]="salvando">
+              {{ salvando ? 'Salvando...' : (modoEdicao ? 'Salvar alterações' : 'Cadastrar usuário') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </main>
+  </section>
+</div>
