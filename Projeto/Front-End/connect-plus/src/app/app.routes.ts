@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-
+import { Loja } from './pages/loja/loja';
 export const routes: Routes = [
   {
     path: '',
@@ -35,17 +35,10 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'usuarios/novo',
+    path: 'loja',
     loadComponent: () =>
-      import('./pages/usuarios/usuario-form/usuario-form').then(
-        (module) => module.UsuarioForm
+      import('./pages/loja/loja').then(
+        (module) => module.Loja,
       ),
-  },
-  {
-    path: 'usuarios/editar/:id',
-    loadComponent: () =>
-      import('./pages/usuarios/usuario-form/usuario-form').then(
-        (module) => module.UsuarioForm
-      ),
-  }
+    }
 ];
