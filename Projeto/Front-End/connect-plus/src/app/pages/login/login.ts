@@ -50,12 +50,8 @@ export class Login {
 
     const dadosLogin = this.loginForm.getRawValue();
 
-    setTimeout(() => {
-      this.carregando = false;
-      this.mensagemSucesso = 'Login enviado com sucesso.';
-      console.log('Dados do login:', dadosLogin);
 
       this.router.navigate(['/dashboard']);
-    }, 1000);
+   
   }
 }
