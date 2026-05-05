@@ -39,4 +39,11 @@ export const routes: Routes = [
         (module) => module.VisualizarTarefasComponent,
       ),
   },
+   {
+    path: 'projetos',
+    loadComponent: () =>
+      import('./pages/projetos/projetos').then(
+        (module) => module.ProjetosComponent,
+      ),
+  }
 ];

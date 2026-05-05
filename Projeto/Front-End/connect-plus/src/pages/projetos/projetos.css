@@ -1,0 +1,266 @@
+
+.layout-dashboard {
+  display: flex;
+  background: #f4f5fb;
+  min-height: 100vh;
+}
+
+.area-dashboard {
+  flex: 1;
+  background: #f4f5fb;
+  padding: 20px;
+}
+
+.topo-dashboard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 28px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.topo-dashboard h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2a44;
+}
+
+.topo-dashboard .barra-busca {
+  display: flex;
+  align-items: center;
+  background: #f4f6f9;
+  border-radius: 20px;
+  padding: 6px 12px;
+  width: 50%;
+}
+
+.topo-dashboard .barra-busca input {
+  border: none;
+  background: transparent;
+  padding-left: 10px;
+  width: 100%;
+}
+
+.acoes-topo {
+  display: flex;
+  align-items: center;
+}
+
+.icone-notificacao {
+  font-size: 1.5rem;
+  color: #4f46e5;
+  margin-right: 20px;
+}
+
+.avatar-topo {
+  width: 35px;
+  height: 35px;
+  background: #7c56ff;
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+/* Grade de Projetos */
+.cabecalho-projetos {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.cabecalho-projetos h1 {
+  font-size: 2rem;
+  color: #1f2a44;
+}
+
+.cabecalho-projetos p {
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+.btn-novo {
+  background: #7c56ff;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 50px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.grade-projetos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.card-projeto {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.topo-card {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.icone-projeto {
+  font-size: 40px;
+  color: #7c56ff;
+}
+
+.info-principal h2 {
+  font-size: 1.25rem;
+  color: #1f2a44;
+}
+
+.info-principal p {
+  font-size: 1rem;
+  color: #6b7280;
+}
+
+.linha-status {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 0;
+}
+
+.tag-status {
+  padding: 6px 12px;
+  border-radius: 50px;
+  font-weight: 700;
+}
+
+.tag-status.planejamento {
+  background: #e0e7ff;
+  color: #2563eb;
+}
+
+.tag-atrasado {
+  display: flex;
+  align-items: center;
+  color: #f97316;
+}
+
+.prazo {
+  display: flex;
+  align-items: center;
+  color: #4f6287;
+}
+
+.barra-progresso {
+  width: 100%;
+  background: #f4f6f9;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.barra-preenchida {
+  height: 8px;
+  background: #7c56ff;
+}
+
+.bloco-progresso {
+  margin-top: 10px;
+}
+
+.progresso-texto {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.rodape-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.membros {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lider-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.lider-info span {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.lider-info strong {
+  font-size: 1rem;
+  color: #1f2a44;
+}
+
+.avatar-lider {
+  width: 30px;
+  height: 30px;
+  background: #2563eb;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.acoes-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.btn-concluir {
+  background: #16a34a;
+  color: #fff;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 50px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.btn-excluir {
+  background: #ef4444;
+  color: #fff;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 50px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.btn-editar {
+  background: #f59e0b;
+  color: #fff;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 50px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.btn-novo:hover,
+.btn-concluir:hover,
+.btn-excluir:hover,
+.btn-editar:hover {
+  opacity: 0.9;
+}

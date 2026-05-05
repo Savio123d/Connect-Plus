@@ -1,0 +1,135 @@
+<div class="layout-dashboard">
+  <app-sidebar></app-sidebar>
+
+  <section class="area-dashboard">
+    <header class="topo-dashboard">
+      <div class="barra-busca">
+        <span class="material-icons icone-busca">search</span>
+        <input
+          type="text"
+          placeholder="Buscar projetos, tarefas, pessoas..."
+        />
+      </div>
+
+      <div class="acoes-topo">
+        <span class="material-icons icone-notificacao">notifications_none</span>
+        <div class="avatar-topo">JD</div>
+      </div>
+    </header>
+
+    <main class="conteudo-dashboard">
+
+
+      <div class="cabecalho-projetos">
+        <div>
+          <h1>{{ isEditing ? 'Editar Projeto' : 'Projetos' }}</h1>
+          <p>{{ isEditing ? 'Edite o projeto desejado.' : 'Gerencie todos os projetos da empresa' }}</p>
+        </div>
+
+
+        <button *ngIf="!isEditing" class="btn-novo" (click)="onCreate()">
+          <span class="material-icons">add</span>
+          Novo Projeto
+        </button>
+      </div>
+
+
+      <div *ngIf="isCreating || isEditing" class="form-projeto">
+        <form (ngSubmit)="onSubmit()">
+          <label for="nome">Nome do Projeto</label>
+          <input type="text" id="nome" [(ngModel)]="currentProject.nome" name="nome" required />
+
+          <label for="descricao">Descrição</label>
+          <textarea id="descricao" [(ngModel)]="currentProject.descricao" name="descricao" required></textarea>
+
+          <label for="prazo">Prazo Final</label>
+          <input type="date" id="prazo" [(ngModel)]="currentProject.prazo" name="prazo" required />
+
+          <button type="submit">{{ isEditing ? 'Atualizar Projeto' : 'Criar Projeto' }}</button>
+        </form>
+      </div>
+
+
+      <div class="grade-projetos">
+        <div class="card-projeto" *ngFor="let projeto of projetos">
+          <div class="topo-card">
+            <div class="icone-projeto">
+              <span class="material-icons">folder_copy</span>
+            </div>
+
+            <div class="info-principal">
+              <h2>{{ projeto.nome }}</h2>
+              <p>{{ projeto.descricao }}</p>
+            </div>
+          </div>
+
+          <div class="linha-status">
+            <span
+              class="tag-status"
+              [class.planejamento]="projeto.status === 'Planejamento'"
+            >
+              {{ projeto.status }}
+            </span>
+
+
+            <span class="tag-atrasado" *ngIf="projeto.atraso">
+              <span class="material-icons">warning_amber</span>
+              Atrasado
+            </span>
+
+            <div class="prazo">
+              <span class="material-icons">calendar_today</span>
+              {{ projeto.prazo }}
+            </div>
+          </div>
+
+          <div class="bloco-progresso">
+            <div class="progresso-texto">
+              <span>Progresso</span>
+              <strong>{{ projeto.progresso }}%</strong>
+            </div>
+
+            <div class="barra-progresso">
+              <div
+                class="barra-preenchida"
+                [style.width.%]="projeto.progresso"
+              ></div>
+            </div>
+          </div>
+
+          <div class="rodape-card">
+            <div class="membros">
+              <span class="material-icons">group</span>
+              {{ projeto.membros }} membros
+            </div>
+
+            <div class="lider">
+              <div class="avatar-lider">{{ projeto.iniciais }}</div>
+              <div class="lider-info">
+                <span>Líder</span>
+                <strong>{{ projeto.lider }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="acoes-card">
+            <button class="btn-concluir" (click)="concluirProjeto(projeto)">
+              <span class="material-icons">check_circle</span>
+              Concluir
+            </button>
+
+            <button class="btn-excluir" (click)="excluirProjeto(projeto)">
+              <span class="material-icons">delete</span>
+            </button>
+
+            
+            <button class="btn-editar" (click)="onEdit(projeto)">
+              <span class="material-icons">edit</span>
+              Editar
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </section>
+</div>
