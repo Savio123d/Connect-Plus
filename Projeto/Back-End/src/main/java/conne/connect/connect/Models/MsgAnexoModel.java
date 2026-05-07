@@ -9,7 +9,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,34 +17,35 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(
-        name = "equipe_membro",
-        uniqueConstraints = @UniqueConstraint(name = "uk_equipe_membro_equipe_usu_emp", columnNames = {"equipe_id", "usu_emp_id"})
-)
+@Table(name = "msg_anexo")
 @Getter
 @Setter
 @NoArgsConstructor
-public class EquipeMembroModel {
+public class MsgAnexoModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Long idEquipeMembro;
+    private Long idMsgAnexo;
 
     @ManyToOne
-    @JoinColumn(name = "empresa_id", nullable = false)
-    private EmpresaModel idEmpresa;
+    @JoinColumn(name = "mensagem_id", nullable = false)
+    private MensagemModel idMensagem;
 
-    @ManyToOne
-    @JoinColumn(name = "equipe_id", nullable = false)
-    private EquipeModel idEquipe;
+    @Column(name = "nome", nullable = false, length = 255)
+    private String nome;
 
-    @ManyToOne
-    @JoinColumn(name = "usu_emp_id", nullable = false)
-    private UsuarioEmpresaModel idUsuarioEmpresa;
+    @Column(name = "url", nullable = false, columnDefinition = "TEXT")
+    private String url;
 
-    @Column(name = "criado_em", nullable = false)
-    private LocalDateTime dataCriacao;
+    @Column(name = "tipo", length = 50)
+    private String tipo;
+
+    @Column(name = "tamanho")
+    private Integer tamanho;
+
+    @Column(name = "enviado_em", nullable = false)
+    private LocalDateTime enviadoEm;
 
     @Column(name = "incluido", columnDefinition = "DATE")
     private LocalDate incluido;
@@ -55,8 +55,8 @@ public class EquipeMembroModel {
 
     @PrePersist
     public void prePersist() {
-        if (dataCriacao == null) {
-            dataCriacao = LocalDateTime.now();
+        if (enviadoEm == null) {
+            enviadoEm = LocalDateTime.now();
         }
     }
 }

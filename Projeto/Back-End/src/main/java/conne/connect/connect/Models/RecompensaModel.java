@@ -10,14 +10,19 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "recompensa")
+@Table(
+        name = "recompensa",
+        uniqueConstraints = @UniqueConstraint(name = "uk_recompensa_empresa_nome", columnNames = {"empresa_id", "nome"})
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -38,7 +43,7 @@ public class RecompensaModel {
     @Column(name = "descricao", columnDefinition = "TEXT")
     private String descricao;
 
-    @Column(name = "xp_necessario", nullable = false)
+    @Column(name = "xp_req", nullable = false)
     private Integer xpNecessario;
 
     @Column(name = "ativa", nullable = false)
@@ -49,6 +54,12 @@ public class RecompensaModel {
 
     @Column(name = "atualizado_em", nullable = false)
     private LocalDateTime dataAtualizacao;
+
+    @Column(name = "incluido", columnDefinition = "DATE")
+    private LocalDate incluido;
+
+    @Column(name = "excluido", columnDefinition = "DATE")
+    private LocalDate excluido;
 
     @PrePersist
     public void prePersist() {

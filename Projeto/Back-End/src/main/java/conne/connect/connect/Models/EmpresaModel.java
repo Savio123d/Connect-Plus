@@ -15,6 +15,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -38,12 +39,6 @@ public class EmpresaModel {
     @Column(name = "cnpj", unique = true, length = 18)
     private String cnpj;
 
-    @Column(name = "cidade", length = 100)
-    private String cidade;
-
-    @Column(name = "uf", length = 2)
-    private String uf;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private StatusEmpresa status;
@@ -53,6 +48,12 @@ public class EmpresaModel {
 
     @Column(name = "atualizado_em", nullable = false)
     private LocalDateTime dataAtualizacao;
+
+    @Column(name = "incluido", columnDefinition = "DATE")
+    private LocalDate incluido;
+
+    @Column(name = "excluido", columnDefinition = "DATE")
+    private LocalDate excluido;
 
     @PrePersist
     public void prePersist() {

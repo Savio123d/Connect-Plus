@@ -1,11 +1,22 @@
 package conne.connect.connect.Models;
 
 import conne.connect.connect.Enums.StatusUsuario;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -48,6 +59,12 @@ public class UsuarioModel {
     @Transient
     private int nivelAtual;
 
+    @Column(name = "incluido", columnDefinition = "DATE")
+    private LocalDate incluido;
+
+    @Column(name = "excluido", columnDefinition = "DATE")
+    private LocalDate excluido;
+
     @PrePersist
     public void prePersist() {
         LocalDateTime agora = LocalDateTime.now();
@@ -68,4 +85,3 @@ public class UsuarioModel {
         dataAtualizacao = LocalDateTime.now();
     }
 }
-

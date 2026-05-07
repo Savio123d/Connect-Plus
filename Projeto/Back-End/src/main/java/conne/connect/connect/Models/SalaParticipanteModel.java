@@ -19,33 +19,41 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(
-        name = "equipe_membro",
-        uniqueConstraints = @UniqueConstraint(name = "uk_equipe_membro_equipe_usu_emp", columnNames = {"equipe_id", "usu_emp_id"})
+        name = "sala_participante",
+        uniqueConstraints = @UniqueConstraint(name = "uk_sala_participante_sala_usu_emp", columnNames = {"sala_id", "usu_emp_id"})
 )
 @Getter
 @Setter
 @NoArgsConstructor
-public class EquipeMembroModel {
+public class SalaParticipanteModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Long idEquipeMembro;
+    private Long idSalaParticipante;
 
     @ManyToOne
-    @JoinColumn(name = "empresa_id", nullable = false)
-    private EmpresaModel idEmpresa;
-
-    @ManyToOne
-    @JoinColumn(name = "equipe_id", nullable = false)
-    private EquipeModel idEquipe;
+    @JoinColumn(name = "sala_id", nullable = false)
+    private SalaTransmissaoModel idSala;
 
     @ManyToOne
     @JoinColumn(name = "usu_emp_id", nullable = false)
     private UsuarioEmpresaModel idUsuarioEmpresa;
 
-    @Column(name = "criado_em", nullable = false)
-    private LocalDateTime dataCriacao;
+    @Column(name = "entrou_em", nullable = false)
+    private LocalDateTime entrouEm;
+
+    @Column(name = "saiu_em")
+    private LocalDateTime saiuEm;
+
+    @Column(name = "compart_tela", nullable = false)
+    private Boolean compartilhaTela;
+
+    @Column(name = "audio_on", nullable = false)
+    private Boolean audioOn;
+
+    @Column(name = "video_on", nullable = false)
+    private Boolean videoOn;
 
     @Column(name = "incluido", columnDefinition = "DATE")
     private LocalDate incluido;
@@ -55,8 +63,20 @@ public class EquipeMembroModel {
 
     @PrePersist
     public void prePersist() {
-        if (dataCriacao == null) {
-            dataCriacao = LocalDateTime.now();
+        if (entrouEm == null) {
+            entrouEm = LocalDateTime.now();
+        }
+
+        if (compartilhaTela == null) {
+            compartilhaTela = false;
+        }
+
+        if (audioOn == null) {
+            audioOn = true;
+        }
+
+        if (videoOn == null) {
+            videoOn = false;
         }
     }
 }

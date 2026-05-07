@@ -10,14 +10,19 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "saldo_xp")
+@Table(
+        name = "saldo_xp",
+        uniqueConstraints = @UniqueConstraint(name = "uk_saldo_xp_usu_emp", columnNames = {"usu_emp_id"})
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -32,14 +37,21 @@ public class SaldoXpModel {
     @JoinColumn(name = "empresa_id", nullable = false)
     private EmpresaModel idEmpresa;
 
-    @Column(name = "usuario_empresa_id", nullable = false)
-    private Long idUsuarioEmpresa;
+    @ManyToOne
+    @JoinColumn(name = "usu_emp_id", nullable = false)
+    private UsuarioEmpresaModel idUsuarioEmpresa;
 
-    @Column(name = "xp_total", nullable = false)
+    @Column(name = "xp_tot", nullable = false)
     private Integer xpTotal;
 
     @Column(name = "atualizado_em", nullable = false)
     private LocalDateTime dataAtualizacao;
+
+    @Column(name = "incluido", columnDefinition = "DATE")
+    private LocalDate incluido;
+
+    @Column(name = "excluido", columnDefinition = "DATE")
+    private LocalDate excluido;
 
     @PrePersist
     public void prePersist() {

@@ -13,6 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -31,16 +32,19 @@ public class ResgateRecompensaModel {
     @JoinColumn(name = "empresa_id", nullable = false)
     private EmpresaModel idEmpresa;
 
-    @Column(name = "usuario_empresa_id", nullable = false)
-    private Long idUsuarioEmpresa;
+    @ManyToOne
+    @JoinColumn(name = "usu_emp_id", nullable = false)
+    private UsuarioEmpresaModel idUsuarioEmpresa;
 
-    @Column(name = "recompensa_id", nullable = false)
-    private Long idRecompensa;
+    @ManyToOne
+    @JoinColumn(name = "recompensa_id", nullable = false)
+    private RecompensaModel idRecompensa;
 
-    @Column(name = "transacao_xp_id")
-    private Long idTransacaoXp;
+    @ManyToOne
+    @JoinColumn(name = "transacao_id")
+    private TransacaoXpModel idTransacaoXp;
 
-    @Column(name = "quantidade", nullable = false)
+    @Column(name = "qtd", nullable = false)
     private Integer quantidade;
 
     @Column(name = "xp_gasto", nullable = false)
@@ -51,6 +55,12 @@ public class ResgateRecompensaModel {
 
     @Column(name = "status", nullable = false, length = 30)
     private String status;
+
+    @Column(name = "incluido", columnDefinition = "DATE")
+    private LocalDate incluido;
+
+    @Column(name = "excluido", columnDefinition = "DATE")
+    private LocalDate excluido;
 
     @PrePersist
     public void prePersist() {

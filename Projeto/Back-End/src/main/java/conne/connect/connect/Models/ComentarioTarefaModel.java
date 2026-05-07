@@ -14,6 +14,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -32,11 +33,13 @@ public class ComentarioTarefaModel {
     @JoinColumn(name = "empresa_id", nullable = false)
     private EmpresaModel idEmpresa;
 
-    @Column(name = "tarefa_id", nullable = false)
-    private Long idTarefa;
+    @ManyToOne
+    @JoinColumn(name = "tarefa_id", nullable = false)
+    private TarefaModel idTarefa;
 
-    @Column(name = "autor_usuario_empresa_id", nullable = false)
-    private Long idAutorUsuarioEmpresa;
+    @ManyToOne
+    @JoinColumn(name = "autor_id", nullable = false)
+    private UsuarioEmpresaModel idAutorUsuarioEmpresa;
 
     @Column(name = "conteudo", nullable = false, columnDefinition = "TEXT")
     private String conteudo;
@@ -46,6 +49,12 @@ public class ComentarioTarefaModel {
 
     @Column(name = "editado_em")
     private LocalDateTime dataEdicao;
+
+    @Column(name = "incluido", columnDefinition = "DATE")
+    private LocalDate incluido;
+
+    @Column(name = "excluido", columnDefinition = "DATE")
+    private LocalDate excluido;
 
     @PrePersist
     public void prePersist() {
