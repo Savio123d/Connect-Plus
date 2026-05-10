@@ -8,7 +8,7 @@ export interface Empresa {
   nomeFantasia: string;
   cnpj: string;
   cidade: string;
-  situacao: string;
+  status: string;
   uf: string;
 }
 
@@ -17,7 +17,7 @@ export interface Empresa {
 })
 
 export class EmpresaService {
-  private apiUrl = 'http://localhost:8020/api/empresas';
+  private apiUrl = '/api/empresas';
 
   constructor(private http: HttpClient) {}
 
@@ -36,6 +36,4 @@ export class EmpresaService {
   upadate(empresa: Empresa) {
     return this.http.put<Empresa>(`${this.apiUrl}/${empresa.idEmpresa}`, empresa);
   }
-
-
 }
