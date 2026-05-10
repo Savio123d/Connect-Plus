@@ -3,13 +3,10 @@ import { FormGroup, FormControl, ReactiveFormsModule, Validators } from '@angula
 import { CommonModule } from '@angular/common';
 import { EmpresaService, Empresa } from './service_empresa';
 
-
-
-
 // Enum de Status
 export enum Status {
-  Ativo = 'A',
-  Baixada = 'B',
+  Ativa = 'ativa',
+  Inativa = 'inativa'
 }
 
 // Definir um tipo para os estados brasileiros
@@ -53,7 +50,7 @@ export class CadastroEmpresa implements OnInit {
   Status = Status;
   empresas: Empresa[] = [];
 
-  // O vetor de estados para o menu suspenso (Select)
+  // O vetor de estados para o menu suspenso
   estados: Estado[] = [
     'AC',
     'AL',
@@ -85,12 +82,12 @@ export class CadastroEmpresa implements OnInit {
   ];
 
   empresaC = new FormGroup({
-    idEmpresa: new FormControl(""),
-    razaoSocial: new FormControl(''),
+    idEmpresa: new FormControl<number | null>(null),
+    razaoSocial: new FormControl('', Validators.required),
     nomeFantasia: new FormControl(''),
     cnpj: new FormControl('', Validators.maxLength(14)),
     cidade: new FormControl(''),
-    situacao: new FormControl(Status.Ativo),
+    status: new FormControl(Status.Ativa),
     uf: new FormControl(''),
   });
 
@@ -99,36 +96,38 @@ export class CadastroEmpresa implements OnInit {
   ngOnInit(): void {
     this.listarEmpresas();
   }
+
   prepararEdicao(empresa: Empresa): void {
     this.empresaC.patchValue({
-      // @ts-ignore
-
-      idEmpresa: empresa.idEmpresa,
+      idEmpresa: empresa.idEmpresa ?? null,
       razaoSocial: empresa.razaoSocial,
       nomeFantasia: empresa.nomeFantasia,
       cnpj: empresa.cnpj,
       cidade: empresa.cidade,
-      situacao: empresa.situacao as any,
-      uf: empresa.uf});
+      status: empresa.status as any,
+      uf: empresa.uf,
+    });
   }
 
   onSubmit(): void {
-    if (this.empresaC.invalid) {return}
+    if (this.empresaC.invalid) {
+      return;
+    }
 
     const dadosParaSalvar = this.empresaC.value as Empresa;
 
     if (dadosParaSalvar.idEmpresa) {
       this.atualizar();
-    }else{
+    } else {
       this.empresaService.salvar(dadosParaSalvar).subscribe({
-        next: (empresaSalva: Empresa) => {
-          this.empresas.push(empresaSalva);
-          this.empresaC.reset({ situacao: Status.Ativo }); // Reseta mantendo o Ativo padrão
+        next: () => {
+          this.listarEmpresas();
+          this.empresaC.reset({ status: Status.Ativa });
+          alert('Empresa cadastrada com sucesso! ✅');
         },
         error: (err) => console.error('Erro ao salvar', err),
       });
     }
-
   }
 
   listarEmpresas(): void {
@@ -152,15 +151,14 @@ export class CadastroEmpresa implements OnInit {
 
   atualizar(): void {
     this.empresaService.upadate(this.empresaC.value as Empresa).subscribe({
-      next: (empresaAtualizada: any) => {
-        const index = this.empresas.findIndex((e) => e.idEmpresa === empresaAtualizada.idEmpresa);
-
-        if (index !== -1) {
-          this.empresas[index] = empresaAtualizada;
-        }
+      next: () => {
+        this.listarEmpresas();
+        this.empresaC.reset({ status: Status.Ativa });
+        alert('Empresa atualizada com sucesso! ✅');
       },
       error: (err) => console.error('Erro ao atualizar:', err),
-    })}}
+    });
+  }
+}
 
 export default CadastroEmpresa
-
