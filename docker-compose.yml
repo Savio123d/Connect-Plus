@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:16
+    container_name: connect_plus_db
+    environment:
+      POSTGRES_DB: connect_plus
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+    ports:
+      - "5432:5432"
+    volumes:
+      - connect_plus_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./Projeto/Back-End
+    container_name: connect_plus_backend
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/connect_plus
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 123456
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./Projeto/Front-End/connect-plus
+    container_name: connect_plus_frontend
+    depends_on:
+      - backend
+    ports:
+      - "4200:4200"
+
+volumes:
+  connect_plus_data:
