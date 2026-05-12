@@ -1,115 +1,102 @@
-<div class="login-page">
-  <div class="efeito efeito-esquerda"></div>
-  <div class="efeito efeito-direita"></div>
+<main class="login-page">
+  <section class="login-card">
+    <div class="logo-area">
+      <div class="logo">C+</div>
 
-  <div class="login-card">
-    <div class="login-header">
-      <h1>{{ titulo }}</h1>
-      <div class="linha-logo"></div>
+      <h1>Entrar na sua conta</h1>
+
+      <p>
+        Insira seu e-mail e senha para acessar o Connect+.
+      </p>
     </div>
 
-    @if (mensagemErro) {
-      <div class="alerta erro">
-        {{ mensagemErro }}
-      </div>
-    }
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <div class="campo-grupo">
+        <label for="email">E-mail</label>
 
-    @if (mensagemSucesso) {
-      <div class="alerta sucesso">
-        {{ mensagemSucesso }}
-      </div>
-    }
-
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
-      <div class="campo">
-        <label for="email">Login</label>
-
-  <div class="input-box" [class.input-box-invalido]="email.touched && email.invalid">
-    <span class="icone">
-      <i class="bi bi-envelope"></i>
-        </span>
+        <div class="campo">
+          <span class="icone">✉</span>
 
           <input
             id="email"
             type="email"
             formControlName="email"
-            placeholder="Digite seu login"
+            placeholder="seu@email.com"
           />
         </div>
 
-        @if (email.touched && email.invalid) {
-          <small class="mensagem-validacao">
-            @if (email.errors?.['required']) {
-              <span>O e-mail é obrigatório.</span>
-            }
-            @if (email.errors?.['email']) {
-              <span>Digite um e-mail válido.</span>
-            }
+        @if (email.invalid && email.touched) {
+          <small class="erro">
+            Informe um e-mail válido.
           </small>
         }
       </div>
 
-      <div class="campo">
-        <label for="senha">Senha</label>
+      <div class="campo-grupo">
+        <div class="linha-label">
+          <label for="senha">Senha</label>
 
-  <div class="input-box" [class.input-box-invalido]="senha.touched && senha.invalid">
-    <span class="icone">
-      <i class="bi bi-lock"></i>
-           </span>
+          <a routerLink="/recuperar-senha">
+            Esqueci a senha
+          </a>
+        </div>
+
+        <div class="campo">
+          <span class="icone">🔒</span>
 
           <input
             id="senha"
             [type]="mostrarSenha ? 'text' : 'password'"
             formControlName="senha"
-            placeholder="Digite sua senha"
+            placeholder="••••••••"
           />
 
-<button
-  type="button"
-  class="btn-olho"
-  (click)="alternarSenha()"
->
-  @if (mostrarSenha) {
-    <i class="bi bi-eye-slash"></i>
-  } @else {
-    <i class="bi bi-eye"></i>
-  }
-</button>
+          <button
+            type="button"
+            class="botao-senha"
+            (click)="alternarSenha()"
+          >
+            {{ mostrarSenha ? 'Ocultar' : 'Ver' }}
+          </button>
         </div>
 
-        @if (senha.touched && senha.invalid) {
-          <small class="mensagem-validacao">
-            @if (senha.errors?.['required']) {
-              <span>A senha é obrigatória.</span>
-            }
-            @if (senha.errors?.['minlength']) {
-              <span>A senha deve ter no mínimo 6 caracteres.</span>
-            }
+        @if (senha.invalid && senha.touched) {
+          <small class="erro">
+            A senha precisa ter no mínimo 6 caracteres.
           </small>
         }
       </div>
 
+      @if (mensagemErro) {
+        <div class="mensagem mensagem-erro">
+          {{ mensagemErro }}
+        </div>
+      }
+
+      @if (mensagemSucesso) {
+        <div class="mensagem mensagem-sucesso">
+          {{ mensagemSucesso }}
+        </div>
+      }
+
       <button
         type="submit"
-        class="btn-acessar"
-        [disabled]="loginForm.invalid || carregando"
+        class="botao-entrar"
+        [disabled]="carregando"
       >
-        @if (carregando) {
-          <span>Entrando...</span>
-        } @else {
-          <span>Acessar</span>
-        }
+        {{ carregando ? 'Entrando...' : 'Entrar' }}
       </button>
+
+      <p class="texto-cadastro">
+        Não tem uma conta?
+        <a routerLink="/cadastro-empresa">Cadastrar empresa</a>
+      </p>
+
+      <div class="divisor"></div>
+
+      <a routerLink="/" class="voltar">
+        Voltar para página inicial
+      </a>
     </form>
-
-    <div class="divisor">
-      <span>ou</span>
-    </div>
-
-    <a href="#" class="link-secundario">Esqueci a senha?</a>
-
-  <a routerLink="/cadastro-empresa" class="btn-cadastrar-empresa">
-  Cadastrar nova empresa
-</a>
-  </div>
-</div>
+  </section>
+</main>

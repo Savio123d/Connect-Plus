@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { LoginService } from './login.service';
 
 @Component({
   selector: 'app-login',
@@ -12,8 +13,8 @@ import { Router, RouterLink } from '@angular/router';
 export class Login {
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private loginService = inject(LoginService);
 
-  titulo = 'Connect+';
   mostrarSenha = false;
   carregando = false;
   mensagemErro = '';
@@ -21,8 +22,7 @@ export class Login {
 
   loginForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
-    senha: ['', [Validators.required, Validators.minLength(6)]],
-    lembrarMe: [false]
+    senha: ['', [Validators.required, Validators.minLength(6)]]
   });
 
   get email() {
@@ -50,8 +50,36 @@ export class Login {
 
     const dadosLogin = this.loginForm.getRawValue();
 
+    this.loginService.login(dadosLogin).subscribe({
+      next: (resposta) => {
+        this.carregando = false;
 
-      this.router.navigate(['/dashboard']);
-   
+        if (resposta.token) {
+          localStorage.setItem('token', resposta.token);
+        }
+
+        this.mensagemSucesso = 'Login realizado com sucesso!';
+
+        setTimeout(() => {
+          this.router.navigate(['/dashboard']);
+        }, 500);
+      },
+
+      error: (erro) => {
+        this.carregando = false;
+
+        if (erro.status === 401 || erro.status === 403) {
+          this.mensagemErro = 'E-mail ou senha inválidos.';
+          return;
+        }
+
+        if (erro.status === 0) {
+          this.mensagemErro = 'Não foi possível conectar com o servidor.';
+          return;
+        }
+
+        this.mensagemErro = 'Erro ao tentar fazer login. Tente novamente.';
+      }
+    });
   }
 }
