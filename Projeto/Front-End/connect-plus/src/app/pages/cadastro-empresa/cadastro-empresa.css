@@ -1,180 +1,278 @@
-:host {
-  display: block;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --background: #f7f8fc;
+  --card: #ffffff;
+  --foreground: #111827;
+  --muted-foreground: #6b7280;
+  --border: #e5e7eb;
+  --input: #e6e8ef;
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-foreground: #ffffff;
+  --secondary: #f3f4f6;
+  --accent: #eef2ff;
+  --ring: rgba(79, 70, 229, 0.22);
 }
 
-.cadastro-wrapper {
-  max-width: 1180px;
-  padding-top: 32px;
-  padding-bottom: 48px;
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.cadastro-page {
+  min-height: 100vh;
+  padding: 40px 16px 56px;
+  background: var(--background);
+}
+
+.cadastro-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.brand-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+  box-shadow: 0 10px 25px rgba(79, 70, 229, 0.24);
+}
+
+.brand-name {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--foreground);
+  letter-spacing: -0.03em;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.2;
+  font-weight: 800;
+  color: var(--foreground);
+  letter-spacing: -0.04em;
+}
+
+.page-subtitle {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: var(--muted-foreground);
+}
+
+.cadastro-stack {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  display: grid;
+  gap: 24px;
 }
 
 .cadastro-card {
-  border: 1px solid rgba(116, 132, 214, 0.16) !important;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 18px 40px rgba(54, 73, 168, 0.08) !important;
-  overflow: hidden;
+  width: 100%;
+  padding: 28px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
 
-.cadastro-card .card-body {
-  padding: 28px;
+.card-header-custom {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.section-icon {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.section-icon-blue {
+  color: #2563eb;
 }
 
 .section-title {
-  color: #16235f;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--foreground);
   letter-spacing: -0.02em;
 }
 
-.section-text {
-  color: #6676a3;
+.section-description {
+  margin: -10px 0 22px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted-foreground);
 }
 
-.total-badge {
-  padding: 0.8rem 1rem;
-  border: 1px solid rgba(115, 130, 209, 0.2);
-  background: rgba(240, 244, 255, 0.95);
-  color: #243aa7;
-}
-
-.cadastro-wrapper .form-label {
-  font-size: 0.92rem;
+.form-label {
+  margin-bottom: 8px;
+  font-size: 13px;
   font-weight: 600;
-  color: #24315f;
+  color: var(--foreground);
 }
 
-.cadastro-wrapper .form-control,
-.cadastro-wrapper .form-select {
-  min-height: 52px;
-  border-radius: 16px;
-  border-color: rgba(115, 130, 209, 0.24);
-  background: rgba(246, 248, 255, 0.9);
-  color: #16235f;
-  box-shadow: none;
+.form-control,
+.form-select {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--input);
+  border-radius: 8px;
+  background-color: #f7f8fc;
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 400;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
 }
 
-.cadastro-wrapper .form-control::placeholder {
-  color: #8b97bc;
+.form-control::placeholder {
+  color: #9ca3af;
 }
 
-.cadastro-wrapper .form-control:focus,
-.cadastro-wrapper .form-select:focus {
-  border-color: rgba(79, 92, 255, 0.46);
-  background: rgba(246, 248, 255, 0.96);
-  box-shadow: 0 0 0 4px rgba(124, 86, 255, 0.12);
+.form-control:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--primary);
+  background-color: #ffffff;
+  box-shadow: 0 0 0 4px var(--ring);
 }
 
-.cadastro-wrapper .invalid-feedback {
-  font-size: 0.82rem;
+.form-select {
+  cursor: pointer;
 }
 
-.cadastro-wrapper .btn {
-  min-height: 48px;
-  border-radius: 16px;
-  padding: 0 20px;
-  font-weight: 600;
+.info-box {
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+  padding: 16px 18px;
+  border: 1px solid #93c5fd;
+  border-radius: 8px;
+  background: #f5f7ff;
+  color: var(--foreground);
 }
 
-.cadastro-wrapper .btn-primary {
-  border: 0;
-  background: linear-gradient(135deg, #243aa7 0%, #7c56ff 100%);
-  box-shadow: 0 18px 30px rgba(77, 83, 197, 0.24);
-}
-
-.cadastro-wrapper .btn-outline-secondary {
-  border-color: rgba(115, 130, 209, 0.24);
-  background: #ffffff;
-  color: #3043a8;
-}
-
-.cadastro-wrapper .btn-outline-primary {
-  border-color: rgba(36, 58, 167, 0.24);
-  color: #243aa7;
-}
-
-.cadastro-wrapper .btn-outline-danger {
-  border-color: rgba(193, 61, 90, 0.24);
-  color: #c13d5a;
-}
-
-.btn-action {
-  min-width: 112px;
-}
-
-.table-responsive {
-  border: 1px solid rgba(116, 132, 214, 0.12);
-  border-radius: 18px;
-  background: rgba(246, 248, 255, 0.75);
-}
-
-.cadastro-wrapper .table > :not(caption) > * > * {
-  padding: 16px;
-  vertical-align: middle;
-  background: transparent;
-  border-bottom-color: rgba(116, 132, 214, 0.12);
-}
-
-.cadastro-wrapper .table thead th {
-  font-size: 0.78rem;
+.info-icon {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  border: 1px solid #3b82f6;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #2563eb;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #7b6dca;
+  flex: 0 0 auto;
 }
 
-.cadastro-wrapper .table tbody td {
-  color: #24315f;
+.info-box strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--foreground);
 }
 
-.status-pill {
-  min-width: 108px;
-  padding: 0.55rem 0.85rem;
-  font-weight: 600;
+.info-box p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted-foreground);
 }
 
-.uf-text {
-  color: #6676a3;
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 32px;
 }
 
-.actions-cell {
-  min-width: 260px;
+.btn {
+  min-height: 46px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
 }
 
-.empty-state {
-  border: 1px dashed rgba(115, 130, 209, 0.28);
-  border-radius: 18px;
-  background: rgba(246, 248, 255, 0.78);
-  color: #6676a3;
+.btn:hover {
+  transform: translateY(-1px);
 }
 
-@media (max-width: 991px) {
-  .cadastro-wrapper {
-    padding-top: 24px;
-    padding-bottom: 36px;
+.btn-secondary-custom {
+  border: 1px solid var(--border);
+  background: #ffffff;
+  color: var(--foreground);
+}
+
+.btn-secondary-custom:hover {
+  background: var(--secondary);
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+.btn-primary-custom {
+  border: none;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: var(--primary-foreground);
+  box-shadow: 0 12px 24px rgba(79, 70, 229, 0.24);
+}
+
+.btn-primary-custom:hover {
+  background: linear-gradient(135deg, #1d4ed8, #6d28d9);
+  color: var(--primary-foreground);
+  box-shadow: 0 14px 28px rgba(79, 70, 229, 0.3);
+}
+
+@media (max-width: 768px) {
+  .cadastro-page {
+    padding-top: 28px;
   }
 
-  .cadastro-card .card-body {
-    padding: 24px;
-  }
-}
-
-@media (max-width: 576px) {
-  .cadastro-card .card-body {
-    padding: 20px;
+  .cadastro-card {
+    padding: 22px;
   }
 
-  .btn-action {
-    width: 100%;
+  .page-title {
+    font-size: 24px;
   }
 
-  .actions-cell {
-    min-width: 190px;
+  .section-title {
+    font-size: 18px;
   }
 
-  .actions-cell .d-flex {
-    justify-content: stretch !important;
-  }
-
-  .actions-cell .btn {
-    width: 100%;
+  .actions {
+    grid-template-columns: 1fr;
   }
 }
