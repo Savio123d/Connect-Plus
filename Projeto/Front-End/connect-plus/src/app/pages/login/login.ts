@@ -1,6 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, ChangeDetectorRef, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
 import { LoginService } from './login.service';
 
 @Component({
@@ -14,6 +15,7 @@ export class Login {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private loginService = inject(LoginService);
+  private cdr = inject(ChangeDetectorRef);
 
   mostrarSenha = false;
   carregando = false;
@@ -43,43 +45,47 @@ export class Login {
 
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
+      this.cdr.detectChanges();
       return;
     }
 
     this.carregando = true;
+    this.cdr.detectChanges();
 
     const dadosLogin = this.loginForm.getRawValue();
 
-    this.loginService.login(dadosLogin).subscribe({
-      next: (resposta) => {
-        this.carregando = false;
+    this.loginService.login(dadosLogin)
+      .pipe(
+        finalize(() => {
+          this.carregando = false;
+          this.cdr.detectChanges();
+        })
+      )
+      .subscribe({
+        next: (resposta) => {
+          if (resposta.token) {
+            localStorage.setItem('token', resposta.token);
+          }
 
-        if (resposta.token) {
-          localStorage.setItem('token', resposta.token);
-        }
+          this.mensagemSucesso = 'Login realizado com sucesso!';
+          this.cdr.detectChanges();
 
-        this.mensagemSucesso = 'Login realizado com sucesso!';
-
-        setTimeout(() => {
           this.router.navigate(['/dashboard']);
-        }, 500);
-      },
+        },
 
-      error: (erro) => {
-        this.carregando = false;
+        error: (erro) => {
+          console.log('Erro no login:', erro);
 
-        if (erro.status === 401 || erro.status === 403) {
-          this.mensagemErro = 'E-mail ou senha inválidos.';
-          return;
+          if (erro.status === 401 || erro.status === 403) {
+            this.mensagemErro = 'E-mail ou senha incorretos.';
+          } else if (erro.status === 0) {
+            this.mensagemErro = 'Não foi possível conectar com o servidor.';
+          } else {
+            this.mensagemErro = 'Erro ao tentar fazer login. Tente novamente.';
+          }
+
+          this.cdr.detectChanges();
         }
-
-        if (erro.status === 0) {
-          this.mensagemErro = 'Não foi possível conectar com o servidor.';
-          return;
-        }
-
-        this.mensagemErro = 'Erro ao tentar fazer login. Tente novamente.';
-      }
-    });
+      });
   }
 }
