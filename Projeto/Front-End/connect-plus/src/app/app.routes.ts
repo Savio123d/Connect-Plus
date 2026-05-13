@@ -9,7 +9,7 @@ export const routes: Routes = [
   {
     path: 'cadastro-empresa',
     loadComponent: () =>
-      import('./pages/cadastro-empresa/cadastro-empresa').then((module) => module.default),
+      import('./pages/cadastro-empresa/cadastro-empresa').then((module) => module.CadastroEmpresa),
   },
   {
     path: 'dashboard',
@@ -22,5 +22,5 @@ export const routes: Routes = [
   {
     path: 'usuarios',
     loadComponent: () => import('./pages/usuarios/usuarios').then((module) => module.Usuarios),
-  },
+  }
 ];
