@@ -15,12 +15,13 @@ interface MenuItem {
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css'
 })
+
 export class Sidebar {
   menuItems: MenuItem[] = [
     { label: 'Início', icon: 'home', route: '/dashboard' },
     { label: 'Feedbacks', icon: 'feedback', route: '/feedbacks' },
     { label: 'Perfil', icon: 'person', route: '/perfil' },
-    { label: 'Quadro de tarefas', icon: 'assignment', route: '/quadro-tarefas' },
+    { label: 'Quadro de Tarefas', icon: 'check_box', route: '/tarefas' },
     { label: 'Chat', icon: 'chat', route: '/chat' },
     { label: 'Projetos', icon: 'work', route: '/projetos' },
     { label: 'Loja', icon: 'store', route: '/loja' },

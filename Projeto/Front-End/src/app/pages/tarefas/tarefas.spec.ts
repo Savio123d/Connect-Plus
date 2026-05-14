@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { VisualizarTarefasComponent } from './visualizar-tarefas';
+import { VisualizarTarefasComponent } from './tarefas';
 
 describe('VisualizarTarefasComponent', () => {
   let component: VisualizarTarefasComponent;
