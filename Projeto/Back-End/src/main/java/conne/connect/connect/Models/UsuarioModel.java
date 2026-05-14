@@ -1,71 +1,71 @@
-package conne.connect.connect.Models;
+    package conne.connect.connect.Models;
 
-import conne.connect.connect.Enums.StatusUsuario;
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+    import conne.connect.connect.Enums.StatusUsuario;
+    import jakarta.persistence.*;
+    import lombok.Getter;
+    import lombok.NoArgsConstructor;
+    import lombok.Setter;
 
-import java.time.LocalDateTime;
+    import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "usuario")
-@Getter
-@Setter
-@NoArgsConstructor
-public class UsuarioModel {
+    @Entity
+    @Table(name = "usuario")
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public class UsuarioModel {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long idUsuario;
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        @Column(name = "id")
+        private Long idUsuario;
 
-    @Column(name = "nome", nullable = false, length = 120)
-    private String nome;
+        @Column(name = "nome", nullable = false, length = 120)
+        private String nome;
 
-    @Column(name = "email", nullable = false, unique = true, length = 150)
-    private String email;
+        @Column(name = "email", nullable = false, unique = true, length = 150)
+        private String email;
 
-    @Column(name = "senha_hash", nullable = false, length = 255)
-    private String senha;
+        @Column(name = "senha_hash", nullable = false, length = 255)
+        private String senha;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
-    private StatusUsuario status;
+        @Enumerated(EnumType.STRING)
+        @Column(name = "status", nullable = false, length = 20)
+        private StatusUsuario status;
 
-    @Column(name = "criado_em", nullable = false)
-    private LocalDateTime dataCriacao;
+        @Column(name = "criado_em", nullable = false)
+        private LocalDateTime dataCriacao;
 
-    @Column(name = "atualizado_em", nullable = false)
-    private LocalDateTime dataAtualizacao;
+        @Column(name = "atualizado_em", nullable = false)
+        private LocalDateTime dataAtualizacao;
 
-    @Transient
-    private String avatar;
+        @Transient
+        private String avatar;
 
-    @Transient
-    private String temaPerfil;
+        @Transient
+        private String temaPerfil;
 
-    @Transient
-    private int nivelAtual;
+        @Transient
+        private int nivelAtual;
 
-    @PrePersist
-    public void prePersist() {
-        LocalDateTime agora = LocalDateTime.now();
+        @PrePersist
+        public void prePersist() {
+            LocalDateTime agora = LocalDateTime.now();
 
-        if (status == null) {
-            status = StatusUsuario.ativo;
+            if (status == null) {
+                status = StatusUsuario.ativo;
+            }
+
+            if (dataCriacao == null) {
+                dataCriacao = agora;
+            }
+
+            dataAtualizacao = agora;
         }
 
-        if (dataCriacao == null) {
-            dataCriacao = agora;
+        @PreUpdate
+        public void preUpdate() {
+            dataAtualizacao = LocalDateTime.now();
         }
-
-        dataAtualizacao = agora;
     }
-
-    @PreUpdate
-    public void preUpdate() {
-        dataAtualizacao = LocalDateTime.now();
-    }
-}
 

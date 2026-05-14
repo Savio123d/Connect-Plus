@@ -1,6 +1,7 @@
 package conne.connect.connect.Models;
 
 import conne.connect.connect.Enums.DificuldadeTarefa;
+import conne.connect.connect.Enums.PrioridadeTarefa;
 import conne.connect.connect.Enums.StatusTarefa;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -46,12 +47,19 @@ public class TarefaModel {
     private String descricao;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "prioridade", nullable = false, length = 20)
+    private PrioridadeTarefa prioridade;
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "dificuldade", nullable = false, length = 20)
     private DificuldadeTarefa dificuldade;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 30)
     private StatusTarefa status;
+
+    @Column(name = "horas_estimadas")
+    private Integer horasEstimadas;
 
     @Column(name = "data_criacao", nullable = false)
     private LocalDateTime dataCriacao;
@@ -71,6 +79,14 @@ public class TarefaModel {
 
         if (status == null) {
             status = StatusTarefa.pendente;
+        }
+
+        if (prioridade == null) {
+            prioridade = PrioridadeTarefa.media;
+        }
+
+        if (dificuldade == null) {
+            dificuldade = DificuldadeTarefa.medio;
         }
 
         if (dataCriacao == null) {
