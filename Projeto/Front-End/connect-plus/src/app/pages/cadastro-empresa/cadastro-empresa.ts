@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { EmpresaService, Empresa } from './service_empresa';
-import { PrimeiroAcessoService, Usuario } from './primeiro-acesso-service';
+import { EmpresaService, Empresa, Usuario } from './service_empresa';
 import { Router, RouterLink } from '@angular/router';
 
 export enum Status {
@@ -19,7 +18,6 @@ export enum Status {
 })
 export class CadastroEmpresa implements OnInit {
   Status = Status;
-  empresas: Empresa[] = [];
   estados = [
     'AC',
     'AL',
@@ -54,7 +52,7 @@ export class CadastroEmpresa implements OnInit {
     idEmpresa: new FormControl<number | null>(null),
     razaoSocial: new FormControl('', Validators.required),
     nomeFantasia: new FormControl(''),
-    cnpj: new FormControl('', [Validators.required, Validators.maxLength(14)]),
+    cnpj: new FormControl('', [Validators.required, Validators.maxLength(14),Validators.minLength(14)]),
     cidade: new FormControl(''),
     status: new FormControl(Status.Ativa),
     uf: new FormControl(''),
@@ -67,12 +65,10 @@ export class CadastroEmpresa implements OnInit {
 
   constructor(
     private empresaService: EmpresaService,
-    private adminService: PrimeiroAcessoService,
     private router: Router,
   ) {}
 
   ngOnInit(): void {
-    this.listarEmpresas();
   }
 
   onSubmit(): void {
@@ -105,7 +101,7 @@ export class CadastroEmpresa implements OnInit {
           status: 'Ativo',
         };
 
-        this.adminService.cadastrarAdmin(dadosAdmin).subscribe({
+        this.empresaService.cadastrarAdmin(dadosAdmin).subscribe({
           next: () => {
             alert('Cadastro realizado com sucesso! ✅');
             this.router.navigate(['/login']);
@@ -115,23 +111,5 @@ export class CadastroEmpresa implements OnInit {
       },
       error: () => alert('Erro ao salvar empresa.'),
     });
-  }
-
-  listarEmpresas(): void {
-    this.empresaService.listar().subscribe({
-      next: (dados) => (this.empresas = dados),
-      error: (err) => console.error(err),
-    });
-  }
-
-  deleta(empresa: Empresa): void {
-    if (empresa.idEmpresa && confirm('Excluir empresa?')) {
-      this.empresaService.deleta(empresa.idEmpresa).subscribe({
-        next: () => {
-          this.empresas = this.empresas.filter((e) => e.idEmpresa !== empresa.idEmpresa);
-        },
-        error: (err) => console.error(err),
-      });
-    }
   }
 }

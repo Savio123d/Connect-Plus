@@ -12,28 +12,28 @@ export interface Empresa {
   uf: string;
 }
 
+export interface Usuario {
+  idUsuario?: number;
+  nome: string;
+  email: string;
+  senha?: string;
+  status?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
-
 export class EmpresaService {
   private apiUrl = '/api/empresas';
+  private apiUrlusuario = '/api/usuarios';
 
   constructor(private http: HttpClient) {}
-
-  listar(): Observable<Empresa[]> {
-    return this.http.get<Empresa[]>(this.apiUrl);
-  }
 
   salvar(empresa: Empresa): Observable<Empresa> {
     return this.http.post<Empresa>(this.apiUrl, empresa);
   }
 
-  deleta(idEmpresa: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${idEmpresa}`);
-  }
-
-  upadate(empresa: Empresa) {
-    return this.http.put<Empresa>(`${this.apiUrl}/${empresa.idEmpresa}`, empresa);
+  cadastrarAdmin(usuario: Usuario): Observable<Usuario> {
+    return this.http.post<Usuario>(this.apiUrlusuario, usuario);
   }
 }
