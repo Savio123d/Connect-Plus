@@ -5,12 +5,15 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -25,17 +28,25 @@ public class PedidoResgateModel {
     @Column(name = "id")
     private Long idPedidoResgate;
 
-    @Column(name = "empresa_id", nullable = false)
-    private Long idEmpresa;
+    @ManyToOne
+    @JoinColumn(name = "empresa_id", nullable = false)
+    private EmpresaModel idEmpresa;
 
-    @Column(name = "usuario_empresa_id", nullable = false)
-    private Long idUsuarioEmpresa;
+    @ManyToOne
+    @JoinColumn(name = "usu_emp_id", nullable = false)
+    private UsuarioEmpresaModel idUsuarioEmpresa;
 
-    @Column(name = "xp_total", nullable = false)
+    @Column(name = "xp_tot", nullable = false)
     private Integer xpTotal;
 
     @Column(name = "criado_em", nullable = false)
     private LocalDateTime dataCriacao;
+
+    @Column(name = "incluido", columnDefinition = "DATE")
+    private LocalDate incluido;
+
+    @Column(name = "excluido", columnDefinition = "DATE")
+    private LocalDate excluido;
 
     @PrePersist
     public void prePersist() {

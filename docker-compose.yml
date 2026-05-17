@@ -1,0 +1,21 @@
+services:
+  backend:
+    build:
+      context: ./Projeto/Back-End
+    container_name: connect_plus_backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://ep-restless-wave-ace8fdf7-pooler.sa-east-1.aws.neon.tech:5432/neondb?sslmode=require&channelBinding=require
+      SPRING_DATASOURCE_USERNAME: neondb_owner
+      SPRING_DATASOURCE_PASSWORD: //////////
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./Projeto/Front-End/connect-plus
+    container_name: connect_plus_frontend
+    depends_on:
+      - backend
+    ports:
+      - "4200:4200"

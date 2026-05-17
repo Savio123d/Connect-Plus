@@ -13,7 +13,7 @@ interface MenuItem {
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './sidebar.html',
-  styleUrl: './sidebar.css'
+  styleUrl: './sidebar.css',
 })
 export class Sidebar {
   menuItems: MenuItem[] = [
@@ -27,6 +27,10 @@ export class Sidebar {
     { label: 'Usuários', icon: 'group', route: '/usuarios' },
     { label: 'Configurações', icon: 'settings', route: '/configuracoes' },
     { label: 'Suporte', icon: 'support_agent', route: '/suporte' },
-    { label: 'Sair', icon: 'logout', route: '/login' }
+    { label: 'Sair', icon: 'logout', route: '/login' },
   ];
+
+  protected onMenuClick(item: MenuItem) {
+
+  }
 }
