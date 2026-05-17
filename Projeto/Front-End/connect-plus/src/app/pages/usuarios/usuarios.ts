@@ -1,7 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { Component, OnInit, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { Sidebar } from '../../components/sidebar/sidebar';
+import { Usuario, UsuarioService } from './usuario.service';
 
 @Component({
   selector: 'app-usuarios',
@@ -11,26 +12,48 @@ import { Sidebar } from '../../components/sidebar/sidebar';
   styleUrl: './usuarios.css'
 })
 export class Usuarios implements OnInit {
-  private http = inject(HttpClient);
+  private router = inject(Router);
+  private usuarioService = inject(UsuarioService);
 
-  usuarios: any[] = [];
-  carregando = true;
+  carregando = false;
   erro = '';
+  usuarios: Usuario[] = [];
+  usuarioSelecionadoId: number | null = null;
 
   ngOnInit(): void {
-    this.buscarUsuarios();
+    this.carregarUsuarios();
   }
 
-  buscarUsuarios(): void {
-    this.http.get<any[]>('http://localhost:8080/usuarios').subscribe({
-      next: (res) => {
-        this.usuarios = res;
+  carregarUsuarios(): void {
+    this.carregando = true;
+    this.erro = '';
+
+    this.usuarioService.listar().subscribe({
+      next: (resposta) => {
+        this.usuarios = resposta;
         this.carregando = false;
       },
-      error: () => {
+      error: (erroResposta) => {
+        console.error('Erro ao carregar usuários:', erroResposta);
         this.erro = 'Não foi possível carregar os usuários.';
         this.carregando = false;
       }
     });
+  }
+
+  selecionarUsuario(id: number): void {
+    this.usuarioSelecionadoId = id;
+  }
+
+  novoUsuario(): void {
+    this.router.navigate(['/usuarios/novo']);
+  }
+
+  editarUsuario(): void {
+    if (this.usuarioSelecionadoId === null) {
+      return;
+    }
+
+    this.router.navigate(['/usuarios/editar', this.usuarioSelecionadoId]);
   }
 }

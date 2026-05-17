@@ -1,0 +1,157 @@
+* {
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.pagina-cadastro {
+  min-height: 100vh;
+  background: #efeff4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+}
+
+.card-cadastro {
+  width: 100%;
+  max-width: 720px;
+  background: #f9f9fc;
+  border-radius: 32px;
+  padding: 40px 48px;
+  box-shadow: 0 20px 45px rgba(65, 45, 120, 0.12);
+}
+
+.logo-area {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.logo-area h1 {
+  margin: 0;
+  font-size: 64px;
+  font-weight: 700;
+  color: #20349b;
+  line-height: 1;
+}
+
+.logo-area h1 span {
+  color: #8a3ffc;
+}
+
+.linha-logo {
+  width: 180px;
+  height: 6px;
+  border-radius: 10px;
+  margin: 16px auto 0;
+  background: linear-gradient(90deg, #4d5dfb, #b98cf6);
+}
+
+h2 {
+  font-size: 28px;
+  color: #1d2152;
+  margin-bottom: 24px;
+}
+
+.grupo-input {
+  margin-bottom: 22px;
+}
+
+.grupo-input label {
+  display: block;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1d2152;
+  margin-bottom: 8px;
+}
+
+.input-box {
+  display: flex;
+  align-items: center;
+  height: 64px;
+  background: #f4f4f7;
+  border: 1.5px solid #c9c5ef;
+  border-radius: 20px;
+  padding: 0 16px;
+}
+
+.icone {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  color: #5f3dc4;
+  background: #ece8ff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.input-box input {
+  flex: 1;
+  height: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 16px;
+  color: #4b4b68;
+}
+
+.input-box input::placeholder {
+  color: #7e7e9d;
+}
+
+.btn-cadastrar {
+  width: 100%;
+  height: 64px;
+  border: none;
+  border-radius: 20px;
+  margin-top: 12px;
+  font-size: 22px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  background: linear-gradient(90deg, #1738a8, #3d32e0, #7a33f6);
+  box-shadow: 0 10px 25px rgba(63, 46, 173, 0.25);
+  transition: 0.2s ease;
+}
+
+.btn-cadastrar:hover {
+  transform: translateY(-2px);
+}
+
+.btn-cadastrar span {
+  margin-left: 8px;
+}
+
+@media (max-width: 768px) {
+  .card-cadastro {
+    padding: 25px 20px;
+    border-radius: 24px;
+  }
+
+  .logo-area h1 {
+    font-size: 42px;
+  }
+
+  h2 {
+    font-size: 22px;
+  }
+
+  .input-box {
+    height: 56px;
+  }
+
+  .btn-cadastrar {
+    height: 56px;
+    font-size: 18px;
+  }
+}

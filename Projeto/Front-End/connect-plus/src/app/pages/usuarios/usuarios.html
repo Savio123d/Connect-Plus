@@ -15,7 +15,7 @@
         {{ erro }}
       </div>
 
-      <div *ngIf="!carregando && !erro" class="tabela-card mt-3">
+      <div class="tabela-card mt-3">
         <table class="table table-hover mb-0">
           <thead>
             <tr>
@@ -27,14 +27,19 @@
           </thead>
 
           <tbody>
-            <tr *ngFor="let usuario of usuarios">
+            <tr
+              *ngFor="let usuario of usuarios"
+              (click)="selecionarUsuario(usuario.id)"
+              [class.linha-selecionada]="usuarioSelecionadoId === usuario.id"
+              class="linha-clicavel"
+            >
               <td>{{ usuario.id }}</td>
               <td>{{ usuario.nome }}</td>
               <td>{{ usuario.email }}</td>
               <td>{{ usuario.status }}</td>
             </tr>
 
-            <tr *ngIf="usuarios.length === 0">
+            <tr *ngIf="!carregando && usuarios.length === 0">
               <td colspan="4" class="text-center text-muted py-4">
                 Nenhum usuário cadastrado.
               </td>
@@ -45,10 +50,22 @@
     </main>
   </section>
 
-  <aside class="acoes-usuarios">
-    <div class="botoes-acoes">
-      <button class="btn btn-outline-primary btn-usuario">Editar</button>
-      <button class="btn btn-primary btn-usuario">Novo</button>
+  <aside class="barra-acoes">
+    <div class="painel-acoes">
+      <button
+        class="btn btn-outline-primary btn-acao"
+        (click)="editarUsuario()"
+        [disabled]="usuarioSelecionadoId === null"
+      >
+        Editar
+      </button>
+
+      <button
+        class="btn btn-primary btn-acao"
+        (click)="novoUsuario()"
+      >
+        Novo
+      </button>
     </div>
   </aside>
 </div>
