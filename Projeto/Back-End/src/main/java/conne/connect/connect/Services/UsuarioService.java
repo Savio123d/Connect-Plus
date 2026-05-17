@@ -4,6 +4,7 @@ import conne.connect.connect.Dto.UsuarioRequestDTO;
 import conne.connect.connect.Models.UsuarioModel;
 import conne.connect.connect.Repositories.UsuarioRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -13,9 +14,11 @@ import java.util.List;
 public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UsuarioService(UsuarioRepository usuarioRepository) {
+    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<UsuarioDTO> findAll(){
@@ -27,6 +30,7 @@ public class UsuarioService {
     public UsuarioDTO criarUsuario(UsuarioRequestDTO usuarioRequestDTO){
         validarEmailDisponivel(usuarioRequestDTO.getEmail(), null);
         UsuarioModel usuarioModel = usuarioRequestDTO.toModel();
+        usuarioModel.setSenha(passwordEncoder.encode(usuarioRequestDTO.getSenha()));
         return UsuarioDTO.fromModel(usuarioRepository.save(usuarioModel));
     }
 
@@ -38,6 +42,7 @@ public class UsuarioService {
         UsuarioModel usuario = buscarUsuarioExistente(idUsuario);
         validarEmailDisponivel(usuarioRequestDTO.getEmail(), idUsuario);
         usuarioRequestDTO.applyToModel(usuario);
+        usuario.setSenha(passwordEncoder.encode(usuarioRequestDTO.getSenha()));
         return UsuarioDTO.fromModel(usuarioRepository.save(usuario));
     }
 
