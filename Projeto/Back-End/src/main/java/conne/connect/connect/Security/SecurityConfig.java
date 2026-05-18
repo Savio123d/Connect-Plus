@@ -26,18 +26,40 @@ public class SecurityConfig {
 
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
-                    config.setAllowedOrigins(List.of("http://localhost:4200"));
-                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+                    config.setAllowedOrigins(List.of(
+                            "http://localhost:4200"
+                    ));
+
+                    config.setAllowedMethods(List.of(
+                            "GET",
+                            "POST",
+                            "PUT",
+                            "DELETE",
+                            "OPTIONS"
+                    ));
+
                     config.setAllowedHeaders(List.of("*"));
                     config.setAllowCredentials(true);
+
                     return config;
                 }))
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/usuarios/**").permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/api/empresas/**").permitAll()
+                        .requestMatchers("/api/projetos/**").permitAll()
+                        .requestMatchers("/api/tarefas/**").permitAll()
+                        .requestMatchers("/api/recompensas/**").permitAll()
+                        .requestMatchers("/api/pedidos-resgate/**").permitAll()
+
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+
+                        .anyRequest().permitAll()
                 )
 
                 .httpBasic(httpBasic -> httpBasic.disable())
