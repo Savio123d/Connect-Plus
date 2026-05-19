@@ -57,6 +57,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/pedidos-resgate/**").permitAll()
 
                         .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/swagger-ui.html").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()
 
                         .anyRequest().permitAll()
