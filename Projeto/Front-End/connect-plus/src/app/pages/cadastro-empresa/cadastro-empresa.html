@@ -1,99 +1,160 @@
-<div class="cadastro-wrapper container">
-  
-  <div class="card mb-4">
-    <div class="card-body">
-      <h2 class="mb-4">Cadastro de Empresa</h2>
-      
-      <form [formGroup]="empresaC" (ngSubmit)="onSubmit()">
-        <div class="row g-3"> <div class="col-md-6">
-            <label for="razaoSocial" class="form-label">Razão Social:</label>
-            <input id="razaoSocial" type="text" class="form-control" formControlName="razaoSocial" />
-          </div>
-
-          <div class="col-md-6">
-            <label for="nomeFantasia" class="form-label">Nome Fantasia:</label>
-            <input id="nomeFantasia" type="text" class="form-control" formControlName="nomeFantasia" />
-          </div>
-
-          <div class="col-md-4">
-            <label for="cnpj" class="form-label">CNPJ:</label>
-            <input id="cnpj" type="text" class="form-control" formControlName="cnpj"  maxlength="14"/>
-          </div>
-
-          <div class="col-md-4">
-            <label for="cidade" class="form-label">Cidade:</label>
-            <input id="cidade" type="text" class="form-control" formControlName="cidade" />
-          </div>
-
-          <div class="col-md-2">
-            <label for="situacao" class="form-label">Situação:</label>
-            <select id="situacao" class="form-control" formControlName="situacao">
-              <option [value]="Status.Ativo">Ativo</option>
-              <option [value]="Status.Baixada">Baixada</option>
-            </select>
-
-          </div>
-
-          <div class="col-md-2">
-            <label for="uf" class="form-label">UF:</label>
-            <select id="uf" class="form-control" formControlName="uf">
-              @for (estado of estados; track estado) {
-                <option [value]="estado">{{ estado }}</option>
-              }
-            </select>
-          </div>
-
-          <div class="col-12 mt-3">
-            <button type="submit" class="btn btn-primary px-4 py-2">
-              Salvar Empresa
-            </button>
-          </div>
-
-        </div>
-      </form>
+<div class="cadastro-page">
+  <header class="cadastro-header">
+    <div class="brand">
+      <span class="brand-icon">C+</span>
+      <span class="brand-name">Connect+</span>
     </div>
-  </div>
 
-  <div class="card">
-    <div class="card-body">
-      <h3 class="mb-4">Empresas Cadastradas</h3>
-      
-      <div class="table-responsive">
-        <table class="table table-hover align-middle">
-          <thead>
-            <tr>
-              <th>Razão Social</th>
-              <th>Nome Fantasia</th>
-              <th>CNPJ</th>
-              <th>Cidade</th>
-              <th>Situação</th>
-              <th>UF</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (empresa of empresas; track empresa.cnpj) {
-              <tr>
-                <td><strong>{{ empresa.razaoSocial }}</strong></td>
-                <td>{{ empresa.nomeFantasia }}</td>
-                <td>{{ empresa.cnpj }}</td>
-                <td>{{ empresa.cidade }}</td>
-                <td>
-                  <span class="badge" [ngClass]="empresa.situacao === 'A' ? 'bg-success' : 'bg-danger'">
-                    {{ empresa.situacao === 'A' ? 'Ativo' : 'Baixada' }}
-                  </span>
-                </td>
-                <td>{{ empresa.uf }}</td>
-                    <td>
-                    <button class="btn btn-sm btn-danger" (click)="Delete(empresas.indexOf(empresa))">
-                        Excluir
-                    </button>
-              </tr>
-            }
-          </tbody>
-        </table>
+    <h1 class="page-title">Cadastro de Empresa</h1>
+    <p class="page-subtitle">Complete os dados da sua empresa para começar</p>
+  </header>
+
+  <form
+    class="cadastro-stack"
+    [formGroup]="cadastroForm"
+    (ngSubmit)="onSubmit()"
+  >
+    <section class="cadastro-card">
+      <div class="card-header-custom">
+        <span class="section-icon">▣</span>
+        <h2 class="section-title">Informações da Empresa</h2>
       </div>
-      
-    </div>
-  </div>
 
+      <div class="row g-4">
+        <div class="col-12">
+          <label class="form-label">Razão Social</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="razaoSocial"
+            placeholder="Nome completo da empresa"
+          />
+        </div>
+
+        <div class="col-12">
+          <label class="form-label">Nome Fantasia</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="nomeFantasia"
+            placeholder="Nome comercial"
+          />
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">CNPJ</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="cnpj"
+            maxlength="14"
+            placeholder="00.000.000/0000-00"
+          />
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Situação</label>
+          <select class="form-select" formControlName="status">
+            <option [value]="Status.Ativa">Ativa</option>
+            <option [value]="Status.Inativa">Inativa</option>
+          </select>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Cidade</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="cidade"
+            placeholder="Nome da cidade"
+          />
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">UF</label>
+          <select class="form-select" formControlName="uf">
+            <option value="" disabled>Selecione</option>
+            <option *ngFor="let uf of estados" [value]="uf">
+              {{ uf }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <section class="cadastro-card">
+      <div class="card-header-custom">
+        <span class="section-icon section-icon-blue">▣</span>
+        <h2 class="section-title">Primeiro Acesso - Credenciais Temporárias</h2>
+      </div>
+
+      <p class="section-description">
+        Defina as credenciais de primeiro acesso para o administrador da empresa
+      </p>
+
+      <div class="row g-4">
+        <div class="col-12">
+          <label class="form-label">Nome do Gestor</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="nomeAdmin"
+            placeholder="Nome completo do responsável"
+          />
+        </div>
+
+        <div class="col-12">
+          <label class="form-label">Email de Acesso (Login)</label>
+          <input
+            type="email"
+            class="form-control"
+            formControlName="emailAdmin"
+            placeholder="admin@suaempresa.com"
+          />
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Senha Temporária</label>
+          <input
+            type="password"
+            class="form-control"
+            formControlName="senhaAdmin"
+            placeholder="Mínimo 8 caracteres"
+          />
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Confirmar Senha</label>
+          <input
+            type="password"
+            class="form-control"
+            formControlName="confirmarSenhaAdmin"
+            placeholder="Repita a senha"
+          />
+        </div>
+      </div>
+
+      <div class="info-box">
+        <span class="info-icon">i</span>
+        <div>
+          <strong>Pronto para começar!</strong>
+          <p>
+            Após o cadastro, o gestor poderá fazer login com essas
+            credenciais e será solicitada a alteração da senha no primeiro
+            acesso.
+          </p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn btn-secondary-custom" routerLink="/login">
+          Voltar
+        </button>
+
+        <button type="submit" class="btn btn-primary-custom">
+          Cadastrar Empresa
+        </button>
+      </div>
+    </section>
+  </form>
 </div>

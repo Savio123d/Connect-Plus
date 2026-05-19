@@ -8,6 +8,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -15,6 +17,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -29,11 +32,13 @@ public class ProjetoModel {
     @Column(name = "id")
     private Long idProjeto;
 
-    @Column(name = "empresa_id", nullable = false)
-    private Long idEmpresa;
+    @ManyToOne
+    @JoinColumn(name = "empresa_id", nullable = false)
+    private EmpresaModel idEmpresa;
 
-    @Column(name = "gestor_usuario_empresa_id", nullable = false)
-    private Long idGestorUsuarioEmpresa;
+    @ManyToOne
+    @JoinColumn(name = "gestor_id", nullable = false)
+    private UsuarioEmpresaModel idGestorUsuarioEmpresa;
 
     @Column(name = "nome", nullable = false, length = 150)
     private String nome;
@@ -41,13 +46,13 @@ public class ProjetoModel {
     @Column(name = "descricao", columnDefinition = "TEXT")
     private String descricao;
 
-    @Column(name = "data_inicio")
+    @Column(name = "inicio_em")
     private LocalDateTime dataInicio;
 
-    @Column(name = "data_fim_prevista")
+    @Column(name = "fim_prev")
     private LocalDateTime dataFimPrevista;
 
-    @Column(name = "data_fim_real")
+    @Column(name = "fim_real")
     private LocalDateTime dataFimReal;
 
     @Enumerated(EnumType.STRING)
@@ -59,6 +64,12 @@ public class ProjetoModel {
 
     @Column(name = "atualizado_em", nullable = false)
     private LocalDateTime dataAtualizacao;
+
+    @Column(name = "incluido", columnDefinition = "DATE")
+    private LocalDate incluido;
+
+    @Column(name = "excluido", columnDefinition = "DATE")
+    private LocalDate excluido;
 
     @PrePersist
     public void prePersist() {

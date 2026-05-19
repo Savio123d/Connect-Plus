@@ -1,27 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { CadastroEmpresaCompleto, EmpresaService } from './service_empresa';
+import { Router, RouterLink } from '@angular/router';
 
-// Enum de Status
-enum Status {
-  Ativo = 'A',
-  Baixada = 'B',
-}
-
-// Definir um tipo para os estados brasileiros
-type Estado =
-  | 'AC' | 'AL' | 'AP' | 'AM' | 'BA' | 'CE' | 'DF' | 'ES'
-  | 'GO' | 'MA' | 'MT' | 'MS' | 'MG' | 'PA' | 'PB' | 'PR'
-  | 'PE' | 'PI' | 'RJ' | 'RN' | 'RS' | 'RO' | 'RR' | 'SC'
-  | 'SP' | 'SE' | 'TO';
-
-interface Empresa {
-  razaoSocial: string;
-  nomeFantasia: string;
-  cnpj: string;
-  cidade: string;
-  situacao: Status;
-  uf: Estado;
+export enum Status {
+  Ativa = 'ativa',
+  Inativa = 'inativa'
 }
 
 @Component({
@@ -29,37 +14,70 @@ interface Empresa {
   standalone: true,
   templateUrl: './cadastro-empresa.html',
   styleUrls: ['./cadastro-empresa.css'],
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, RouterLink],
 })
-export class CadastroEmpresa {
+export class CadastroEmpresa implements OnInit {
   Status = Status;
-  empresas: Empresa[] = []; // Lista de empresas cadastradas
-
-  estados: Estado[] = [
-    'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES',
-    'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR',
-    'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC',
-    'SP', 'SE', 'TO'
+  estados = [
+    'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
+    'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
+    'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
   ];
 
-  empresaC = new FormGroup({
-    razaoSocial: new FormControl(''),
+  cadastroForm = new FormGroup({
+    idEmpresa: new FormControl<number | null>(null),
+    razaoSocial: new FormControl('', Validators.required),
     nomeFantasia: new FormControl(''),
-    cnpj: new FormControl("", Validators.maxLength(14)),
+    cnpj: new FormControl('', [Validators.required, Validators.maxLength(14), Validators.minLength(14)]),
     cidade: new FormControl(''),
-    situacao: new FormControl(Status.Ativo), 
+    status: new FormControl(Status.Ativa),
     uf: new FormControl(''),
+
+    nomeAdmin: new FormControl('', Validators.required),
+    emailAdmin: new FormControl('', [Validators.required, Validators.email]),
+    senhaAdmin: new FormControl('', [Validators.required, Validators.minLength(8)]),
+    confirmarSenhaAdmin: new FormControl(''),
   });
 
-  // Função de submit para adicionar uma nova empresa no vetor
+  constructor(
+    private empresaService: EmpresaService,
+    private router: Router,
+  ) {}
+
+  ngOnInit(): void {}
+
   onSubmit(): void {
-    const empresa = this.empresaC.value as Empresa; 
-    this.empresas.push(empresa);  
-    console.log(this.empresas);  // Exibe as empresas no console
-  }
+    if (this.cadastroForm.invalid) {
+      alert('Preencha todos os campos corretamente.');
+      return;
+    }
 
-  Delete(index: number): void {
-    this.empresas.splice(index, 1); 
-  }
+    const { senhaAdmin, confirmarSenhaAdmin } = this.cadastroForm.value;
 
+    if (senhaAdmin !== confirmarSenhaAdmin) {
+      alert('As senhas não coincidem.');
+      return;
+    }
+
+    const dados: CadastroEmpresaCompleto = {
+      razaoSocial: this.cadastroForm.value.razaoSocial!,
+      nomeFantasia: this.cadastroForm.value.nomeFantasia ?? '',
+      cnpj: this.cadastroForm.value.cnpj!,
+      cidade: this.cadastroForm.value.cidade ?? '',
+      uf: this.cadastroForm.value.uf ?? '',
+      nomeAdmin: this.cadastroForm.value.nomeAdmin!,
+      emailAdmin: this.cadastroForm.value.emailAdmin!,
+      senhaAdmin: this.cadastroForm.value.senhaAdmin!,
+    };
+
+    this.empresaService.cadastrarEmpresa(dados).subscribe({
+      next: () => {
+        alert('Cadastro realizado com sucesso!');
+        this.router.navigate(['/login']);
+      },
+      error: () => {
+        alert('Erro ao realizar cadastro.');
+      },
+    });
+  }
 }
