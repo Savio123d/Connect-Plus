@@ -1,45 +1,46 @@
 package conne.connect.connect.Models;
 
+import conne.connect.connect.Enums.TipoPlano;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "pedido_resgate_item")
+@Table(name = "plano")
 @Getter
 @Setter
 @NoArgsConstructor
-public class PedidoResgateItemModel {
+public class PlanoModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Long idPedidoResgateItem;
+    private Long idPlano;
 
-    @ManyToOne
-    @JoinColumn(name = "resgate_id", nullable = false)
-    private PedidoResgateModel idPedidoResgate;
+    @Column(name = "nome", nullable = false, length = 60)
+    private String nome;
 
-    @ManyToOne
-    @JoinColumn(name = "recompensa_id", nullable = false)
-    private RecompensaModel idRecompensa;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo", nullable = false, length = 20)
+    private TipoPlano tipo;
 
-    @Column(name = "xp_unit", nullable = false)
-    private Integer xpUnitario;
+    @Column(name = "max_usuarios")
+    private Integer maxUsuarios;
 
-    @Column(name = "qtd", nullable = false)
-    private Integer quantidade;
+    @Column(name = "valor", nullable = false, precision = 10, scale = 2)
+    private BigDecimal valor;
 
     @Column(name = "incluido", columnDefinition = "DATE")
     private LocalDate incluido;
@@ -49,8 +50,8 @@ public class PedidoResgateItemModel {
 
     @PrePersist
     public void prePersist() {
-        if (quantidade == null) {
-            quantidade = 1;
+        if (valor == null) {
+            valor = BigDecimal.ZERO;
         }
     }
 }

@@ -1,4 +1,5 @@
 package conne.connect.connect.Controllers;
+
 import conne.connect.connect.Dto.UsuarioDTO;
 import conne.connect.connect.Dto.UsuarioRequestDTO;
 import conne.connect.connect.Services.UsuarioService;
@@ -35,10 +36,26 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarios);
     }
 
+    @GetMapping("/empresa/{idEmpresa}")
+    public ResponseEntity<List<UsuarioDTO>> listarUsuariosDaEmpresa(
+            @PathVariable Long idEmpresa
+    ) {
+        List<UsuarioDTO> usuarios = usuarioService.listarUsuariosDaEmpresa(idEmpresa);
+        return ResponseEntity.ok(usuarios);
+    }
+
     @PostMapping
-    public ResponseEntity<UsuarioDTO> criarUsuario(@Valid @RequestBody UsuarioRequestDTO usuarioRequestDTO) {
+    public ResponseEntity<UsuarioDTO> criarUsuario(
+            @Valid @RequestBody UsuarioRequestDTO usuarioRequestDTO
+    ) {
         UsuarioDTO usuario = usuarioService.criarUsuario(usuarioRequestDTO);
-        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(usuario.getIdUsuario()).toUri();
+
+        URI uri = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(usuario.getIdUsuario())
+                .toUri();
+
         return ResponseEntity.created(uri).body(usuario);
     }
 
@@ -46,7 +63,6 @@ public class UsuarioController {
     public ResponseEntity<?> deletar(@PathVariable("id") Long idUsuario) {
         usuarioService.excluirUsuario(idUsuario);
         return ResponseEntity.noContent().build();
-
     }
 
     @GetMapping("/{id}")
@@ -55,9 +71,10 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UsuarioDTO> atualizar(@PathVariable("id") Long idUsuario, @Valid @RequestBody UsuarioRequestDTO usuarioRequestDTO) {
+    public ResponseEntity<UsuarioDTO> atualizar(
+            @PathVariable("id") Long idUsuario,
+            @Valid @RequestBody UsuarioRequestDTO usuarioRequestDTO
+    ) {
         return ResponseEntity.ok(usuarioService.atualizarUsuario(idUsuario, usuarioRequestDTO));
     }
-
-
 }

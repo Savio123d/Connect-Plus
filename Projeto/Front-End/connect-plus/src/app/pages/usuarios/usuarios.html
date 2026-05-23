@@ -36,116 +36,118 @@
         </button>
       </div>
 
-    <section class="card-usuarios">
-      <div class="barra-busca">
-        <span>⌕</span>
+      <section class="card-usuarios">
+        <div class="barra-busca">
+          <span>⌕</span>
 
-        <input
-          type="text"
-          placeholder="Buscar usuários por nome, email ou departamento..."
-          [(ngModel)]="busca"
-        />
-      </div>
+          <input
+            type="text"
+            placeholder="Buscar usuários por nome, email, função ou setor..."
+            [(ngModel)]="busca"
+            (ngModelChange)="filtrarUsuarios()"
+          />
+        </div>
 
-      <p class="mensagem erro" *ngIf="erro">
-        {{ erro }}
-      </p>
+        <p class="mensagem erro" *ngIf="erro">
+          {{ erro }}
+        </p>
 
-      <p class="mensagem" *ngIf="carregando">
-        Carregando...
-      </p>
+        <p class="mensagem" *ngIf="carregando">
+          Carregando...
+        </p>
 
-      <div class="tabela-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Usuário</th>
-              <th>Email</th>
-              <th>Função</th>
-              <th>Departamento</th>
-              <th>Nível</th>
-              <th>Status</th>
-              <th class="centro">Ações</th>
-            </tr>
-          </thead>
+        <div class="tabela-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Usuário</th>
+                <th>Email</th>
+                <th>Função</th>
+                <th>Setor</th>
+                <th>Nível</th>
+                <th>Status</th>
+                <th class="centro">Ações</th>
+              </tr>
+            </thead>
 
-          <tbody>
-            <tr *ngFor="let usuario of usuariosFiltrados">
-              <td>
-                <div class="usuario-info">
-                  <div class="avatar">
-                    {{ iniciais(usuario.nome) }}
+            <tbody>
+              <tr *ngFor="let usuario of usuariosFiltrados">
+                <td>
+                  <div class="usuario-info">
+                    <div class="avatar">
+                      {{ iniciais(usuario.nome) }}
+                    </div>
+
+                    <div>
+                      <strong>{{ usuario.nome }}</strong>
+                      <small>{{ usuario.xp || 0 }} XP</small>
+                    </div>
                   </div>
+                </td>
 
-                  <div>
-                    <strong>{{ usuario.nome }}</strong>
-                    <small>{{ usuario.xp || 0 }} XP</small>
+                <td>
+                  <div class="email-info">
+                    <span>✉</span>
+                    {{ usuario.email }}
                   </div>
-                </div>
-              </td>
+                </td>
 
-              <td>
-                <div class="email-info">
-                  <span>✉</span>
-                  {{ usuario.email }}
-                </div>
-              </td>
+                <td>
+                  <span class="badge funcao">
+                    {{ usuario.cargo || 'Colaborador' }}
+                  </span>
+                </td>
 
-              <td>
-                <span class="badge funcao">
-                  {{ usuario.cargo || 'Sem cargo' }}
-                </span>
-              </td>
+                <td>
+                  {{ usuario.departamento || 'Não informado' }}
+                </td>
 
-              <td>
-                {{ usuario.departamento || 'Não informado' }}
-              </td>
+                <td>
+                  <span class="badge nivel">
+                    Nível {{ usuario.nivel || 1 }}
+                  </span>
+                </td>
 
-              <td>
-                <span class="badge nivel">
-                  Nível {{ usuario.nivel || 1 }}
-                </span>
-              </td>
+                <td>
+                  <span class="badge status" [ngClass]="classeStatus(usuario.status)">
+                    {{ usuario.status || 'Ativo' }}
+                  </span>
+                </td>
 
-              <td>
-                <span class="badge status" [ngClass]="classeStatus(usuario.status)">
-                  {{ usuario.status }}
-                </span>
-              </td>
+                <td>
+                  <div class="acoes">
+                    <button
+                      class="btn-acao editar"
+                      type="button"
+                      title="Editar usuário"
+                      (click)="abrirEditar(usuario)"
+                    >
+                      ✎
+                    </button>
 
-              <td>
-                <div class="acoes">
-                  <button
-                    class="btn-acao editar"
-                    type="button"
-                    title="Editar usuário"
-                    (click)="abrirEditar(usuario)"
-                  >
-                    ✎
-                  </button>
+                    <button
+                      class="btn-acao excluir"
+                      type="button"
+                      title="Excluir usuário"
+                      (click)="abrirExcluir(usuario)"
+                    >
+                      🗑
+                    </button>
+                  </div>
+                </td>
+              </tr>
 
-                  <button
-                    class="btn-acao excluir"
-                    type="button"
-                    title="Excluir usuário"
-                    (click)="abrirExcluir(usuario)"
-                  >
-                    🗑
-                  </button>
-                </div>
-              </td>
-            </tr>
-
-            <tr *ngIf="usuariosFiltrados.length === 0 && !carregando">
-              <td colspan="7" class="sem-registros">
-                Nenhum usuário encontrado.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-  </main>
+              <tr *ngIf="usuariosFiltrados.length === 0 && !carregando">
+                <td colspan="7" class="sem-registros">
+                  Nenhum usuário encontrado.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
 </div>
 
 <!-- Modal Criar / Editar -->
@@ -182,21 +184,27 @@
       </div>
 
       <div class="campo">
-        <label>Cargo</label>
-        <input
-          type="text"
-          placeholder="Ex: Desenvolvedor, Designer, QA"
-          [(ngModel)]="formUsuario.cargo"
-        />
+        <label>Função</label>
+        <select [(ngModel)]="formUsuario.cargo">
+          <option
+            *ngFor="let funcao of funcoes"
+            [value]="funcao.value"
+          >
+            {{ funcao.label }}
+          </option>
+        </select>
       </div>
 
       <div class="campo">
-        <label>Departamento</label>
-        <input
-          type="text"
-          placeholder="Ex: Tecnologia, Qualidade"
-          [(ngModel)]="formUsuario.departamento"
-        />
+        <label>Setor</label>
+        <select [(ngModel)]="formUsuario.departamento">
+          <option
+            *ngFor="let setor of setores"
+            [value]="setor.value"
+          >
+            {{ setor.label }}
+          </option>
+        </select>
       </div>
 
       <div class="campo" *ngIf="modal === 'criar'">
@@ -211,8 +219,12 @@
       <div class="campo">
         <label>Status</label>
         <select [(ngModel)]="formUsuario.status">
-          <option value="Ativo">Ativo</option>
-          <option value="Inativo">Inativo</option>
+          <option
+            *ngFor="let status of statusOptions"
+            [value]="status.value"
+          >
+            {{ status.label }}
+          </option>
         </select>
       </div>
     </div>

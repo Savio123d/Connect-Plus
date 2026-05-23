@@ -19,33 +19,29 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(
-        name = "equipe_membro",
-        uniqueConstraints = @UniqueConstraint(name = "uk_equipe_membro_equipe_usu_emp", columnNames = {"equipe_id", "usu_emp_id"})
+        name = "msg_leitura",
+        uniqueConstraints = @UniqueConstraint(name = "uk_msg_leitura_mensagem_usu_emp", columnNames = {"mensagem_id", "usu_emp_id"})
 )
 @Getter
 @Setter
 @NoArgsConstructor
-public class EquipeMembroModel {
+public class MsgLeituraModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Long idEquipeMembro;
+    private Long idMsgLeitura;
 
     @ManyToOne
-    @JoinColumn(name = "empresa_id", nullable = false)
-    private EmpresaModel idEmpresa;
-
-    @ManyToOne
-    @JoinColumn(name = "equipe_id", nullable = false)
-    private EquipeModel idEquipe;
+    @JoinColumn(name = "mensagem_id", nullable = false)
+    private MensagemModel idMensagem;
 
     @ManyToOne
     @JoinColumn(name = "usu_emp_id", nullable = false)
     private UsuarioEmpresaModel idUsuarioEmpresa;
 
-    @Column(name = "criado_em", nullable = false)
-    private LocalDateTime dataCriacao;
+    @Column(name = "lido_em", nullable = false)
+    private LocalDateTime lidoEm;
 
     @Column(name = "incluido", columnDefinition = "DATE")
     private LocalDate incluido;
@@ -55,8 +51,8 @@ public class EquipeMembroModel {
 
     @PrePersist
     public void prePersist() {
-        if (dataCriacao == null) {
-            dataCriacao = LocalDateTime.now();
+        if (lidoEm == null) {
+            lidoEm = LocalDateTime.now();
         }
     }
 }

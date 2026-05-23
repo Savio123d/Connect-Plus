@@ -1,15 +1,18 @@
 package conne.connect.connect.Models;
 
+import conne.connect.connect.Enums.StatusSala;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,33 +22,43 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(
-        name = "equipe_membro",
-        uniqueConstraints = @UniqueConstraint(name = "uk_equipe_membro_equipe_usu_emp", columnNames = {"equipe_id", "usu_emp_id"})
+        name = "sala_transmissao",
+        indexes = @Index(name = "idx_sala_transmissao_status", columnList = "status")
 )
 @Getter
 @Setter
 @NoArgsConstructor
-public class EquipeMembroModel {
+public class SalaTransmissaoModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private Long idEquipeMembro;
+    private Long idSalaTransmissao;
 
     @ManyToOne
     @JoinColumn(name = "empresa_id", nullable = false)
     private EmpresaModel idEmpresa;
 
     @ManyToOne
-    @JoinColumn(name = "equipe_id", nullable = false)
-    private EquipeModel idEquipe;
+    @JoinColumn(name = "conversa_id")
+    private ConversaModel idConversa;
+
+    @Column(name = "nome", length = 120)
+    private String nome;
 
     @ManyToOne
-    @JoinColumn(name = "usu_emp_id", nullable = false)
-    private UsuarioEmpresaModel idUsuarioEmpresa;
+    @JoinColumn(name = "criador_id", nullable = false)
+    private UsuarioEmpresaModel idCriador;
 
-    @Column(name = "criado_em", nullable = false)
-    private LocalDateTime dataCriacao;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private StatusSala status;
+
+    @Column(name = "inicio_em", nullable = false)
+    private LocalDateTime inicioEm;
+
+    @Column(name = "fim_em")
+    private LocalDateTime fimEm;
 
     @Column(name = "incluido", columnDefinition = "DATE")
     private LocalDate incluido;
@@ -55,8 +68,12 @@ public class EquipeMembroModel {
 
     @PrePersist
     public void prePersist() {
-        if (dataCriacao == null) {
-            dataCriacao = LocalDateTime.now();
+        if (status == null) {
+            status = StatusSala.ativa;
+        }
+
+        if (inicioEm == null) {
+            inicioEm = LocalDateTime.now();
         }
     }
 }

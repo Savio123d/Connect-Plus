@@ -9,6 +9,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -16,10 +19,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "tarefa")
+@Table(
+        name = "tarefa",
+        indexes = {
+                @Index(name = "idx_tarefa_projeto", columnList = "projeto_id"),
+                @Index(name = "idx_tarefa_resp", columnList = "resp_id")
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -30,14 +40,17 @@ public class TarefaModel {
     @Column(name = "id")
     private Long idTarefa;
 
-    @Column(name = "empresa_id", nullable = false)
-    private Long idEmpresa;
+    @ManyToOne
+    @JoinColumn(name = "empresa_id", nullable = false)
+    private EmpresaModel idEmpresa;
 
-    @Column(name = "projeto_id", nullable = false)
-    private Long idProjeto;
+    @ManyToOne
+    @JoinColumn(name = "projeto_id", nullable = false)
+    private ProjetoModel idProjeto;
 
-    @Column(name = "responsavel_usuario_empresa_id")
-    private Long idResponsavelUsuarioEmpresa;
+    @ManyToOne
+    @JoinColumn(name = "resp_id")
+    private UsuarioEmpresaModel idResponsavelUsuarioEmpresa;
 
     @Column(name = "titulo", nullable = false, length = 130)
     private String titulo;
@@ -53,7 +66,7 @@ public class TarefaModel {
     @Column(name = "status", nullable = false, length = 30)
     private StatusTarefa status;
 
-    @Column(name = "data_criacao", nullable = false)
+    @Column(name = "criado_em", nullable = false)
     private LocalDateTime dataCriacao;
 
     @Column(name = "prazo")
@@ -64,6 +77,12 @@ public class TarefaModel {
 
     @Column(name = "atualizado_em", nullable = false)
     private LocalDateTime dataAtualizacao;
+
+    @Column(name = "incluido", columnDefinition = "DATE")
+    private LocalDate incluido;
+
+    @Column(name = "excluido", columnDefinition = "DATE")
+    private LocalDate excluido;
 
     @PrePersist
     public void prePersist() {
