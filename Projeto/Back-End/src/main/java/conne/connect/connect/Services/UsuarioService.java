@@ -1,5 +1,4 @@
 package conne.connect.connect.Services;
-
 import conne.connect.connect.Dto.UsuarioDTO;
 import conne.connect.connect.Dto.UsuarioRequestDTO;
 import conne.connect.connect.Models.SaldoXpModel;
@@ -59,11 +58,11 @@ public class UsuarioService {
         return UsuarioDTO.fromModel(usuarioRepository.save(usuarioModel));
     }
 
-    public UsuarioDTO buscarPorId(Long idUsuario) {
+    public UsuarioDTO buscarPorId(Long idUsuario){
         return UsuarioDTO.fromModel(buscarUsuarioExistente(idUsuario));
     }
 
-    public UsuarioDTO atualizarUsuario(Long idUsuario, UsuarioRequestDTO usuarioRequestDTO) {
+    public UsuarioDTO atualizarUsuario(Long idUsuario, UsuarioRequestDTO usuarioRequestDTO){
         UsuarioModel usuario = buscarUsuarioExistente(idUsuario);
 
         validarEmailDisponivel(usuarioRequestDTO.getEmail(), idUsuario);
@@ -75,7 +74,7 @@ public class UsuarioService {
         return UsuarioDTO.fromModel(usuarioRepository.save(usuario));
     }
 
-    public void excluirUsuario(Long idUsuario) {
+    public void excluirUsuario(Long idUsuario){
         UsuarioModel usuario = buscarUsuarioExistente(idUsuario);
         usuarioRepository.delete(usuario);
     }
