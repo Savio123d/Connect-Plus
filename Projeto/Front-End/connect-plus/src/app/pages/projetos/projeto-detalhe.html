@@ -1,0 +1,343 @@
+<div class="pagina-detalhe" *ngIf="projeto as p">
+  <app-sidebar></app-sidebar>
+
+  <main class="conteudo-detalhe">
+    <header class="topbar">
+      <div class="campo-busca">
+        <span>⌕</span>
+        <input type="text" placeholder="Buscar projetos, tarefas, pessoas..." />
+      </div>
+
+      <div class="acoes-topbar">
+        <button class="botao-notificacao" type="button">⌁</button>
+        <div class="avatar-usuario">JD</div>
+      </div>
+    </header>
+
+    <section class="detalhe-header card-branco">
+      <div class="lado-esquerdo-header">
+        <button class="botao-voltar" type="button" (click)="voltar()">←</button>
+
+        <div>
+          <div class="titulo-projeto">
+            <h1>{{ p.nome }}</h1>
+            <span class="badge-status" [ngClass]="classeStatusProjeto(p.status)">
+              {{ textoStatus(p.status) }}
+            </span>
+          </div>
+
+          <p>{{ p.descricao }}</p>
+        </div>
+      </div>
+
+      <div class="controle-status">
+        <label>Status do projeto</label>
+        <select [(ngModel)]="p.status" (change)="atualizarStatus()">
+          <option value="planejamento">Planejamento</option>
+          <option value="em_andamento">Em Andamento</option>
+          <option value="concluido">Concluído</option>
+          <option value="cancelado">Cancelado</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="metricas">
+      <article class="card-metrica">
+        <div class="linha-metrica">
+          <span class="icone azul">□</span>
+          <span>Prazo</span>
+        </div>
+        <strong>{{ dataFormatada(p.prazo) }}</strong>
+      </article>
+
+      <article class="card-metrica">
+        <div class="linha-metrica">
+          <span class="icone roxo">♙</span>
+          <span>Equipe</span>
+        </div>
+        <strong>{{ p.membros.length }} membros</strong>
+      </article>
+
+      <article class="card-metrica">
+        <div class="linha-metrica">
+          <span class="icone verde">⊙</span>
+          <span>Progresso</span>
+        </div>
+        <strong>{{ p.progresso }}%</strong>
+      </article>
+
+      <article class="card-metrica">
+        <div class="linha-metrica">
+          <span class="icone amarelo">◷</span>
+          <span>Horas</span>
+        </div>
+        <strong>{{ p.horasTrabalhadas }}h</strong>
+      </article>
+
+      <article class="card-metrica">
+        <div class="linha-metrica">
+          <span class="icone vermelho">ⓘ</span>
+          <span>Prioridade</span>
+        </div>
+        <strong>{{ p.prioridade }}</strong>
+      </article>
+    </section>
+
+    <section class="card-branco progresso-card">
+      <div class="progresso-topo">
+        <h2>Progresso Geral</h2>
+        <strong>{{ p.progresso }}%</strong>
+      </div>
+
+      <div class="barra-geral">
+        <div [style.width.%]="p.progresso"></div>
+      </div>
+
+      <div class="datas-progresso">
+        <span>Início: {{ dataFormatada(p.inicio) }}</span>
+        <span>Término: {{ dataFormatada(p.prazo) }}</span>
+      </div>
+    </section>
+
+    <section class="card-branco resumo-card">
+      <div class="icone-resumo">✣</div>
+      <div>
+        <h3>Resumo rápido do projeto</h3>
+        <p>
+          Projeto com {{ p.membros.length }} membros, {{ p.tarefas.length }} tarefas,
+          {{ p.marcos.length }} marcos e {{ p.horasTrabalhadas }}h trabalhadas até o momento.
+        </p>
+      </div>
+    </section>
+
+    <nav class="abas">
+      <button type="button" [class.ativa]="abaAtiva === 'equipe'" (click)="trocarAba('equipe')">
+        Equipe
+      </button>
+      <button type="button" [class.ativa]="abaAtiva === 'tarefas'" (click)="trocarAba('tarefas')">
+        Tarefas
+      </button>
+      <button type="button" [class.ativa]="abaAtiva === 'marcos'" (click)="trocarAba('marcos')">
+        Marcos
+      </button>
+      <button type="button" [class.ativa]="abaAtiva === 'horas'" (click)="trocarAba('horas')">
+        Horas Trabalhadas
+      </button>
+    </nav>
+
+    <section class="conteudo-aba" *ngIf="abaAtiva === 'equipe'">
+      <article class="card-branco bloco-equipe">
+        <h2><span>♙</span> Líder do Projeto</h2>
+
+        <div class="linha-pessoa destaque">
+          <div class="avatar-pessoa">{{ p.lider.iniciais }}</div>
+          <div>
+            <strong>{{ p.lider.nome }}</strong>
+            <span>{{ p.lider.email }}</span>
+          </div>
+          <span class="badge-vermelha">Líder</span>
+        </div>
+      </article>
+
+      <article class="card-branco bloco-equipe">
+        <div class="cabecalho-bloco">
+          <h2><span>♙</span> Membros da Equipe</h2>
+          <button class="botao-acao" type="button" (click)="abrirModalMembro()">
+            + Adicionar membro
+          </button>
+        </div>
+
+        <div class="lista-pessoas">
+          <div class="linha-pessoa" *ngFor="let membro of p.membros">
+            <div class="avatar-pessoa">{{ membro.iniciais }}</div>
+            <div>
+              <strong>{{ membro.nome }}</strong>
+              <small>{{ membro.cargo }}</small>
+              <span>{{ membro.email }}</span>
+            </div>
+            <span class="badge-azul">Ativo</span>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="conteudo-aba" *ngIf="abaAtiva === 'tarefas'">
+      <article class="card-branco bloco-lista">
+        <div class="cabecalho-bloco">
+          <h2>Tarefas do Projeto</h2>
+          <button class="botao-acao" type="button" (click)="abrirModalTarefa()">
+            + Nova Tarefa
+          </button>
+        </div>
+
+        <div class="linha-tarefa" *ngFor="let tarefa of p.tarefas">
+          <div class="status-circulo" [ngClass]="classeStatusTarefa(tarefa.status)">✓</div>
+          <div>
+            <strong>{{ tarefa.titulo }}</strong>
+            <span>{{ tarefa.responsavel }}</span>
+          </div>
+
+          <div class="badges-direita">
+            <span class="badge-prioridade" [ngClass]="classePrioridade(tarefa.prioridade)">
+              {{ tarefa.prioridade }}
+            </span>
+            <span class="badge-tarefa" [ngClass]="classeStatusTarefa(tarefa.status)">
+              {{ tarefa.status }}
+            </span>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="conteudo-aba" *ngIf="abaAtiva === 'marcos'">
+      <article class="card-branco bloco-lista">
+        <div class="cabecalho-bloco">
+          <h2><span class="icone-laranja">⚑</span> Marcos do Projeto</h2>
+          <button class="botao-acao" type="button" (click)="abrirModalMarco()">
+            + Novo marco
+          </button>
+        </div>
+
+        <div class="linha-marco" *ngFor="let marco of p.marcos">
+          <div class="marco-icone" [ngClass]="classeStatusMarco(marco.status)">⊙</div>
+
+          <div>
+            <strong>{{ marco.titulo }}</strong>
+            <span>□ {{ dataFormatada(marco.data) }}</span>
+          </div>
+
+          <span class="badge-marco" [ngClass]="classeStatusMarco(marco.status)">
+            {{ marco.status }}
+          </span>
+        </div>
+      </article>
+    </section>
+
+    <section class="conteudo-aba" *ngIf="abaAtiva === 'horas'">
+      <section class="cards-horas">
+        <article class="card-metrica grande">
+          <div class="linha-metrica">
+            <span class="icone azul">◷</span>
+            <span>Horas Trabalhadas</span>
+          </div>
+          <strong>{{ p.horasTrabalhadas }}h</strong>
+        </article>
+
+        <article class="card-metrica grande">
+          <div class="linha-metrica">
+            <span class="icone roxo">▣</span>
+            <span>Horas Estimadas</span>
+          </div>
+          <strong>{{ p.horasEstimadas }}h</strong>
+        </article>
+
+        <article class="card-metrica grande">
+          <div class="linha-metrica">
+            <span class="icone amarelo">◷</span>
+            <span>Horas Restantes</span>
+          </div>
+          <strong>{{ horasRestantes }}h</strong>
+        </article>
+      </section>
+
+      <article class="card-branco bloco-lista">
+        <h2><span class="icone-azul">◷</span> Registro de Horas por Membro</h2>
+
+        <div class="linha-horas" *ngFor="let membro of p.membros">
+          <div>
+            <strong>{{ membro.nome }}</strong>
+            <small>{{ membro.cargo }}</small>
+            <span>{{ membro.descricaoHoras }}</span>
+          </div>
+
+          <span class="badge-horas">{{ membro.horasTrabalhadas || 0 }}h trabalhadas</span>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <div class="overlay-modal" *ngIf="modalMembroAberto">
+    <div class="modal-card modal-membro">
+      <button class="fechar-modal" type="button" (click)="fecharModalMembro()">×</button>
+      <h2>Adicionar membro ao projeto</h2>
+
+      <div class="info-modal">
+        Selecione um usuário já cadastrado na plataforma para vincular ao projeto.
+      </div>
+
+      <label>Usuário cadastrado</label>
+      <select [(ngModel)]="usuarioSelecionadoId">
+        <option [ngValue]="null">Selecione um usuário</option>
+        <option *ngFor="let usuario of usuariosForaDoProjeto" [ngValue]="usuario.id">
+          {{ usuario.nome }} — {{ usuario.cargo }}
+        </option>
+      </select>
+
+      <div class="acoes-modal">
+        <button type="button" class="botao-cancelar" (click)="fecharModalMembro()">Cancelar</button>
+        <button type="button" class="botao-modal" (click)="adicionarMembro()">Adicionar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay-modal" *ngIf="modalMarcoAberto">
+    <div class="modal-card">
+      <button class="fechar-modal" type="button" (click)="fecharModalMarco()">×</button>
+      <h2>Adicionar marco do projeto</h2>
+
+      <label>Nome do marco</label>
+      <input type="text" placeholder="Ex: Entrega do protótipo" [(ngModel)]="novoMarcoTitulo" />
+
+      <label>Data</label>
+      <input type="date" [(ngModel)]="novoMarcoData" />
+
+      <label>Status</label>
+      <select [(ngModel)]="novoMarcoStatus">
+        <option value="Pendente">Pendente</option>
+        <option value="Em Andamento">Em Andamento</option>
+        <option value="Concluído">Concluído</option>
+      </select>
+
+      <div class="acoes-modal">
+        <button type="button" class="botao-cancelar" (click)="fecharModalMarco()">Cancelar</button>
+        <button type="button" class="botao-modal" (click)="adicionarMarco()">Adicionar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay-modal" *ngIf="modalTarefaAberto">
+    <div class="modal-card">
+      <button class="fechar-modal" type="button" (click)="fecharModalTarefa()">×</button>
+      <h2>Adicionar tarefa ao projeto</h2>
+
+      <label>Título da tarefa</label>
+      <input type="text" placeholder="Ex: Criar endpoint de projetos" [(ngModel)]="novaTarefaTitulo" />
+
+      <label>Responsável</label>
+      <select [(ngModel)]="novaTarefaResponsavel">
+        <option *ngFor="let membro of p.membros" [ngValue]="membro.nome">
+          {{ membro.nome }}
+        </option>
+      </select>
+
+      <label>Prioridade</label>
+      <select [(ngModel)]="novaTarefaPrioridade">
+        <option value="Alta">Alta</option>
+        <option value="Média">Média</option>
+        <option value="Baixa">Baixa</option>
+      </select>
+
+      <label>Status</label>
+      <select [(ngModel)]="novaTarefaStatus">
+        <option value="A Fazer">A Fazer</option>
+        <option value="Em Andamento">Em Andamento</option>
+        <option value="Concluído">Concluído</option>
+      </select>
+
+      <div class="acoes-modal">
+        <button type="button" class="botao-cancelar" (click)="fecharModalTarefa()">Cancelar</button>
+        <button type="button" class="botao-modal" (click)="adicionarTarefa()">Adicionar</button>
+      </div>
+    </div>
+  </div>
+</div>

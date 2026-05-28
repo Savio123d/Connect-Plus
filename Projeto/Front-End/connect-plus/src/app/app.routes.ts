@@ -40,5 +40,20 @@ export const routes: Routes = [
       import('./pages/loja/loja').then(
         (module) => module.Loja,
       ),
-    }
+    },
+{
+  path: 'projetos',
+  loadComponent: () =>
+    import('./pages/projetos/projetos').then((module) => module.Projetos),
+},
+{
+  path: 'projetos/novo',
+  loadComponent: () =>
+    import('./pages/projetos/projeto-form').then((module) => module.ProjetoForm),
+},
+{
+  path: 'projetos/:id',
+  loadComponent: () =>
+    import('./pages/projetos/projeto-detalhe').then((module) => module.ProjetoDetalhe),
+}
 ];

@@ -1,56 +1,102 @@
 package conne.connect.connect.Controllers;
 
-import conne.connect.connect.Models.ProjetoModel;
-import conne.connect.connect.Services.ProjetoService;
-import org.springframework.beans.factory.annotation.Autowired;
+import conne.connect.connect.Dto.ProjetoRequestDTO;
+import conne.connect.connect.Dto.ProjetoResponseDTO;
+import conne.connect.connect.Enums.ProjetoStatusTela;
+import conne.connect.connect.Services.ProjetoTelaService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.net.URI;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
-@RequestMapping(path = "/api/projetos")
 @RestController
+@RequestMapping("/api/projetos")
+@CrossOrigin(origins = "http://localhost:4200")
 public class ProjetoController {
 
-    @Autowired
-    private ProjetoService projetoService;
+    private final ProjetoTelaService projetoTelaService;
+
+    public ProjetoController(ProjetoTelaService projetoTelaService) {
+        this.projetoTelaService = projetoTelaService;
+    }
 
     @GetMapping
-    public ResponseEntity<List<ProjetoModel>> findAll() {
-        List<ProjetoModel> projetos = projetoService.findAll();
-        return ResponseEntity.ok(projetos);
-    }
-
-    @PostMapping
-    public ResponseEntity<ProjetoModel> criarProjeto(@RequestBody ProjetoModel projetoModel) {
-        ProjetoModel projeto = projetoService.criarProjeto(projetoModel);
-        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(projeto.getIdProjeto()).toUri();
-        return ResponseEntity.created(uri).body(projeto);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deletar(@PathVariable("id") Long idProjeto) {
-        projetoService.excluirProjeto(idProjeto);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<List<ProjetoResponseDTO>> listar() {
+        return ResponseEntity.ok(projetoTelaService.listar());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<ProjetoModel>> buscarPorId(@PathVariable("id") Long idProjeto) {
-        return ResponseEntity.ok(projetoService.buscarPorId(idProjeto));
+    public ResponseEntity<ProjetoResponseDTO> buscarPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(projetoTelaService.buscarPorId(id));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ProjetoModel> atualizar(@PathVariable("id") Long idProjeto, @RequestBody ProjetoModel projetoModel) {
-        return ResponseEntity.ok(projetoService.atualizarProjeto(idProjeto, projetoModel));
+    @GetMapping("/usuarios-disponiveis")
+    public ResponseEntity<List<ProjetoResponseDTO.PessoaDTO>> listarUsuariosDisponiveis() {
+        return ResponseEntity.ok(projetoTelaService.listarUsuariosDisponiveis());
+    }
+
+    @PostMapping
+    public ResponseEntity<ProjetoResponseDTO> criar(@RequestBody ProjetoRequestDTO request) {
+        ProjetoResponseDTO projetoCriado = projetoTelaService.criar(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(projetoCriado);
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<ProjetoResponseDTO> atualizarStatus(
+        @PathVariable Long id,
+        @RequestBody ProjetoRequestDTO request
+    ) {
+        return ResponseEntity.ok(projetoTelaService.atualizarStatus(id, request.status()));
+    }
+
+    @PatchMapping("/{id}/concluir")
+    public ResponseEntity<ProjetoResponseDTO> concluir(@PathVariable Long id) {
+        return ResponseEntity.ok(projetoTelaService.atualizarStatus(id, ProjetoStatusTela.concluido.getValor()));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
+        projetoTelaService.excluir(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/membros")
+    public ResponseEntity<ProjetoResponseDTO> adicionarMembro(
+        @PathVariable Long id,
+        @RequestBody ProjetoRequestDTO request
+    ) {
+        return ResponseEntity.ok(projetoTelaService.adicionarMembro(id, request.usuarioId()));
+    }
+
+    @PostMapping("/{id}/marcos")
+    public ResponseEntity<ProjetoResponseDTO> adicionarMarco(
+        @PathVariable Long id,
+        @RequestBody ProjetoRequestDTO request
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(projetoTelaService.adicionarMarco(id, request));
+    }
+
+    @PostMapping("/{id}/tarefas")
+    public ResponseEntity<ProjetoResponseDTO> adicionarTarefa(
+        @PathVariable Long id,
+        @RequestBody ProjetoRequestDTO request
+    ) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(projetoTelaService.adicionarTarefa(id, request));
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> tratarErroRegra(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(Map.of("erro", ex.getMessage()));
     }
 }

@@ -1,0 +1,372 @@
+:host {
+  display: block;
+  font-family: Inter, Arial, sans-serif;
+}
+
+.pagina-projetos {
+  min-height: 100vh;
+  background: #f4f5fb;
+}
+
+.pagina-projetos app-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  width: 230px;
+  height: 100vh;
+}
+
+.conteudo-projetos {
+  min-height: 100vh;
+  margin-left: 230px;
+  background: #f4f5fb;
+}
+
+.topbar {
+  height: 40px;
+  padding: 0 28px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.campo-busca {
+  width: 395px;
+  height: 24px;
+  background: #f3f4f9;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  color: #6b7280;
+}
+
+.icone-busca {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.campo-busca input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #374151;
+  font-size: 12px;
+}
+
+.acoes-topbar {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.botao-notificacao {
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 17px;
+  cursor: pointer;
+}
+
+.avatar-usuario {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #8394f8;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.cabecalho-pagina {
+  padding: 24px 22px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cabecalho-pagina h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #111827;
+}
+
+.cabecalho-pagina p {
+  margin: 10px 0 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.botao-novo {
+  height: 28px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(79, 70, 229, 0.22);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.botao-novo span {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.grid-projetos {
+  padding: 0 22px 42px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(420px, 1fr));
+  gap: 20px;
+}
+
+.card-projeto {
+  min-height: 222px;
+  background: #ffffff;
+  border: 1px solid #e0e4ed;
+  border-radius: 8px;
+  padding: 17px 17px 16px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-projeto:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+}
+
+.topo-card {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.icone-projeto {
+  min-width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}
+
+.info-principal h2 {
+  margin: 2px 0 5px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.info-principal p {
+  margin: 0;
+  color: #4b5563;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.linha-status {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.badge {
+  min-height: 17px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badge.andamento {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.badge.planejamento {
+  background: #f59e0b;
+  color: #ffffff;
+}
+
+.badge.concluido {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.badge.cancelado {
+  background: #6b7280;
+  color: #ffffff;
+}
+
+.badge.atrasado {
+  margin-left: 6px;
+  background: #fff1f2;
+  color: #ef4444;
+  border: 1px solid #ef4444;
+}
+
+.prazo {
+  color: #4b5563;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.prazo-atrasado {
+  color: #ef4444;
+}
+
+.progresso-info {
+  margin-top: 11px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.progresso-info span {
+  color: #4b5563;
+  font-size: 11px;
+}
+
+.progresso-info strong {
+  color: #111827;
+  font-size: 11px;
+}
+
+.barra-progresso {
+  margin-top: 8px;
+  height: 5px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.barra-preenchida {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2563eb, #7c3aed);
+}
+
+.rodape-card {
+  margin-top: 15px;
+  padding-top: 13px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.membros {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #4b5563;
+  font-size: 11px;
+}
+
+.lider {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.avatar-pequeno {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #8394f8;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.lider span {
+  display: block;
+  color: #6b7280;
+  font-size: 9px;
+}
+
+.lider strong {
+  display: block;
+  margin-top: 1px;
+  color: #111827;
+  font-size: 10px;
+}
+
+.acoes-card {
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: 1fr 30px;
+  gap: 8px;
+}
+
+.botao-concluir,
+.botao-excluir {
+  height: 25px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.botao-concluir {
+  border: 1px solid #22c55e;
+  background: #22c55e;
+  color: #ffffff;
+  box-shadow: 0 7px 14px rgba(34, 197, 94, 0.18);
+}
+
+.botao-concluir:disabled {
+  color: #16a34a;
+  background: #eefdf4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.botao-excluir {
+  border: 1px solid #ef4444;
+  background: #ffffff;
+  color: #ef4444;
+}
+
+@media (max-width: 1050px) {
+  .pagina-projetos app-sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+  }
+
+  .conteudo-projetos {
+    margin-left: 0;
+  }
+
+  .grid-projetos {
+    grid-template-columns: 1fr;
+  }
+}
