@@ -1,16 +1,36 @@
 package conne.connect.connect.Dto;
+
 import conne.connect.connect.Enums.StatusUsuario;
+import conne.connect.connect.Models.SaldoXpModel;
+import conne.connect.connect.Models.SetorModel;
+import conne.connect.connect.Models.UsuarioEmpresaModel;
 import conne.connect.connect.Models.UsuarioModel;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
+@Setter
+@Getter
 public class UsuarioDTO {
 
     private Long idUsuario;
+    private Long idUsuarioEmpresa;
+    private Long idEmpresa;
+    private Long idSetor;
+
     private String nome;
     private String email;
     private StatusUsuario status;
+
+    private String cargo;
+    private String departamento;
+    private Integer xp;
+    private Integer nivel;
+
     private LocalDateTime dataCriacao;
     private LocalDateTime dataAtualizacao;
+
     private String avatar;
     private String temaPerfil;
     private int nivelAtual;
@@ -50,85 +70,81 @@ public class UsuarioDTO {
         );
     }
 
-    public void setIdUsuario(Long idUsuario) {
-        this.idUsuario = idUsuario;
+    public static UsuarioDTO fromUsuarioEmpresa(
+            UsuarioEmpresaModel usuarioEmpresa,
+            SaldoXpModel saldoXp
+    ) {
+        if (usuarioEmpresa == null || usuarioEmpresa.getIdUsuario() == null) {
+            return null;
+        }
+
+        UsuarioModel usuario = usuarioEmpresa.getIdUsuario();
+        SetorModel setor = usuarioEmpresa.getIdSetor();
+
+        int xpTotal = saldoXp != null && saldoXp.getXpTotal() != null
+                ? saldoXp.getXpTotal()
+                : 0;
+
+        UsuarioDTO dto = fromModel(usuario);
+
+        dto.setIdUsuarioEmpresa(usuarioEmpresa.getIdUsuarioEmpresa());
+
+        if (usuarioEmpresa.getIdEmpresa() != null) {
+            dto.setIdEmpresa(usuarioEmpresa.getIdEmpresa().getIdEmpresa());
+        }
+
+        if (setor != null) {
+            dto.setIdSetor(setor.getIdSetor());
+            dto.setDepartamento(setor.getNome());
+        } else {
+            dto.setDepartamento("Não informado");
+        }
+
+        dto.setCargo(usuarioEmpresa.getPapel() != null
+                ? formatarCargo(usuarioEmpresa.getPapel().name())
+                : "Colaborador"
+        );
+
+        dto.setStatus(Boolean.TRUE.equals(usuarioEmpresa.getAtivo())
+                ? StatusUsuario.ativo
+                : StatusUsuario.inativo
+        );
+
+        dto.setXp(xpTotal);
+        dto.setNivel(calcularNivel(xpTotal));
+        dto.setNivelAtual(calcularNivel(xpTotal));
+
+        return dto;
     }
 
-    public Long getIdUsuario() {
-        return idUsuario;
+    private static String formatarCargo(String cargo) {
+        if (cargo == null || cargo.isBlank()) {
+            return "Colaborador";
+        }
+
+        String cargoFormatado = cargo.toLowerCase().replace("_", " ");
+        return cargoFormatado.substring(0, 1).toUpperCase() + cargoFormatado.substring(1);
     }
 
-    public String getNome() {
-        return nome;
+    private static int calcularNivel(int xp) {
+        return (xp / 500) + 1;
     }
 
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public StatusUsuario getStatus() {
-        return status;
-    }
-
-    public void setStatus(StatusUsuario status) {
-        this.status = status;
-    }
-
-    public LocalDateTime getDataCriacao() {
-        return dataCriacao;
-    }
-
-    public void setDataCriacao(LocalDateTime dataCriacao) {
-        this.dataCriacao = dataCriacao;
-    }
-
-    public LocalDateTime getDataAtualizacao() {
-        return dataAtualizacao;
-    }
-
-    public void setDataAtualizacao(LocalDateTime dataAtualizacao) {
-        this.dataAtualizacao = dataAtualizacao;
-    }
-
-    public String getAvatar() {
-        return avatar;
-    }
-
-    public void setAvatar(String avatar) {
-        this.avatar = avatar;
-    }
-
-    public String getTemaPerfil() {
-        return temaPerfil;
-    }
-
-    public void setTemaPerfil(String temaPerfil) {
-        this.temaPerfil = temaPerfil;
-    }
-
-    public int getNivelAtual() {
-        return nivelAtual;
-    }
-
-    public void setNivelAtual(int nivelAtual) {
-        this.nivelAtual = nivelAtual;
-    }
 
     @Override
     public String toString() {
         return "UsuarioDTO{" +
                 "idUsuario=" + idUsuario +
+                ", idUsuarioEmpresa=" + idUsuarioEmpresa +
+                ", idEmpresa=" + idEmpresa +
+                ", idSetor=" + idSetor +
                 ", nome='" + nome + '\'' +
                 ", email='" + email + '\'' +
                 ", status=" + status +
+                ", cargo='" + cargo + '\'' +
+                ", departamento='" + departamento + '\'' +
+                ", xp=" + xp +
+                ", nivel=" + nivel +
                 ", dataCriacao=" + dataCriacao +
                 ", dataAtualizacao=" + dataAtualizacao +
                 ", avatar='" + avatar + '\'' +
