@@ -1,0 +1,524 @@
+<div class="layout-tarefas">
+  <app-sidebar></app-sidebar>
+
+  <main class="conteudo-tarefas">
+    <header class="topbar bg-white border-bottom d-flex justify-content-between align-items-center px-4">
+      <div class="campo-busca d-flex align-items-center gap-2 px-3">
+        <span class="material-icons fs-5 text-secondary">search</span>
+        <input
+          type="text"
+          class="border-0 bg-transparent w-100"
+          placeholder="Buscar projetos, tarefas, pessoas..."
+        />
+      </div>
+
+      <div class="d-flex align-items-center gap-3">
+        <span class="material-icons text-secondary">notifications</span>
+        <div class="avatar-usuario">JD</div>
+      </div>
+    </header>
+
+    <section class="p-4">
+      <div *ngIf="mensagemErro" class="alert alert-danger py-2 mb-3">
+        {{ mensagemErro }}
+      </div>
+
+      <!-- KANBAN -->
+      <ng-container *ngIf="telaAtual === 'kanban'">
+        <section class="cabecalho-page bg-white border rounded-4 p-4 mb-4 shadow-sm">
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+              <p class="text-uppercase fw-bold text-primary small mb-1">Workspace</p>
+              <h1 class="fw-bold text-dark mb-1">Quadro de Tarefas</h1>
+              <p class="text-secondary mb-0">
+                Organize o fluxo da sprint, acompanhe as entregas e mova os cards entre as colunas.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              class="btn btn-gradiente px-4 py-2"
+              (click)="abrirCriacao()"
+            >
+              + Nova Tarefa
+            </button>
+          </div>
+        </section>
+
+        <div *ngIf="carregando" class="text-center text-secondary py-5">
+          Carregando tarefas...
+        </div>
+
+        <section *ngIf="!carregando" class="row g-4">
+          <div *ngFor="let coluna of colunas" class="col-12 col-md-6 col-xl-3">
+            <div class="kanban-coluna h-100">
+              <div
+                class="kanban-header text-white rounded-4 p-3 mb-3"
+                [ngClass]="coluna.classe"
+              >
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                  <div>
+                    <h2 class="fs-6 fw-bold mb-1">{{ coluna.titulo }}</h2>
+                    <p class="small mb-0 opacity-75">{{ coluna.subtitulo }}</p>
+                  </div>
+
+                  <span class="contador-coluna">
+                    {{ tarefasPorStatus(coluna.status).length }}
+                  </span>
+                </div>
+              </div>
+
+              <div
+                class="lista-tarefas d-flex flex-column gap-3"
+                cdkDropList
+                [id]="coluna.id"
+                [cdkDropListConnectedTo]="idsColunas"
+                [cdkDropListData]="tarefasPorStatus(coluna.status)"
+                (cdkDropListDropped)="moverTarefa($event, coluna.status)"
+              >
+                <article
+                  *ngFor="let tarefa of tarefasPorStatus(coluna.status)"
+                  class="card-tarefa bg-white border rounded-4 p-3"
+                  cdkDrag
+                  [cdkDragData]="tarefa"
+                  (click)="abrirDetalhes(tarefa)"
+                >
+                  <div class="d-flex justify-content-between align-items-start gap-2">
+                    <h3 class="fs-6 fw-semibold text-dark mb-0 titulo-card">
+                      {{ tarefa.titulo }}
+                    </h3>
+
+                    <span
+                      class="badge-prioridade"
+                      [ngClass]="badgePrioridadeClasse(tarefa.prioridade)"
+                    >
+                      {{ labelPrioridade(tarefa.prioridade) }}
+                    </span>
+                  </div>
+
+                  <p class="text-secondary small mt-2 mb-3">
+                    {{ tarefa.descricao || 'Sem descrição informada.' }}
+                  </p>
+
+                  <div class="d-flex flex-column gap-2 small text-secondary">
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="material-icons fs-6">folder_open</span>
+                      <span>{{ buscarNomeProjeto(tarefa.idProjeto) }}</span>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="material-icons fs-6">person</span>
+                      <span>{{ buscarNomeResponsavel(tarefa.idResponsavelUsuarioEmpresa) }}</span>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="material-icons fs-6">calendar_month</span>
+                      <span>{{ formatarData(tarefa.prazo) }}</span>
+                    </div>
+                  </div>
+
+                  <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                    <span class="small text-secondary">
+                      {{ tarefa.horasEstimadas || 0 }}h estimadas
+                    </span>
+
+                    <span class="xp-pill">
+                      +{{ tarefa.xpRecompensa || 0 }} XP
+                    </span>
+                  </div>
+                </article>
+
+                <div
+                  *ngIf="tarefasPorStatus(coluna.status).length === 0"
+                  class="estado-vazio text-center text-secondary small p-4"
+                >
+                  Nenhuma tarefa nesta coluna.
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </ng-container>
+
+      <!-- FORMULÁRIO CRIAR / EDITAR -->
+      <ng-container *ngIf="telaAtual === 'formulario'">
+        <div class="mb-4">
+          <button
+            type="button"
+            class="btn btn-link text-decoration-none px-0 text-dark"
+            (click)="voltarParaKanban()"
+          >
+            ← Voltar
+          </button>
+
+          <h1 class="fw-bold text-dark mb-1">
+            {{ modoFormulario === 'criar' ? 'Criar Nova Tarefa' : 'Editar Tarefa' }}
+          </h1>
+
+          <p class="text-secondary mb-0">
+            {{ modoFormulario === 'criar'
+              ? 'Adicione uma nova tarefa ao projeto'
+              : 'Atualize as informações da tarefa' }}
+          </p>
+        </div>
+
+        <section class="card-formulario bg-white border rounded-4 shadow-lg p-4">
+          <div class="d-flex align-items-center gap-2 mb-4">
+            <span class="material-icons text-primary">check_box</span>
+            <h2 class="fs-5 fw-semibold mb-0 text-dark">Informações da Tarefa</h2>
+          </div>
+
+          <form (ngSubmit)="salvarTarefa()">
+            <div class="mb-3">
+              <label for="titulo" class="form-label fw-semibold text-dark">
+                Nome da Tarefa
+              </label>
+
+              <input
+                id="titulo"
+                name="titulo"
+                type="text"
+                class="form-control campo-padrao"
+                [(ngModel)]="formTarefa.titulo"
+                placeholder="Ex: Implementar autenticação JWT"
+              />
+            </div>
+
+            <div class="mb-3">
+              <label for="descricao" class="form-label fw-semibold text-dark">
+                Descrição
+              </label>
+
+              <textarea
+                id="descricao"
+                name="descricao"
+                rows="5"
+                class="form-control campo-padrao"
+                [(ngModel)]="formTarefa.descricao"
+                placeholder="Descreva os requisitos e detalhes da tarefa..."
+              ></textarea>
+            </div>
+
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <label for="responsavel" class="form-label fw-semibold text-dark">
+                  Responsável
+                </label>
+
+                <select
+                  id="responsavel"
+                  name="responsavel"
+                  class="form-select campo-padrao"
+                  [(ngModel)]="formTarefa.idResponsavelUsuarioEmpresa"
+                >
+                  <option [ngValue]="null">Não atribuído</option>
+
+                  <option
+                    *ngFor="let responsavel of responsaveis"
+                    [ngValue]="responsavel.id"
+                  >
+                    {{ responsavel.nome }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <label for="projeto" class="form-label fw-semibold text-dark">
+                  Projeto
+                </label>
+
+                <select
+                  id="projeto"
+                  name="projeto"
+                  class="form-select campo-padrao"
+                  [(ngModel)]="formTarefa.idProjeto"
+                >
+                  <option
+                    *ngFor="let projeto of projetos"
+                    [ngValue]="projeto.id"
+                  >
+                    {{ projeto.nome }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="col-12 col-md-6">
+                <label for="horasEstimadas" class="form-label fw-semibold text-dark">
+                  Horas Estimadas
+                </label>
+
+                <input
+                  id="horasEstimadas"
+                  name="horasEstimadas"
+                  type="number"
+                  min="1"
+                  class="form-control campo-padrao"
+                  [(ngModel)]="formTarefa.horasEstimadas"
+                  placeholder="Ex: 8"
+                />
+              </div>
+
+              <div class="col-12 col-md-6">
+                <label for="prazo" class="form-label fw-semibold text-dark">
+                  Prazo
+                </label>
+
+                <input
+                  id="prazo"
+                  name="prazo"
+                  type="text"
+                  class="form-control campo-padrao"
+                  [(ngModel)]="formTarefa.prazo"
+                  placeholder="dd/mm/aaaa"
+                  maxlength="10"
+                  (input)="formatarPrazoDigitado($event)"
+                />
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <p class="fw-semibold text-dark mb-2">Prioridade</p>
+
+              <div class="row g-3">
+                <div
+                  *ngFor="let prioridade of prioridades"
+                  class="col-12 col-md-4"
+                >
+                  <button
+                    type="button"
+                    class="opcao-card w-100 text-start"
+                    [ngClass]="{
+                      'selecionada-prioridade-baixa': formTarefa.prioridade === 'baixa' && prioridade.valor === 'baixa',
+                      'selecionada-prioridade-media': formTarefa.prioridade === 'media' && prioridade.valor === 'media',
+                      'selecionada-prioridade-alta': formTarefa.prioridade === 'alta' && prioridade.valor === 'alta'
+                    }"
+                    (click)="selecionarPrioridade(prioridade.valor)"
+                  >
+                    <span class="bolinha"></span>
+                    <span class="d-block fw-semibold">{{ prioridade.titulo }}</span>
+                    <small class="text-secondary">{{ prioridade.subtitulo }}</small>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <p class="fw-semibold text-dark mb-2">Dificuldade</p>
+
+              <div class="row g-3">
+                <div
+                  *ngFor="let dificuldade of dificuldades"
+                  class="col-12 col-md-4"
+                >
+                  <button
+                    type="button"
+                    class="opcao-card w-100 text-start"
+                    [ngClass]="{
+                      'selecionada-dificuldade': formTarefa.dificuldade === dificuldade.valor
+                    }"
+                    (click)="selecionarDificuldade(dificuldade.valor)"
+                  >
+                    <span class="bolinha"></span>
+                    <span class="d-block fw-semibold">{{ dificuldade.titulo }}</span>
+                    <small class="text-secondary">{{ dificuldade.xp }}</small>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="xp-info d-flex align-items-start gap-3 mt-4 p-3 rounded-4">
+              <div class="icone-xp">
+                <span class="material-icons fs-5">check_box</span>
+              </div>
+
+              <div>
+                <h3 class="fs-6 fw-semibold mb-1">Sistema de XP</h3>
+                <p class="small text-secondary mb-0">
+                  Ao concluir tarefas, os responsáveis ganham XP baseado na dificuldade,
+                  ajudando no crescimento e gamificação.
+                </p>
+              </div>
+            </div>
+
+            <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mt-4 pt-3">
+              <button
+                *ngIf="modoFormulario === 'editar'"
+                type="button"
+                class="btn btn-outline-danger px-4"
+                (click)="deletarTarefa()"
+              >
+                Excluir Tarefa
+              </button>
+
+              <div class="d-flex gap-3 ms-md-auto">
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary px-4"
+                  (click)="voltarParaKanban()"
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="submit"
+                  class="btn btn-gradiente px-4"
+                  [disabled]="salvando"
+                >
+                  {{ salvando
+                    ? 'Salvando...'
+                    : modoFormulario === 'criar'
+                      ? 'Criar Tarefa'
+                      : 'Salvar Alterações' }}
+                </button>
+              </div>
+            </div>
+          </form>
+        </section>
+      </ng-container>
+
+      <!-- DETALHES -->
+      <ng-container *ngIf="telaAtual === 'detalhes' && tarefaSelecionada">
+        <section class="cabecalho-page bg-white border rounded-4 p-4 mb-4 shadow-sm">
+          <button
+            type="button"
+            class="btn btn-link text-decoration-none px-0 text-dark mb-2"
+            (click)="voltarParaKanban()"
+          >
+            ← Voltar
+          </button>
+
+          <h1 class="fw-bold text-dark mb-1">
+            {{ tarefaSelecionada.titulo }}
+          </h1>
+
+          <p class="text-secondary mb-0">
+            {{ buscarNomeProjeto(tarefaSelecionada.idProjeto) }}
+          </p>
+        </section>
+
+        <div class="row g-4">
+          <div class="col-12 col-xl-8">
+            <section class="bg-white border rounded-4 p-4 mb-4 shadow-sm">
+              <h2 class="fs-5 fw-semibold text-dark mb-3">Descrição</h2>
+              <p class="text-secondary mb-0">
+                {{ tarefaSelecionada.descricao || 'Nenhuma descrição informada.' }}
+              </p>
+            </section>
+
+            <section class="bg-white border rounded-4 p-4 shadow-sm">
+              <h2 class="fs-5 fw-semibold text-dark mb-3">Contador de Tempo</h2>
+
+              <div class="contador-tempo text-center rounded-4 p-4 mb-3">
+                <strong class="display-5 fw-bold">00:00:00</strong>
+                <p class="small text-secondary mb-0">Sessão atual</p>
+              </div>
+
+              <div class="text-center">
+                <button class="btn btn-success px-4">
+                  Iniciar
+                </button>
+              </div>
+
+              <hr />
+
+              <div class="d-flex justify-content-between text-secondary small">
+                <span>Estimativa</span>
+                <strong>{{ tarefaSelecionada.horasEstimadas || 0 }}h</strong>
+              </div>
+
+              <div class="progress mt-2">
+                <div
+                  class="progress-bar"
+                  role="progressbar"
+                  style="width: 0%"
+                ></div>
+              </div>
+            </section>
+          </div>
+
+          <div class="col-12 col-xl-4">
+            <section class="bg-white border rounded-4 p-4 mb-4 shadow-sm">
+              <h2 class="fs-5 fw-semibold text-dark mb-3">Status atual</h2>
+
+              <span class="status-pill">
+                {{ labelStatus(tarefaSelecionada.status) }}
+              </span>
+
+              <p class="small text-secondary mt-3 mb-0">
+                O status desta tarefa é alterado somente pelo quadro Kanban.
+              </p>
+            </section>
+
+            <section class="bg-white border rounded-4 p-4 mb-4 shadow-sm">
+              <h2 class="fs-5 fw-semibold text-dark mb-3">Informações</h2>
+
+              <div class="info-lista">
+                <div class="info-item">
+                  <span class="material-icons">person</span>
+                  <div>
+                    <small>Responsável</small>
+                    <strong>{{ buscarNomeResponsavel(tarefaSelecionada.idResponsavelUsuarioEmpresa) }}</strong>
+                  </div>
+                </div>
+
+                <div class="info-item">
+                  <span class="material-icons">calendar_month</span>
+                  <div>
+                    <small>Prazo</small>
+                    <strong>{{ formatarData(tarefaSelecionada.prazo) }}</strong>
+                  </div>
+                </div>
+
+                <div class="info-item">
+                  <span class="material-icons">priority_high</span>
+                  <div>
+                    <small>Prioridade</small>
+                    <strong>{{ labelPrioridade(tarefaSelecionada.prioridade) }}</strong>
+                  </div>
+                </div>
+
+                <div class="info-item">
+                  <span class="material-icons">bolt</span>
+                  <div>
+                    <small>Dificuldade</small>
+                    <strong>{{ labelDificuldade(tarefaSelecionada.dificuldade) }}</strong>
+                  </div>
+                </div>
+
+                <div class="info-item">
+                  <span class="material-icons">emoji_events</span>
+                  <div>
+                    <small>Recompensa XP</small>
+                    <strong>+{{ tarefaSelecionada.xpRecompensa || 0 }} XP</strong>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="bg-white border rounded-4 p-4 shadow-sm">
+              <h2 class="fs-5 fw-semibold text-dark mb-3">Ações</h2>
+
+              <div class="d-grid gap-2">
+                <button
+                  type="button"
+                  class="btn btn-outline-dark"
+                  (click)="abrirEdicao(tarefaSelecionada)"
+                >
+                  Editar Tarefa
+                </button>
+
+                <button
+                  type="button"
+                  class="btn btn-outline-danger"
+                  (click)="deletarTarefa(tarefaSelecionada)"
+                >
+                  Excluir Tarefa
+                </button>
+              </div>
+            </section>
+          </div>
+        </div>
+      </ng-container>
+    </section>
+  </main>
+</div>
