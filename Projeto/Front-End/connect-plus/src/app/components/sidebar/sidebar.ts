@@ -20,7 +20,7 @@ export class Sidebar {
     { label: 'Início', icon: 'home', route: '/dashboard' },
     { label: 'Feedbacks', icon: 'feedback', route: '/feedbacks' },
     { label: 'Perfil', icon: 'person', route: '/perfil' },
-    { label: 'Quadro de tarefas', icon: 'assignment', route: '/quadro-tarefas' },
+    { label: 'Quadro de tarefas', icon: 'assignment', route: '/tarefas' },
     { label: 'Chat', icon: 'chat', route: '/chat' },
     { label: 'Projetos', icon: 'work', route: '/projetos' },
     { label: 'Loja', icon: 'store', route: '/loja' },
