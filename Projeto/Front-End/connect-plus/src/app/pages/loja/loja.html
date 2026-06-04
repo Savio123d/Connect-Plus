@@ -1,57 +1,312 @@
-<div class="layout-loja">
-  <aside class="sidebar">
-    <div class="logo-area">
-      <h2>Connect <span>+</span></h2>
-    </div>
+<div class="loja-layout">
+  <app-sidebar></app-sidebar>
 
-    <nav class="menu">
-      <a href="#">Home</a>
-      <a href="#">Feedbacks</a>
-      <a href="#">Perfil</a>
-      <a href="#">Quadro de tarefa</a>
-      <a href="#">Chat</a>
-      <a href="#" class="ativo">Loja</a>
-      <a href="#">Configurações</a>
-      <a href="#">Suporte</a>
-      <a href="#">Sair</a>
-    </nav>
-  </aside>
+  <main class="loja-main">
+    <header class="topbar">
+      <div class="search-box">
+        <span>🔍</span>
 
-  <main class="conteudo-loja">
-    <div class="topo-loja">
-      <h1>Loja</h1>
-    </div>
-
-    <div class="area-produtos">
-      <div class="card-produto">
-        <div class="imagem-produto fundo-black-roxo">
-          <span>Black Purple</span>
-        </div>
-        <h3>Fundo Black</h3>
-        <p>Tema escuro com detalhes em roxo</p>
-        <span class="preco">100 XP</span>
-        <button (click)="comprar('Fundo Black', 100)">Comprar</button>
+        <input
+          type="text"
+          placeholder="Buscar recompensas..."
+          [(ngModel)]="busca"
+        />
       </div>
 
-      <div class="card-produto">
-        <div class="imagem-produto fundo-dourado-branco">
-          <span>Golden White</span>
-        </div>
-        <h3>Fundo Dourado</h3>
-        <p>Tema dourado com detalhes em branco</p>
-        <span class="preco">150 XP</span>
-        <button (click)="comprar('Fundo Dourado', 150)">Comprar</button>
+      <div class="topbar-actions">
+        <span class="notification-dot"></span>
+        <div class="avatar">D</div>
+      </div>
+    </header>
+
+    <section class="page-header">
+      <div>
+        <h1>Loja de Recompensas</h1>
+        <p>Troque seus pontos XP por recompensas</p>
       </div>
 
-      <div class="card-produto">
-        <div class="imagem-produto fundo-azul-neon">
-          <span>Blue Neon</span>
+      <button class="btn-primary" type="button" (click)="abrirModalCriacao()">
+        + Nova Recompensa
+      </button>
+    </section>
+
+    <section class="xp-card">
+      <div class="xp-info">
+        <span class="xp-label">🏆 Seu Saldo XP</span>
+
+        <strong>{{ saldoXp }} XP</strong>
+
+        <div class="xp-next">
+          Próximo Nível: {{ proximoNivelXp }} XP
         </div>
-        <h3>Fundo Azul Neon</h3>
-        <p>Tema moderno com detalhes claros</p>
-        <span class="preco">200 XP</span>
-        <button (click)="comprar('Fundo Azul Neon', 200)">Comprar</button>
+
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="progressoXp()"></div>
+        </div>
       </div>
-    </div>
+
+      <div class="xp-icon">
+        🏆
+      </div>
+    </section>
+
+    <section class="recompensas-topo">
+      <h2>Recompensas Disponíveis</h2>
+
+      <div class="filters">
+        <button
+          *ngFor="let categoria of categorias"
+          type="button"
+          [class.active]="filtroCategoria === categoria"
+          (click)="filtroCategoria = categoria"
+        >
+          {{ categoria }}
+        </button>
+      </div>
+    </section>
+
+    <p class="erro" *ngIf="mensagemErro">
+      {{ mensagemErro }}
+    </p>
+
+    <section class="loading" *ngIf="carregando">
+      Carregando loja...
+    </section>
+
+    <section class="cards-grid" *ngIf="!carregando">
+      <article
+        class="reward-card"
+        *ngFor="let item of itensFiltrados"
+        [class.indisponivel]="!podeResgatar(item)"
+      >
+        <span class="ribbon" *ngIf="estaEsgotado(item)">
+          Esgotada
+        </span>
+
+        <div class="reward-header">
+          <div class="reward-icon" [ngClass]="classeCor(item.cor)">
+            {{ iconeVisual(item.icone) }}
+          </div>
+
+          <span class="category-pill">
+            {{ item.categoria || 'Benefício' }}
+          </span>
+        </div>
+
+        <h3>{{ item.nome }}</h3>
+
+        <p class="reward-description">
+          {{ item.descricao }}
+        </p>
+
+        <div class="stock-box">
+          <span>Quantidade disponível</span>
+
+          <strong
+            [class.stock-ok]="!estaEsgotado(item)"
+            [class.stock-empty]="estaEsgotado(item)"
+          >
+            {{ item.quantidadeDisponivel || 0 }} un.
+          </strong>
+        </div>
+
+        <div class="card-footer">
+          <div>
+            <span class="small-label">Custo</span>
+            <strong class="price">🎟️ {{ item.custoXp }} XP</strong>
+          </div>
+
+          <button
+            type="button"
+            class="btn-resgatar"
+            [disabled]="!podeResgatar(item)"
+            (click)="resgatarItem(item)"
+          >
+            {{ textoBotaoResgate(item) }}
+          </button>
+        </div>
+
+        <div class="admin-actions">
+          <button
+            type="button"
+            class="btn-outline"
+            (click)="abrirModalEdicao(item)"
+          >
+            ✎ Editar
+          </button>
+
+          <button
+            *ngIf="!estaEsgotado(item)"
+            type="button"
+            class="btn-warning"
+            (click)="esgotarItem(item)"
+          >
+            Esgotar
+          </button>
+
+          <button
+            *ngIf="estaEsgotado(item)"
+            type="button"
+            class="btn-success"
+            (click)="reporItem(item)"
+          >
+            Repor
+          </button>
+
+          <button
+            type="button"
+            class="btn-delete"
+            (click)="deletarItem(item)"
+          >
+            🗑 Excluir
+          </button>
+        </div>
+      </article>
+    </section>
+
+    <section
+      class="empty-state"
+      *ngIf="!carregando && itensFiltrados.length === 0"
+    >
+      Nenhuma recompensa encontrada.
+    </section>
+
+    <section class="xp-help">
+      <div class="help-icon">🎁</div>
+
+      <div>
+        <h3>Como ganhar mais XP?</h3>
+
+        <p>
+          Complete tarefas, ajude colegas e participe de projetos para acumular
+          pontos XP e desbloquear recompensas incríveis!
+        </p>
+
+        <div class="xp-rules">
+          <span><b class="green-dot"></b> Tarefas fáceis: +10 XP</span>
+          <span><b class="yellow-dot"></b> Tarefas médias: +20 XP</span>
+          <span><b class="red-dot"></b> Tarefas difíceis: +50 XP</span>
+        </div>
+      </div>
+    </section>
   </main>
+</div>
+
+<div class="modal-backdrop" *ngIf="modalAberto">
+  <div class="modal-card">
+    <button class="modal-close" type="button" (click)="fecharModal()">
+      ×
+    </button>
+
+    <h2>
+      {{ itemEditando ? 'Editar Recompensa' : 'Nova Recompensa' }}
+    </h2>
+
+    <form [formGroup]="formLoja" (ngSubmit)="salvarItem()">
+      <div class="form-grid three">
+        <label>
+          Nome da Recompensa
+
+          <input
+            type="text"
+            formControlName="nome"
+            placeholder="Ex: Vale Café"
+          />
+
+          <small *ngIf="campoInvalido('nome')">
+            Informe um nome válido.
+          </small>
+        </label>
+
+        <label>
+          Custo em XP
+
+          <input
+            type="number"
+            formControlName="custoXp"
+            placeholder="Ex: 300"
+          />
+
+          <small *ngIf="campoInvalido('custoXp')">
+            Informe o custo.
+          </small>
+        </label>
+
+        <label>
+          Quantidade Disponível
+
+          <input
+            type="number"
+            formControlName="quantidadeDisponivel"
+            placeholder="1"
+          />
+
+          <small *ngIf="campoInvalido('quantidadeDisponivel')">
+            Informe a quantidade.
+          </small>
+        </label>
+      </div>
+
+      <label class="full-label">
+        Descrição
+
+        <textarea
+          formControlName="descricao"
+          placeholder="Descreva a recompensa..."
+        ></textarea>
+
+        <small *ngIf="campoInvalido('descricao')">
+          Informe uma descrição válida.
+        </small>
+      </label>
+
+      <div class="form-grid three">
+        <label>
+          Categoria
+
+          <select formControlName="categoria">
+            <option value="Benefício">Benefício</option>
+            <option value="Desenvolvimento">Desenvolvimento</option>
+            <option value="Conquista">Conquista</option>
+          </select>
+        </label>
+
+        <label>
+          Ícone
+
+          <select formControlName="icone">
+            <option *ngFor="let icone of icones" [value]="icone">
+              {{ icone }}
+            </option>
+          </select>
+        </label>
+
+        <label>
+          Cor
+
+          <select formControlName="cor">
+            <option *ngFor="let cor of cores" [value]="cor">
+              {{ cor }}
+            </option>
+          </select>
+        </label>
+      </div>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn-cancelar" (click)="fecharModal()">
+          Cancelar
+        </button>
+
+        <button type="submit" class="btn-primary" [disabled]="salvando">
+          {{
+            salvando
+              ? 'Salvando...'
+              : itemEditando
+                ? 'Salvar Alterações'
+                : 'Criar Recompensa'
+          }}
+        </button>
+      </footer>
+    </form>
+  </div>
 </div>
