@@ -47,9 +47,19 @@ public class TarefaResponseDTO {
 
     public TarefaResponseDTO(TarefaModel tarefa) {
         this.idTarefa = tarefa.getIdTarefa();
-        this.idEmpresa = tarefa.getIdEmpresa();
-        this.idProjeto = tarefa.getIdProjeto();
-        this.idResponsavelUsuarioEmpresa = tarefa.getIdResponsavelUsuarioEmpresa();
+
+        this.idEmpresa = tarefa.getIdEmpresa() != null
+                ? tarefa.getIdEmpresa().getIdEmpresa()
+                : null;
+
+        this.idProjeto = tarefa.getIdProjeto() != null
+                ? tarefa.getIdProjeto().getIdProjeto()
+                : null;
+
+        this.idResponsavelUsuarioEmpresa = tarefa.getIdResponsavelUsuarioEmpresa() != null
+                ? tarefa.getIdResponsavelUsuarioEmpresa().getIdUsuarioEmpresa()
+                : null;
+
         this.titulo = tarefa.getTitulo();
         this.descricao = tarefa.getDescricao();
         this.prioridade = tarefa.getPrioridade();
