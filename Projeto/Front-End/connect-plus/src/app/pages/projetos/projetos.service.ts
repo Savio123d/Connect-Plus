@@ -56,7 +56,7 @@ export interface Projeto {
   providedIn: 'root',
 })
 export class ProjetosService {
-  private readonly apiUrl = 'http://localhost:8080/api/projetos';
+  private readonly apiUrl = 'http://localhost:8020/api/projetos';
 
   usuariosDisponiveis: Pessoa[] = [];
 
