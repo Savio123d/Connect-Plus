@@ -11,6 +11,7 @@ public interface FeedbackRepository extends JpaRepository<FeedbackModel, Long> {
         SELECT COUNT(*)
         FROM feedback
         WHERE empresa_id = :empresaId
+        AND excluido IS NULL
     """, nativeQuery = true)
     Long countFeedbacksPorEmpresa(@Param("empresaId") Long empresaId);
 }

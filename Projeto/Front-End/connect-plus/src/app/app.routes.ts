@@ -13,7 +13,7 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard',
-    loadComponent: () => import('./pages/dashboard/dashboard').then((module) => module.default),
+    loadComponent: () => import('./pages/dashboard/dashboard').then((module) => module.Menu),
   },
   {
     path: 'login',
@@ -22,5 +22,10 @@ export const routes: Routes = [
   {
     path: 'usuarios',
     loadComponent: () => import('./pages/usuarios/usuarios').then((module) => module.Usuarios),
-  }
+  },
+  {
+  path: 'tarefas',
+  loadComponent: () =>
+    import('./pages/tarefas/tarefas').then(m => m.Tarefas),
+}
 ];

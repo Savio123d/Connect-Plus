@@ -23,21 +23,6 @@ CREATE TYPE "projeto_status" AS ENUM (
   'arquivado'
 );
 
-CREATE TYPE "tarefa_status" AS ENUM (
-  'pendente',
-  'em_andamento',
-  'em_revisao',
-  'concluida',
-  'cancelada',
-  'arquivada'
-);
-
-CREATE TYPE "dificuldade_tarefa" AS ENUM (
-  'facil',
-  'medio',
-  'dificil'
-);
-
 CREATE TYPE "notificacao_tipo" AS ENUM (
   'novo_projeto',
   'nova_tarefa',
@@ -184,8 +169,9 @@ CREATE TABLE "tarefa" (
   "resp_id" int,
   "titulo" varchar(130) NOT NULL,
   "descricao" text,
-  "dificuldade" dificuldade_tarefa NOT NULL,
-  "status" tarefa_status NOT NULL DEFAULT 'pendente',
+  "prioridade" varchar(20) NOT NULL DEFAULT 'media',
+  "dificuldade" varchar(20) NOT NULL,
+  "status" varchar(30) NOT NULL DEFAULT 'pendente',
   "criado_em" timestamp NOT NULL,
   "prazo" timestamp,
   "concluida_em" timestamp,

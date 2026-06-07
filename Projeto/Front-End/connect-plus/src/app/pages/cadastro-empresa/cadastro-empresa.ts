@@ -40,8 +40,8 @@ export class CadastroEmpresa implements OnInit {
   });
 
   constructor(
-      private empresaService: EmpresaService,
-      private router: Router,
+    private empresaService: EmpresaService,
+    private router: Router,
   ) {}
 
   ngOnInit(): void {}

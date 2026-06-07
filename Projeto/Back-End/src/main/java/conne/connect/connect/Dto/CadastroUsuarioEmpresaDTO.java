@@ -4,13 +4,7 @@ import conne.connect.connect.Enums.PapelEmpresa;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
-@NoArgsConstructor
 public class CadastroUsuarioEmpresaDTO {
 
     @NotBlank
@@ -25,4 +19,36 @@ public class CadastroUsuarioEmpresaDTO {
     private String senha;
 
     private PapelEmpresa papel;
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getSenha() {
+        return senha;
+    }
+
+    public void setSenha(String senha) {
+        this.senha = senha;
+    }
+
+    public PapelEmpresa getPapel() {
+        return papel;
+    }
+
+    public void setPapel(PapelEmpresa papel) {
+        this.papel = papel;
+    }
 }
