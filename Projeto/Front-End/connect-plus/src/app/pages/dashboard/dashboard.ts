@@ -5,11 +5,10 @@ import { NgApexchartsModule } from 'ng-apexcharts';
 
 import { Sidebar } from '../../components/sidebar/sidebar';
 import { DashboardService } from './dashboard.service';
-
-import { DashboardFactory } from './factories/dashboard.factory';
-import { DashboardCard } from './models/dashboard.model';
 import { AreaChartOptions } from './builders/area-chart.builder';
 import { BarChartOptions } from './builders/bar-chart.builder';
+import { DashboardFactory } from './factories/dashboard.factory';
+import { DashboardCard } from './models/dashboard.model';
 
 @Component({
   selector: 'app-dashboard-gestor',
@@ -19,7 +18,7 @@ import { BarChartOptions } from './builders/bar-chart.builder';
   styleUrl: './dashboard.css',
   encapsulation: ViewEncapsulation.None,
 })
-export default class Menu implements OnInit {
+export class Menu implements OnInit {
   cards: DashboardCard[] = [];
 
   areaChartOptions?: AreaChartOptions;
@@ -39,12 +38,8 @@ export default class Menu implements OnInit {
   carregarDashboard(): void {
     this.dashboardService.buscarResumo(1).subscribe({
       next: (resumo) => {
-        console.log('RESUMO DO DASHBOARD:', resumo);
-
         try {
           const dashboard = DashboardFactory.criarDashboard(resumo);
-
-          console.log('DASHBOARD MONTADO:', dashboard);
 
           this.cards = dashboard.cards;
           this.areaChartOptions = dashboard.areaChartOptions;

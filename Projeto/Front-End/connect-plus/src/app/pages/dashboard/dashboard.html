@@ -22,7 +22,7 @@
   <main class="conteudo-dashboard">
     <div class="cabecalho-dashboard">
       <h1>Dashboard</h1>
-      <p>Visão geral da sua empresa</p>
+      <p>Visao geral da sua empresa</p>
     </div>
 
     <ng-container *ngIf="carregando; else dashboardContent">
@@ -43,7 +43,7 @@
         </div>
       </section>
 
-      <section class="graficos-dashboard">
+      <section class="graficos-dashboard" *ngIf="areaChartOptions || barChartOptions">
         <div class="card-grafico" *ngIf="areaChartOptions as areaOptions">
           <div class="titulo-grafico titulo-roxo">
             <mat-icon>trending_up</mat-icon>

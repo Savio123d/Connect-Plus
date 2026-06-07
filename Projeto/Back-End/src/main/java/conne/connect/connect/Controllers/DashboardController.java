@@ -3,14 +3,18 @@ package conne.connect.connect.Controllers;
 import conne.connect.connect.Dto.DashboardResumoDTO;
 import conne.connect.connect.Services.DashboardService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/dashboard")
 @CrossOrigin(origins = "http://localhost:4200")
 public class DashboardController {
 
-    private  DashboardService dashboardService;
+    private final DashboardService dashboardService;
 
     public DashboardController(DashboardService dashboardService) {
         this.dashboardService = dashboardService;
@@ -18,7 +22,6 @@ public class DashboardController {
 
     @GetMapping("/resumo/{empresaId}")
     public ResponseEntity<DashboardResumoDTO> buscarResumo(@PathVariable Long empresaId) {
-        DashboardResumoDTO resumo = dashboardService.buscarResumo(empresaId);
-        return ResponseEntity.ok(resumo);
+        return ResponseEntity.ok(dashboardService.buscarResumo(empresaId));
     }
 }
