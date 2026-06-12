@@ -24,6 +24,26 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/usuarios/usuarios').then((module) => module.Usuarios),
   },
   {
+    path: 'loja',
+    loadComponent: () =>
+      import('./pages/loja/loja').then(
+        (module) => module.Loj),
+    },
+{
+  path: 'projetos',
+  loadComponent: () =>
+    import('./pages/projetos/projetos').then((module) => module.Projetos),
+},
+{
+  path: 'projetos/novo',
+  loadComponent: () =>
+    import('./pages/projetos/projeto-form').then((module) => module.ProjetoForm),
+},
+{
+  path: 'projetos/:id',
+  loadComponent: () =>
+    import('./pages/projetos/projeto-detalhe').then((module) => module.ProjetoDetalhe),
+},
   path: 'tarefas',
   loadComponent: () =>
     import('./pages/tarefas/tarefas').then(m => m.Tarefas),
