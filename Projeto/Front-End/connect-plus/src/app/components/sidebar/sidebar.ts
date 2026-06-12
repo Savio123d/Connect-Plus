@@ -13,20 +13,24 @@ interface MenuItem {
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './sidebar.html',
-  styleUrl: './sidebar.css'
+  styleUrl: './sidebar.css',
 })
 export class Sidebar {
   menuItems: MenuItem[] = [
     { label: 'Início', icon: 'home', route: '/dashboard' },
     { label: 'Feedbacks', icon: 'feedback', route: '/feedbacks' },
     { label: 'Perfil', icon: 'person', route: '/perfil' },
-    { label: 'Quadro de tarefas', icon: 'assignment', route: '/quadro-tarefas' },
+    { label: 'Quadro de tarefas', icon: 'assignment', route: '/tarefas' },
     { label: 'Chat', icon: 'chat', route: '/chat' },
     { label: 'Projetos', icon: 'work', route: '/projetos' },
     { label: 'Loja', icon: 'store', route: '/loja' },
     { label: 'Usuários', icon: 'group', route: '/usuarios' },
     { label: 'Configurações', icon: 'settings', route: '/configuracoes' },
     { label: 'Suporte', icon: 'support_agent', route: '/suporte' },
-    { label: 'Sair', icon: 'logout', route: '/login' }
+    { label: 'Sair', icon: 'logout', route: '/login' },
   ];
+
+  protected onMenuClick(item: MenuItem) {
+
+  }
 }

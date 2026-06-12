@@ -8,6 +8,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -15,10 +18,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "notificacao")
+@Table(
+        name = "notificacao",
+        indexes = @Index(name = "idx_notificacao_usu_emp", columnList = "usu_emp_id")
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -29,11 +36,13 @@ public class NotificacaoModel {
     @Column(name = "id")
     private Long idNotificacao;
 
-    @Column(name = "empresa_id", nullable = false)
-    private Long idEmpresa;
+    @ManyToOne
+    @JoinColumn(name = "empresa_id", nullable = false)
+    private EmpresaModel idEmpresa;
 
-    @Column(name = "usuario_empresa_id", nullable = false)
-    private Long idUsuarioEmpresa;
+    @ManyToOne
+    @JoinColumn(name = "usu_emp_id", nullable = false)
+    private UsuarioEmpresaModel idUsuarioEmpresa;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo", nullable = false, length = 30)
@@ -53,6 +62,12 @@ public class NotificacaoModel {
 
     @Column(name = "lida_em")
     private LocalDateTime dataLeitura;
+
+    @Column(name = "incluido", columnDefinition = "DATE")
+    private LocalDate incluido;
+
+    @Column(name = "excluido", columnDefinition = "DATE")
+    private LocalDate excluido;
 
     @PrePersist
     public void prePersist() {
