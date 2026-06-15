@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 interface MenuItem {
   label: string;
@@ -11,7 +11,7 @@ interface MenuItem {
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css',
 })
@@ -30,7 +30,5 @@ export class Sidebar {
     { label: 'Sair', icon: 'logout', route: '/login' },
   ];
 
-  protected onMenuClick(item: MenuItem) {
-
-  }
+  protected onMenuClick(item: MenuItem) {}
 }
