@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { SobreNos } from './pages/sobre-nos/sobre-nos';
 
 export const routes: Routes = [
   {
@@ -27,7 +28,7 @@ export const routes: Routes = [
     path: 'loja',
     loadComponent: () =>
       import('./pages/loja/loja').then(
-        (module) => module.Loj),
+        (module) => module.Loja),
     },
 {
   path: 'projetos',
@@ -44,8 +45,14 @@ export const routes: Routes = [
   loadComponent: () =>
     import('./pages/projetos/projeto-detalhe').then((module) => module.ProjetoDetalhe),
 },
+{
   path: 'tarefas',
   loadComponent: () =>
     import('./pages/tarefas/tarefas').then(m => m.Tarefas),
-}
+},
+{
+  path: 'sobre-nos',
+  loadComponent: () =>
+    import('./pages/sobre-nos/sobre-nos').then((module) => module.SobreNos)
+  }
 ];
