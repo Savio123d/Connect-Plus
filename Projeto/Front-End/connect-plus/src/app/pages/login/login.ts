@@ -54,18 +54,17 @@ export class Login {
 
     const dadosLogin = this.loginForm.getRawValue();
 
-    this.loginService.login(dadosLogin)
+    this.loginService
+      .login(dadosLogin)
       .pipe(
         finalize(() => {
           this.carregando = false;
           this.cdr.detectChanges();
-        })
+        }),
       )
       .subscribe({
         next: (resposta) => {
-          if (resposta.token) {
-            localStorage.setItem('token', resposta.token);
-          }
+          this.loginService.salvarLogin(resposta);
 
           this.mensagemSucesso = 'Login realizado com sucesso!';
           this.cdr.detectChanges();
@@ -85,7 +84,7 @@ export class Login {
           }
 
           this.cdr.detectChanges();
-        }
+        },
       });
   }
 }
