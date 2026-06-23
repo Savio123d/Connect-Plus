@@ -1,6 +1,13 @@
 :host {
   display: block;
-  height: 100%;
+  min-height: 100vh;
+}
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background: #f5f7ff;
 }
 
 .sidebar {
@@ -10,52 +17,76 @@
   border-right: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
 }
 
 .logo-area {
-  padding: 20px;
+  height: 86px;
+  display: flex;
+  align-items: center;
+  padding: 0 22px;
   border-bottom: 1px solid #e5e7eb;
 }
 
 .logo {
   margin: 0;
-  color: #4338ca;
-  font-weight: 700;
+  font-size: 30px;
+  font-weight: 800;
+  color: #312e81;
+  letter-spacing: -1px;
 }
 
 .menu {
   display: flex;
   flex-direction: column;
-  padding: 12px 0;
+  gap: 6px;
+  padding: 20px 12px;
 }
 
 .menu-item {
+  height: 46px;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 20px;
+  padding: 0 14px;
+  border-radius: 10px;
   text-decoration: none;
   color: #6b7280;
+  font-size: 15px;
   font-weight: 500;
-  border-left: 4px solid transparent;
-  transition: 0.2s;
+  transition: 0.2s ease;
 }
 
 .menu-item:hover {
-  background: #f5f3ff;
-  color: #6d28d9;
+  background: #f3f4f6;
+  color: #4f46e5;
 }
 
 .menu-item.ativo {
-  background: #f5f3ff;
+  background: #ede9fe;
   color: #6d28d9;
-  border-left: 4px solid #6d28d9;
+  font-weight: 700;
 }
 
 .icone {
-  font-size: 20px;
+  font-size: 22px;
+  width: 24px;
+  height: 24px;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .texto {
-  font-size: 15px;
+  white-space: nowrap;
+}
+
+.conteudo {
+  flex: 1;
+  min-width: 0;
+  min-height: 100vh;
+  padding: 24px;
+  background: #f5f7ff;
+  overflow: auto;
 }
