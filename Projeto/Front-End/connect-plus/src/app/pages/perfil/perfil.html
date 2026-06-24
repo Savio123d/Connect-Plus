@@ -1,0 +1,194 @@
+<div class="perfil-layout">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">C+</div>
+      <strong>Connect +</strong>
+    </div>
+
+    <nav class="menu">
+      <a>
+        <span>⌂</span>
+        Início
+      </a>
+
+      <a>
+        <span>☑</span>
+        Quadro de Tarefas
+      </a>
+
+      <a>
+        <span>□</span>
+        Chat
+      </a>
+
+      <a>
+        <span>○</span>
+        Feedbacks
+      </a>
+
+      <a>
+        <span>▣</span>
+        Loja
+      </a>
+
+      <a>
+        <span>▤</span>
+        Projetos
+      </a>
+
+      <a class="active">
+        <span>♙</span>
+        Perfil
+      </a>
+
+      <a>
+        <span>♧</span>
+        Usuários
+      </a>
+
+      <a>
+        <span>⚙</span>
+        Configurações
+      </a>
+
+      <a>
+        <span>☎</span>
+        Suporte
+      </a>
+    </nav>
+
+    <button class="logout">
+      ↪ Sair
+    </button>
+  </aside>
+
+  <main class="perfil-main">
+    <header class="topbar">
+      <div class="search-box">
+        <span>🔍</span>
+        <input type="text" placeholder="Buscar projetos, tarefas, pessoas..." />
+      </div>
+
+      <div class="topbar-actions">
+        <span class="notification-dot"></span>
+        <div class="avatar-small">JD</div>
+      </div>
+    </header>
+
+    <section class="page-header">
+      <h1>Meu Perfil</h1>
+      <p>Suas informações e desempenho</p>
+    </section>
+
+    <section class="profile-card">
+      <div class="profile-left">
+        <div class="avatar-profile">
+          {{ iniciaisUsuario() }}
+        </div>
+
+        <span class="level-pill">
+          Nível {{ usuario.nivel }}
+        </span>
+      </div>
+
+      <div class="profile-content">
+        <div class="profile-info">
+          <h2>{{ usuario.nome }}</h2>
+          <p>{{ usuario.cargo }}</p>
+        </div>
+
+        <div class="info-row">
+          <div class="info-item">
+            <div class="info-icon blue">✉</div>
+
+            <div>
+              <span>E-mail</span>
+              <strong>{{ usuario.email }}</strong>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <div class="info-icon purple">▣</div>
+
+            <div>
+              <span>Departamento</span>
+              <strong>{{ usuario.departamento }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="xp-area">
+          <div class="xp-header">
+            <span>📈 Progresso XP</span>
+            <strong>
+              {{ usuario.xpAtual }} / {{ usuario.xpProximoNivel }} XP
+            </strong>
+          </div>
+
+          <div class="progress-bar">
+            <div
+              class="progress-fill"
+              [style.width.%]="progressoXp()"
+            ></div>
+          </div>
+
+          <p>
+            Faltam {{ xpRestante() }} XP para o próximo nível
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <header class="section-title">
+        <span>🏅</span>
+        <h2>Conquistas</h2>
+      </header>
+
+      <div class="achievements-grid">
+        <article
+          class="achievement-card"
+          *ngFor="let conquista of conquistas"
+        >
+          <div
+            class="achievement-icon"
+            [ngClass]="classeConquista(conquista.cor)"
+          >
+            {{ conquista.icone }}
+          </div>
+
+          <strong>{{ conquista.titulo }}</strong>
+        </article>
+      </div>
+    </section>
+
+    <section class="section-card">
+      <header class="section-title">
+        <span>📈</span>
+        <h2>Histórico de Desempenho</h2>
+      </header>
+
+      <div class="history-list">
+        <article
+          class="history-item"
+          *ngFor="let item of historico; let i = index"
+        >
+          <div class="history-left">
+            <span class="history-number">
+              {{ i + 1 }}
+            </span>
+
+            <div>
+              <h3>{{ item.mes }}</h3>
+              <p>{{ item.tarefasConcluidas }} tarefas concluídas</p>
+            </div>
+          </div>
+
+          <strong>
+            +{{ item.xpGanho }} XP
+          </strong>
+        </article>
+      </div>
+    </section>
+  </main>
+</div>

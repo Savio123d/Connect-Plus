@@ -81,6 +81,17 @@ public class AuthService {
             );
         }
 
+        UsuarioEmpresaModel usuarioEmpresa = usuarioEmpresaRepository
+                .findFirstByIdUsuario_IdUsuarioAndAtivoTrueAndExcluidoIsNull(
+                        usuario.getIdUsuario()
+                )
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.FORBIDDEN,
+                        "Usuário não possui vínculo ativo com uma empresa."
+                ));
+
+        UsuarioDTO usuarioDTO = UsuarioDTO.fromUsuarioEmpresa(usuarioEmpresa, null);
+
         return new LoginResponseDTO(
                 usuario.getIdUsuario(),
                 usuario.getNome(),
