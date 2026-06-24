@@ -48,13 +48,24 @@ public class AuthService {
             );
         }
 
-        UsuarioEmpresaModel usuarioEmpresa = usuarioEmpresaRepository
-                .findByIdUsuario_IdUsuario(usuario.getIdUsuario())
-                .orElse(null);
+        if (usuario.getStatus() == null ||
+                !usuario.getStatus().name().equalsIgnoreCase("ativo")) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Usuário inativo."
+            );
+        }
 
-        UsuarioDTO usuarioDTO = usuarioEmpresa != null
-                ? UsuarioDTO.fromUsuarioEmpresa(usuarioEmpresa, null)
-                : UsuarioDTO.fromModel(usuario);
+        UsuarioEmpresaModel usuarioEmpresa = usuarioEmpresaRepository
+                .findFirstByIdUsuario_IdUsuarioAndAtivoTrueAndExcluidoIsNull(
+                        usuario.getIdUsuario()
+                )
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.FORBIDDEN,
+                        "Usuário não possui vínculo ativo com uma empresa."
+                ));
+
+        UsuarioDTO usuarioDTO = UsuarioDTO.fromUsuarioEmpresa(usuarioEmpresa, null);
 
         return new LoginResponseDTO(
                 "Login realizado com sucesso.",

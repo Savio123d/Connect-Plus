@@ -1,24 +1,6 @@
 <div class="layout-tarefas">
 
   <main class="conteudo-tarefas">
-    <header class="topbar bg-white border-bottom d-flex justify-content-between align-items-center px-4">
-      <div class="campo-busca d-flex align-items-center gap-2 px-3">
-        <span class="material-icons fs-5 text-secondary">search</span>
-        <input
-          type="text"
-          name="pesquisaTopbar"
-          class="border-0 bg-transparent w-100"
-          placeholder="Buscar tarefas por título ou descrição..."
-          [(ngModel)]="filtroPesquisa"
-        />
-      </div>
-
-      <div class="d-flex align-items-center gap-3">
-        <span class="material-icons text-secondary">notifications</span>
-        <div class="avatar-usuario">JD</div>
-      </div>
-    </header>
-
     <section class="p-4">
       <div *ngIf="mensagemErro" class="alert alert-danger py-2 mb-3">
         {{ mensagemErro }}

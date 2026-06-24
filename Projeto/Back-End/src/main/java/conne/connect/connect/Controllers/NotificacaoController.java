@@ -28,7 +28,9 @@ public class NotificacaoController {
     }
 
     @PostMapping
-    public ResponseEntity<NotificacaoModel> criarNotificacao(@RequestBody NotificacaoModel notificacaoModel) {
+    public ResponseEntity<NotificacaoModel> criarNotificacao(
+            @RequestBody NotificacaoModel notificacaoModel
+    ) {
         NotificacaoModel notificacao = notificacaoService.criarNotificacao(notificacaoModel);
 
         URI uri = ServletUriComponentsBuilder
@@ -47,7 +49,9 @@ public class NotificacaoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<NotificacaoModel>> buscarPorId(@PathVariable("id") Long idNotificacao) {
+    public ResponseEntity<Optional<NotificacaoModel>> buscarPorId(
+            @PathVariable("id") Long idNotificacao
+    ) {
         return ResponseEntity.ok(notificacaoService.buscarPorId(idNotificacao));
     }
 

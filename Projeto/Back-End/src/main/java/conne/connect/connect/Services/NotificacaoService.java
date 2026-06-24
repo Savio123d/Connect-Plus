@@ -4,9 +4,9 @@ import conne.connect.connect.Dto.NotificacaoResponseDTO;
 import conne.connect.connect.Models.NotificacaoModel;
 import conne.connect.connect.Repositories.NotificacaoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatus;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -30,7 +30,10 @@ public class NotificacaoService {
         return notificacaoRepository.findById(idNotificacao);
     }
 
-    public NotificacaoModel atualizarNotificacao(Long idNotificacao, NotificacaoModel notificacaoModel) {
+    public NotificacaoModel atualizarNotificacao(
+            Long idNotificacao,
+            NotificacaoModel notificacaoModel
+    ) {
         NotificacaoModel notificacao = notificacaoRepository.findById(idNotificacao)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
@@ -60,7 +63,9 @@ public class NotificacaoService {
 
     public List<NotificacaoResponseDTO> buscarPorUsuarioEmpresa(Long idUsuarioEmpresa) {
         return notificacaoRepository
-                .findByIdUsuarioEmpresa_IdUsuarioEmpresaAndExcluidoIsNullOrderByDataCriacaoDesc(idUsuarioEmpresa)
+                .findByIdUsuarioEmpresa_IdUsuarioEmpresaAndExcluidoIsNullOrderByDataCriacaoDesc(
+                        idUsuarioEmpresa
+                )
                 .stream()
                 .map(NotificacaoResponseDTO::fromModel)
                 .toList();
@@ -68,7 +73,9 @@ public class NotificacaoService {
 
     public List<NotificacaoResponseDTO> buscarUltimasPorUsuarioEmpresa(Long idUsuarioEmpresa) {
         return notificacaoRepository
-                .findTop5ByIdUsuarioEmpresa_IdUsuarioEmpresaAndExcluidoIsNullOrderByDataCriacaoDesc(idUsuarioEmpresa)
+                .findTop5ByIdUsuarioEmpresa_IdUsuarioEmpresaAndExcluidoIsNullOrderByDataCriacaoDesc(
+                        idUsuarioEmpresa
+                )
                 .stream()
                 .map(NotificacaoResponseDTO::fromModel)
                 .toList();
@@ -76,7 +83,9 @@ public class NotificacaoService {
 
     public long contarNaoLidasPorUsuarioEmpresa(Long idUsuarioEmpresa) {
         return notificacaoRepository
-                .countByIdUsuarioEmpresa_IdUsuarioEmpresaAndLidaFalseAndExcluidoIsNull(idUsuarioEmpresa);
+                .countByIdUsuarioEmpresa_IdUsuarioEmpresaAndLidaFalseAndExcluidoIsNull(
+                        idUsuarioEmpresa
+                );
     }
 
     public NotificacaoResponseDTO marcarComoLida(Long idNotificacao) {

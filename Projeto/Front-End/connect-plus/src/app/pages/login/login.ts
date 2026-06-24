@@ -1,22 +1,22 @@
-import { Component, ChangeDetectorRef, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { finalize } from 'rxjs';
 import { LoginService } from './login.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './login.html',
-  styleUrl: './login.css'
+  styleUrl: './login.css',
 })
 export class Login {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private loginService = inject(LoginService);
-  private cdr = inject(ChangeDetectorRef);
 
+  titulo = 'Connect+';
   mostrarSenha = false;
   carregando = false;
   mensagemErro = '';
@@ -24,7 +24,8 @@ export class Login {
 
   loginForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
-    senha: ['', [Validators.required, Validators.minLength(6)]]
+    senha: ['', [Validators.required, Validators.minLength(6)]],
+    lembrarMe: [false],
   });
 
   get email() {
@@ -45,47 +46,59 @@ export class Login {
 
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
-      this.cdr.detectChanges();
       return;
     }
 
     this.carregando = true;
-    this.cdr.detectChanges();
 
-    const dadosLogin = this.loginForm.getRawValue();
+    const dadosForm = this.loginForm.getRawValue();
 
-    this.loginService.login(dadosLogin)
-      .pipe(
-        finalize(() => {
-          this.carregando = false;
-          this.cdr.detectChanges();
-        })
-      )
-      .subscribe({
-        next: (resposta) => {
-          if (resposta.token) {
-            localStorage.setItem('token', resposta.token);
-          }
+    const dadosLogin = {
+      email: dadosForm.email,
+      senha: dadosForm.senha,
+    };
 
-          this.mensagemSucesso = 'Login realizado com sucesso!';
-          this.cdr.detectChanges();
+    this.loginService.login(dadosLogin).subscribe({
+      next: (resposta) => {
+        this.carregando = false;
 
-          this.router.navigate(['/dashboard']);
-        },
-
-        error: (erro) => {
-          console.log('Erro no login:', erro);
-
-          if (erro.status === 401 || erro.status === 403) {
-            this.mensagemErro = 'E-mail ou senha incorretos.';
-          } else if (erro.status === 0) {
-            this.mensagemErro = 'Não foi possível conectar com o servidor.';
-          } else {
-            this.mensagemErro = 'Erro ao tentar fazer login. Tente novamente.';
-          }
-
-          this.cdr.detectChanges();
+        if (!resposta.usuario) {
+          this.mensagemErro = 'Login realizado, mas não foi possível carregar os dados do usuário.';
+          return;
         }
-      });
+
+        localStorage.setItem('usuarioLogado', JSON.stringify(resposta.usuario));
+
+        if (resposta.usuario.idUsuario) {
+          localStorage.setItem('idUsuario', String(resposta.usuario.idUsuario));
+        }
+
+        if (resposta.usuario.idUsuarioEmpresa) {
+          localStorage.setItem('idUsuarioEmpresa', String(resposta.usuario.idUsuarioEmpresa));
+        }
+
+        if (resposta.usuario.idEmpresa) {
+          localStorage.setItem('idEmpresa', String(resposta.usuario.idEmpresa));
+        }
+
+        this.mensagemSucesso = resposta.mensagem || 'Login realizado com sucesso!';
+
+        this.router.navigate(['/dashboard']);
+      },
+
+      error: (erro) => {
+        this.carregando = false;
+
+        console.error('Erro no login:', erro);
+
+        if (erro.status === 401 || erro.status === 403) {
+          this.mensagemErro = 'E-mail ou senha incorretos.';
+        } else if (erro.status === 0) {
+          this.mensagemErro = 'Não foi possível conectar com o servidor.';
+        } else {
+          this.mensagemErro = 'Erro ao tentar fazer login. Tente novamente.';
+        }
+      },
+    });
   }
 }
