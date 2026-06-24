@@ -1,0 +1,110 @@
+<div class="pagina-projeto-form">
+  <app-sidebar></app-sidebar>
+
+  <main class="conteudo-projeto-form">
+    <header class="topbar">
+      <div class="campo-busca">
+        <span>⌕</span>
+        <input type="text" placeholder="Buscar projetos, tarefas, pessoas..." />
+      </div>
+
+      <div class="acoes-topbar">
+        <button class="botao-notificacao" type="button">⌁</button>
+        <div class="avatar-usuario">JD</div>
+      </div>
+    </header>
+
+    <section class="cabecalho-pagina">
+      <h1>Criar Novo Projeto</h1>
+      <p>Preencha as informações do projeto</p>
+    </section>
+
+    <form class="card-formulario" (ngSubmit)="criarProjeto()">
+      <div class="titulo-card">
+        <span>▣</span>
+        <h2>Informações do Projeto</h2>
+      </div>
+
+      <div class="grupo-campo">
+        <label>▤ Nome do Projeto</label>
+        <input
+          type="text"
+          name="nome"
+          placeholder="Ex: Sistema de Vendas Online"
+          [(ngModel)]="nome"
+        />
+      </div>
+
+      <div class="grupo-campo">
+        <label>Descrição</label>
+        <textarea
+          name="descricao"
+          placeholder="Descreva os objetivos e escopo do projeto..."
+          [(ngModel)]="descricao"
+        ></textarea>
+      </div>
+
+      <div class="grid-campos">
+        <div class="grupo-campo">
+          <label>♙ Líder do Projeto</label>
+          <select name="liderId" [(ngModel)]="liderId">
+            <option [ngValue]="null">Selecione o líder</option>
+            <option
+              *ngFor="let usuario of projetosService.usuariosDisponiveis"
+              [ngValue]="usuario.id"
+            >
+              {{ usuario.nome }} — {{ usuario.cargo }}
+            </option>
+          </select>
+        </div>
+
+        <div class="grupo-campo">
+          <label>Prazo Final</label>
+          <input type="date" name="prazo" [(ngModel)]="prazo" />
+        </div>
+      </div>
+
+      <div class="grupo-campo">
+        <label>♙ Participantes</label>
+
+        <div class="lista-participantes">
+          <label class="card-participante" *ngFor="let participante of participantes">
+            <input
+              type="checkbox"
+              [(ngModel)]="participante.selecionado"
+              [name]="'participante' + participante.id"
+            />
+
+            <div class="avatar-participante">{{ participante.iniciais }}</div>
+
+            <div>
+              <strong>{{ participante.nome }}</strong>
+              <span>{{ participante.cargo }}</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="box-dica">
+        <div class="icone-dica">▣</div>
+        <div>
+          <strong>Dica</strong>
+          <p>
+            Selecione um líder com experiência e adicione membros com habilidades
+            complementares para o sucesso do projeto.
+          </p>
+        </div>
+      </div>
+
+      <div class="acoes-formulario">
+        <button type="button" class="botao-cancelar" routerLink="/projetos">
+          Cancelar
+        </button>
+
+        <button type="submit" class="botao-criar">
+          Criar Projeto
+        </button>
+      </div>
+    </form>
+  </main>
+</div>

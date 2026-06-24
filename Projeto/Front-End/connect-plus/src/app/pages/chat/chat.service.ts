@@ -1,14 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import {
-  ChatEvento,
-  ConversaDetalhe,
-  ConversaResumo,
-  Mensagem,
-  TipoConversa,
-  UsuarioChat,
-} from './chat.model';
+import { ChatEvento, ConversaDetalhe, ConversaResumo, Mensagem, TipoConversa, UsuarioChat } from './chat.model';
 
 @Injectable({
   providedIn: 'root',

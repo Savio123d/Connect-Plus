@@ -1,0 +1,110 @@
+<div class="pagina-projetos">
+  <app-sidebar></app-sidebar>
+
+  <main class="conteudo-projetos">
+    <header class="topbar">
+      <div class="campo-busca">
+        <span class="icone-busca">⌕</span>
+        <input
+          type="text"
+          placeholder="Buscar projetos, tarefas, pessoas..."
+          [(ngModel)]="termoBusca"
+        />
+      </div>
+
+      <div class="acoes-topbar">
+        <button class="botao-notificacao" type="button">⌁</button>
+        <div class="avatar-usuario">JD</div>
+      </div>
+    </header>
+
+    <section class="cabecalho-pagina">
+      <div>
+        <h1>Projetos</h1>
+        <p>Gerencie todos os projetos da empresa</p>
+      </div>
+
+      <button class="botao-novo" type="button" (click)="novoProjeto()">
+        <span>+</span>
+        Novo Projeto
+      </button>
+    </section>
+
+    <section class="grid-projetos">
+      <article
+        class="card-projeto"
+        *ngFor="let projeto of projetosFiltrados"
+        (click)="abrirProjeto(projeto.id)"
+      >
+        <div class="topo-card">
+          <div class="icone-projeto">▣</div>
+
+          <div class="info-principal">
+            <h2>{{ projeto.nome }}</h2>
+            <p>{{ projeto.descricao }}</p>
+          </div>
+        </div>
+
+        <div class="linha-status">
+          <div>
+            <span class="badge" [ngClass]="statusClasse(projeto)">
+              {{ statusTexto(projeto) }}
+            </span>
+
+            <span class="badge atrasado" *ngIf="projeto.atrasado">
+              ⚠ Atrasado
+            </span>
+          </div>
+
+          <div class="prazo" [class.prazo-atrasado]="projeto.atrasado">
+            <span>□</span>
+            {{ dataFormatada(projeto.prazo) }}
+          </div>
+        </div>
+
+        <div class="progresso-info">
+          <span>Progresso</span>
+          <strong>{{ projeto.progresso }}%</strong>
+        </div>
+
+        <div class="barra-progresso">
+          <div class="barra-preenchida" [style.width.%]="projeto.progresso"></div>
+        </div>
+
+        <div class="rodape-card">
+          <div class="membros">
+            <span>♙</span>
+            {{ projeto.membros.length }} membros
+          </div>
+
+          <div class="lider">
+            <div class="avatar-pequeno">{{ projeto.lider.iniciais }}</div>
+            <div>
+              <span>Líder</span>
+              <strong>{{ projeto.lider.nome }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="acoes-card">
+          <button
+            class="botao-concluir"
+            type="button"
+            (click)="concluirProjeto($event, projeto.id)"
+            [disabled]="projeto.status === 'concluido'"
+          >
+            ⊙ {{ projeto.status === 'concluido' ? 'Finalizado' : 'Concluir' }}
+          </button>
+
+          <button
+            class="botao-excluir"
+            type="button"
+            (click)="excluirProjeto($event, projeto.id)"
+          >
+            🗑
+          </button>
+        </div>
+      </article>
+    </section>
+  </main>
+</div>
