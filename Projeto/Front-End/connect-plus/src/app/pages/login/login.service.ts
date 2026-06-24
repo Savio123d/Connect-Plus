@@ -28,8 +28,13 @@ export interface UsuarioLogado {
 }
 
 export interface LoginResponse {
-  mensagem: string;
-  usuario: UsuarioLogado;
+  idUsuario: number;
+  nome: string;
+  email: string;
+  empresaId: number;
+  usuarioEmpresaId: number;
+  papel: string;
+  status: string;
 }
 
 @Injectable({
@@ -42,5 +47,57 @@ export class LoginService {
 
   login(dados: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(this.apiUrl, dados);
+  }
+
+  salvarLogin(dadosUsuario: LoginResponse): void {
+    localStorage.setItem('usuarioLogado', JSON.stringify(dadosUsuario));
+
+    localStorage.setItem('idUsuario', String(dadosUsuario.idUsuario));
+    localStorage.setItem('nome', dadosUsuario.nome);
+    localStorage.setItem('email', dadosUsuario.email);
+
+    localStorage.setItem('empresaId', String(dadosUsuario.empresaId));
+    localStorage.setItem('idEmpresa', String(dadosUsuario.empresaId));
+
+    localStorage.setItem('usuarioEmpresaId', String(dadosUsuario.usuarioEmpresaId));
+    localStorage.setItem('idUsuarioEmpresa', String(dadosUsuario.usuarioEmpresaId));
+
+    localStorage.setItem('papel', dadosUsuario.papel);
+    localStorage.setItem('status', dadosUsuario.status);
+  }
+
+  getUsuarioLogado(): LoginResponse | null {
+    const usuario = localStorage.getItem('usuarioLogado');
+    return usuario ? JSON.parse(usuario) : null;
+  }
+
+  getEmpresaId(): number | null {
+    const empresaId = localStorage.getItem('empresaId') || localStorage.getItem('idEmpresa');
+
+    return empresaId ? Number(empresaId) : null;
+  }
+
+  getUsuarioEmpresaId(): number | null {
+    const usuarioEmpresaId =
+      localStorage.getItem('usuarioEmpresaId') || localStorage.getItem('idUsuarioEmpresa');
+
+    return usuarioEmpresaId ? Number(usuarioEmpresaId) : null;
+  }
+
+  getIdUsuario(): number | null {
+    const idUsuario = localStorage.getItem('idUsuario');
+    return idUsuario ? Number(idUsuario) : null;
+  }
+
+  getPapel(): string | null {
+    return localStorage.getItem('papel');
+  }
+
+  estaLogado(): boolean {
+    return !!localStorage.getItem('usuarioLogado');
+  }
+
+  logout(): void {
+    localStorage.clear();
   }
 }

@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
+import { LoginService } from '../login/login.service';
 
 export type ProjetoStatus = 'planejamento' | 'em_andamento' | 'concluido' | 'cancelado';
 export type PrioridadeProjeto = 'Alta' | 'Média' | 'Baixa';
@@ -56,24 +57,33 @@ export interface Projeto {
   providedIn: 'root',
 })
 export class ProjetosService {
-  private readonly apiUrl = 'http://localhost:8020/api/projetos';
+  private readonly apiUrl = 'http://localhost:8080/api/projetos';
 
   usuariosDisponiveis: Pessoa[] = [];
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private loginService: LoginService,
+  ) {}
 
   listar(): Observable<Projeto[]> {
-    return this.http.get<Projeto[]>(this.apiUrl);
+    const empresaId = this.getEmpresaId();
+
+    return this.http.get<Projeto[]>(`${this.apiUrl}?empresaId=${empresaId}`);
   }
 
   buscarPorId(id: number): Observable<Projeto> {
-    return this.http.get<Projeto>(`${this.apiUrl}/${id}`);
+    const empresaId = this.getEmpresaId();
+
+    return this.http.get<Projeto>(`${this.apiUrl}/${id}?empresaId=${empresaId}`);
   }
 
   carregarUsuariosDisponiveis(): Observable<Pessoa[]> {
-    return this.http.get<Pessoa[]>(`${this.apiUrl}/usuarios-disponiveis`).pipe(
-      tap((usuarios) => (this.usuariosDisponiveis = usuarios)),
-    );
+    const empresaId = this.getEmpresaId();
+
+    return this.http
+      .get<Pessoa[]>(`${this.apiUrl}/usuarios-disponiveis?empresaId=${empresaId}`)
+      .pipe(tap((usuarios) => (this.usuariosDisponiveis = usuarios)));
   }
 
   criarProjeto(dados: {
@@ -83,7 +93,12 @@ export class ProjetosService {
     liderId: number;
     membrosIds: number[];
   }): Observable<Projeto> {
-    return this.http.post<Projeto>(this.apiUrl, dados);
+    const empresaId = this.getEmpresaId();
+
+    return this.http.post<Projeto>(this.apiUrl, {
+      ...dados,
+      empresaId,
+    });
   }
 
   atualizarStatus(id: number, status: ProjetoStatus): Observable<Projeto> {
@@ -143,5 +158,15 @@ export class ProjetosService {
     };
 
     return textos[status];
+  }
+
+  private getEmpresaId(): number {
+    const empresaId = this.loginService.getEmpresaId();
+
+    if (!empresaId) {
+      throw new Error('Empresa do usuário logado não encontrada.');
+    }
+
+    return empresaId;
   }
 }

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
+import { LoginService } from '../login/login.service';
 
 export type StatusUsuario = 'Ativo' | 'Inativo' | 'Pendente';
 
@@ -45,41 +46,41 @@ interface UsuarioBackend {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class UsuarioService {
   private readonly apiUsuarios = 'http://localhost:8080/api/usuarios';
   private readonly apiEmpresas = 'http://localhost:8080/api/empresas';
 
-  private readonly idEmpresa = 1;
-
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private loginService: LoginService,
+  ) {}
 
   listar(): Observable<Usuario[]> {
+    const idEmpresa = this.getEmpresaId();
+
     return this.http
-      .get<UsuarioBackend[]>(`${this.apiUsuarios}/empresa/${this.idEmpresa}`)
-      .pipe(
-        map((usuarios) => usuarios.map((usuario) => this.normalizarUsuario(usuario)))
-      );
+      .get<UsuarioBackend[]>(`${this.apiUsuarios}/empresa/${idEmpresa}`)
+      .pipe(map((usuarios) => usuarios.map((usuario) => this.normalizarUsuario(usuario))));
   }
 
   criar(usuario: Usuario): Observable<string> {
+    const idEmpresa = this.getEmpresaId();
+
     const body = {
       nome: usuario.nome,
       email: usuario.email,
       senha: usuario.senha,
       papel: this.converterFuncaoParaBackend(usuario.cargo),
 
-      // Deixa preparado para quando o back aceitar setor/departamento.
       idSetor: usuario.idSetor,
-      departamento: usuario.departamento
+      departamento: usuario.departamento,
     };
 
-    return this.http.post(
-      `${this.apiEmpresas}/${this.idEmpresa}/usuarios`,
-      body,
-      { responseType: 'text' }
-    );
+    return this.http.post(`${this.apiEmpresas}/${idEmpresa}/usuarios`, body, {
+      responseType: 'text',
+    });
   }
 
   editar(idUsuario: number, usuario: Usuario): Observable<Usuario> {
@@ -87,7 +88,7 @@ export class UsuarioService {
       nome: usuario.nome,
       email: usuario.email,
       senha: usuario.senha,
-      status: this.converterStatusParaBackend(usuario.status)
+      status: this.converterStatusParaBackend(usuario.status),
     };
 
     return this.http
@@ -97,6 +98,16 @@ export class UsuarioService {
 
   excluir(idUsuario: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUsuarios}/${idUsuario}`);
+  }
+
+  private getEmpresaId(): number {
+    const empresaId = this.loginService.getEmpresaId();
+
+    if (!empresaId) {
+      throw new Error('Empresa do usuário logado não encontrada.');
+    }
+
+    return empresaId;
   }
 
   private normalizarUsuario(usuario: UsuarioBackend): Usuario {
@@ -114,7 +125,7 @@ export class UsuarioService {
       status: this.converterStatusParaFront(usuario.status),
 
       xp: usuario.xp ?? 0,
-      nivel: usuario.nivel ?? 1
+      nivel: usuario.nivel ?? 1,
     };
   }
 

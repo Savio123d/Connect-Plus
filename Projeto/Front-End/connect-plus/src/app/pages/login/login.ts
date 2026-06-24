@@ -50,55 +50,41 @@ export class Login {
     }
 
     this.carregando = true;
+    this.cdr.detectChanges();
 
-    const dadosForm = this.loginForm.getRawValue();
+    const dadosLogin = this.loginForm.getRawValue();
 
-    const dadosLogin = {
-      email: dadosForm.email,
-      senha: dadosForm.senha,
-    };
+    this.loginService
+      .login(dadosLogin)
+      .pipe(
+        finalize(() => {
+          this.carregando = false;
+          this.cdr.detectChanges();
+        }),
+      )
+      .subscribe({
+        next: (resposta) => {
+          this.loginService.salvarLogin(resposta);
 
-    this.loginService.login(dadosLogin).subscribe({
-      next: (resposta) => {
-        this.carregando = false;
+          this.mensagemSucesso = 'Login realizado com sucesso!';
+          this.cdr.detectChanges();
 
-        if (!resposta.usuario) {
-          this.mensagemErro = 'Login realizado, mas não foi possível carregar os dados do usuário.';
-          return;
-        }
+          this.router.navigate(['/dashboard']);
+        },
 
-        localStorage.setItem('usuarioLogado', JSON.stringify(resposta.usuario));
+        error: (erro) => {
+          console.log('Erro no login:', erro);
 
-        if (resposta.usuario.idUsuario) {
-          localStorage.setItem('idUsuario', String(resposta.usuario.idUsuario));
-        }
+          if (erro.status === 401 || erro.status === 403) {
+            this.mensagemErro = 'E-mail ou senha incorretos.';
+          } else if (erro.status === 0) {
+            this.mensagemErro = 'Não foi possível conectar com o servidor.';
+          } else {
+            this.mensagemErro = 'Erro ao tentar fazer login. Tente novamente.';
+          }
 
-        if (resposta.usuario.idUsuarioEmpresa) {
-          localStorage.setItem('idUsuarioEmpresa', String(resposta.usuario.idUsuarioEmpresa));
-        }
-
-        if (resposta.usuario.idEmpresa) {
-          localStorage.setItem('idEmpresa', String(resposta.usuario.idEmpresa));
-        }
-
-        this.mensagemSucesso = resposta.mensagem || 'Login realizado com sucesso!';
-
-        this.router.navigate(['/dashboard']);
-      },
-
-      error: (erro) => {
-        this.carregando = false;
-
-        console.error('Erro no login:', erro);
-
-        if (erro.status === 401 || erro.status === 403) {
-          this.mensagemErro = 'E-mail ou senha incorretos.';
-        } else if (erro.status === 0) {
-          this.mensagemErro = 'Não foi possível conectar com o servidor.';
-        } else {
-          this.mensagemErro = 'Erro ao tentar fazer login. Tente novamente.';
-        }
-      },
-    });
+          this.cdr.detectChanges();
+        },
+      });
   }
 }

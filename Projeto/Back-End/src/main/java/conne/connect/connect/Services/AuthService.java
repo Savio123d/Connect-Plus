@@ -2,7 +2,9 @@ package conne.connect.connect.Services;
 
 import conne.connect.connect.Dto.LoginRequestDTO;
 import conne.connect.connect.Dto.LoginResponseDTO;
-import conne.connect.connect.Dto.UsuarioDTO;
+import conne.connect.connect.Enums.StatusEmpresa;
+import conne.connect.connect.Enums.StatusUsuario;
+import conne.connect.connect.Models.EmpresaModel;
 import conne.connect.connect.Models.UsuarioEmpresaModel;
 import conne.connect.connect.Models.UsuarioModel;
 import conne.connect.connect.Repositories.UsuarioEmpresaRepository;
@@ -30,6 +32,7 @@ public class AuthService {
     }
 
     public LoginResponseDTO login(LoginRequestDTO loginRequestDTO) {
+
         UsuarioModel usuario = usuarioRepository.findByEmail(loginRequestDTO.getEmail())
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.UNAUTHORIZED,
@@ -48,11 +51,33 @@ public class AuthService {
             );
         }
 
-        if (usuario.getStatus() == null ||
-                !usuario.getStatus().name().equalsIgnoreCase("ativo")) {
+        if (usuario.getStatus() != StatusUsuario.ativo) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
                     "Usuário inativo."
+            );
+        }
+
+        UsuarioEmpresaModel usuarioEmpresa = usuarioEmpresaRepository
+                .findFirstByIdUsuario_IdUsuarioAndAtivoTrueAndExcluidoIsNull(usuario.getIdUsuario())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.FORBIDDEN,
+                        "Usuário não possui vínculo ativo com uma empresa."
+                ));
+
+        EmpresaModel empresa = usuarioEmpresa.getIdEmpresa();
+
+        if (empresa == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Empresa vinculada não encontrada."
+            );
+        }
+
+        if (empresa.getStatus() != StatusEmpresa.ativa || empresa.getExcluido() != null) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Empresa vinculada não está ativa."
             );
         }
 
@@ -68,8 +93,13 @@ public class AuthService {
         UsuarioDTO usuarioDTO = UsuarioDTO.fromUsuarioEmpresa(usuarioEmpresa, null);
 
         return new LoginResponseDTO(
-                "Login realizado com sucesso.",
-                usuarioDTO
+                usuario.getIdUsuario(),
+                usuario.getNome(),
+                usuario.getEmail(),
+                empresa.getIdEmpresa(),
+                usuarioEmpresa.getIdUsuarioEmpresa(),
+                usuarioEmpresa.getPapel().name(),
+                usuario.getStatus().name()
         );
     }
 }

@@ -12,7 +12,7 @@ public interface UsuarioEmpresaRepository extends JpaRepository<UsuarioEmpresaMo
 
     Optional<UsuarioEmpresaModel> findByIdUsuario_IdUsuario(Long idUsuario);
 
-    Optional<UsuarioEmpresaModel> findFirstByIdUsuario_IdUsuarioAndAtivoTrueAndExcluidoIsNull(
-            Long idUsuario
-    );
+    Optional<UsuarioEmpresaModel> findFirstByIdUsuario_IdUsuarioAndAtivoTrueAndExcluidoIsNull(Long idUsuario);
+
+    List<UsuarioEmpresaModel> findByIdEmpresa_IdEmpresaAndAtivoTrueAndExcluidoIsNull(Long idEmpresa);
 }
