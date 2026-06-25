@@ -1,0 +1,60 @@
+<section class="suporte-page">
+  <div class="suporte-header">
+    <h1>Suporte Interno</h1>
+    <p>Entre em contato conosco através dos canais abaixo</p>
+  </div>
+
+  <div class="contato-grid">
+    <article class="contato-card">
+      <div class="icone-card email">
+        <mat-icon>mail</mat-icon>
+      </div>
+
+      <h2>Email</h2>
+      <a href="mailto:suporte@connectplus.com">suporte&#64;connectplus.com</a>
+
+      <div class="info-card">
+        <mat-icon>schedule</mat-icon>
+        <span>Respondemos em até 24 horas</span>
+      </div>
+    </article>
+
+    <article class="contato-card">
+      <div class="icone-card telefone">
+        <mat-icon>phone</mat-icon>
+      </div>
+
+      <h2>Telefone</h2>
+      <a href="tel:+5541999681917">(41) 99968 - 1917</a>
+
+      <div class="info-card">
+        <mat-icon>schedule</mat-icon>
+        <span>Seg-Sex: 9h às 18h</span>
+      </div>
+    </article>
+  </div>
+
+  <section class="faq-card">
+    <div class="faq-title">
+      <mat-icon>help_outline</mat-icon>
+      <h2>Perguntas Frequentes</h2>
+    </div>
+
+    <div class="faq-list">
+      <div
+        class="faq-item"
+        *ngFor="let pergunta of perguntas; let i = index"
+        [class.aberto]="perguntaAberta === i"
+      >
+        <button type="button" class="faq-question" (click)="alternarPergunta(i)">
+          <span>{{ pergunta.titulo }}</span>
+          <mat-icon class="chevron">keyboard_arrow_down</mat-icon>
+        </button>
+
+        <div class="faq-answer" *ngIf="perguntaAberta === i">
+          {{ pergunta.resposta }}
+        </div>
+      </div>
+    </div>
+  </section>
+</section>
