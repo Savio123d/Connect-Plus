@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { SobreNos } from './pages/sobre-nos/sobre-nos';
 
 export const routes: Routes = [
   {
@@ -58,6 +59,10 @@ export const routes: Routes = [
         path: 'loja',
         loadComponent: () => import('./pages/loja/loja').then((module) => module.Loja),
       },
+        {
+        path: 'sobre-nos',
+        loadComponent: () => import('./pages/sobre-nos/sobre-nos').then((module) => module.SobreNos)
+        }
     ],
   },
   {
