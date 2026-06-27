@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface Usuario {
   idUsuario?: number | null;
@@ -14,7 +15,7 @@ export interface Usuario {
   providedIn: 'root'
 })
 export class PrimeiroAcessoService {
-  private readonly apiUrl = 'http://localhost:8080/api/empresas/1/usuarios';
+  private readonly apiUrl = `${environment.apiBase}/api/empresas/1/usuarios`;
 
   constructor(private http: HttpClient) {}
 

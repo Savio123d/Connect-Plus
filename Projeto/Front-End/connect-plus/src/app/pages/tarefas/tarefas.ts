@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { catchError, of } from 'rxjs';
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 import { AuthSessionService } from '../../core/auth-session.service';
+import { environment } from '../../../environments/environment';
 
 type StatusTarefa =
   | 'pendente'
@@ -68,10 +69,10 @@ interface ResponsavelOption {
   styleUrl: './tarefas.css',
 })
 export class Tarefas implements OnInit {
-  private readonly apiTarefas = 'http://localhost:8080/api/tarefas';
-  private readonly apiProjetos = 'http://localhost:8080/api/projetos';
+  private readonly apiTarefas = `${environment.apiBase}/api/tarefas`;
+  private readonly apiProjetos = `${environment.apiBase}/api/projetos`;
 
-  private readonly apiUsuarios = 'http://localhost:8080/api/usuarios';
+  private readonly apiUsuarios = `${environment.apiBase}/api/usuarios`;
 
   telaAtual: 'kanban' | 'formulario' | 'detalhes' = 'kanban';
   modoFormulario: 'criar' | 'editar' = 'criar';

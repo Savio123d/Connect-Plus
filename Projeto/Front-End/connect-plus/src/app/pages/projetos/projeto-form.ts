@@ -4,6 +4,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Pessoa, ProjetosService } from './projetos.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-projeto-form',
@@ -86,7 +87,7 @@ export class ProjetoForm implements OnInit {
 
   private extrairMensagemErro(erro: HttpErrorResponse): string {
     if (erro.status === 0) {
-      return 'Nao foi possivel conectar ao backend em http://localhost:8080.';
+      return `Nao foi possivel conectar ao backend em ${environment.apiBase}.`;
     }
 
     if (typeof erro.error === 'object' && erro.error) {

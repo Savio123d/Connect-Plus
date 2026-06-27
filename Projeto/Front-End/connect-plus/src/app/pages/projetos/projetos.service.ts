@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { AuthSessionService } from '../../core/auth-session.service';
+import { environment } from '../../../environments/environment';
 
 export type ProjetoStatus = 'planejamento' | 'em_andamento' | 'concluido' | 'cancelado';
 export type PrioridadeProjeto = string;
@@ -57,7 +58,7 @@ export interface Projeto {
   providedIn: 'root',
 })
 export class ProjetosService {
-  private readonly apiUrl = 'http://localhost:8080/api/projetos';
+  private readonly apiUrl = `${environment.apiBase}/api/projetos`;
 
   usuariosDisponiveis: Pessoa[] = [];
 

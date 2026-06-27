@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ChatEvento, ConversaDetalhe, ConversaResumo, Mensagem, TipoConversa, UsuarioChat } from './chat.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ChatService {
-  private readonly apiUrl = 'http://localhost:8080/api';
-  private readonly wsUrl = 'ws://localhost:8080/ws/chat';
+  private readonly apiUrl = `${environment.apiBase}/api`;
+  private readonly wsUrl = `${environment.wsBase}/ws/chat`;
 
   constructor(private http: HttpClient) {}
 
