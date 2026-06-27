@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
 import { CadastroEmpresaCompleto, EmpresaService } from './service_empresa';
+import { environment } from '../../../environments/environment';
 
 export enum Status {
   Ativa = 'ativa',
@@ -115,7 +116,7 @@ export class CadastroEmpresa implements OnInit {
     }
 
     if (erro.status === 0) {
-      return 'Nao foi possivel conectar ao backend em http://localhost:8080.';
+      return `Nao foi possivel conectar ao backend em ${environment.apiBase}.`;
     }
 
     return 'Erro ao realizar cadastro. Tente novamente.';

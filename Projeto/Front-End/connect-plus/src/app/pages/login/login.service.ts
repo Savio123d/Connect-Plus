@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthSessionService, UsuarioSessao } from '../../core/auth-session.service';
+import { environment } from '../../../environments/environment';
 
 export interface LoginRequest {
   email: string;
@@ -50,7 +51,7 @@ export class LoginService {
   private http = inject(HttpClient);
   private authSessionService = inject(AuthSessionService);
 
-  private readonly apiUrl = 'http://localhost:8080/api/auth/login';
+  private readonly apiUrl = `${environment.apiBase}/api/auth/login`;
 
   login(dados: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(this.apiUrl, dados);

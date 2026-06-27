@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { LoginService } from '../login/login.service';
+import { environment } from '../../../environments/environment';
 
 export type StatusUsuario = 'Ativo' | 'Inativo' | 'Pendente';
 
@@ -49,8 +50,8 @@ interface UsuarioBackend {
   providedIn: 'root',
 })
 export class UsuarioService {
-  private readonly apiUsuarios = 'http://localhost:8080/api/usuarios';
-  private readonly apiEmpresas = 'http://localhost:8080/api/empresas';
+  private readonly apiUsuarios = `${environment.apiBase}/api/usuarios`;
+  private readonly apiEmpresas = `${environment.apiBase}/api/empresas`;
 
   constructor(
     private http: HttpClient,

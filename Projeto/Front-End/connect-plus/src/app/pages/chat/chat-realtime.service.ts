@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export type ChatStatusConexao = 'conectado' | 'conectando' | 'desconectado';
 
@@ -28,7 +29,7 @@ export class ChatRealtimeService {
     this.statusSubject.next('conectando');
 
     try {
-      this.socket = new WebSocket(`ws://localhost:8080/ws/chat?usuarioEmpresaId=${idUsuarioEmpresa}`);
+      this.socket = new WebSocket(`${environment.wsBase}/ws/chat?usuarioEmpresaId=${idUsuarioEmpresa}`);
 
       this.socket.onopen = () => this.statusSubject.next('conectado');
       this.socket.onclose = () => this.statusSubject.next('desconectado');
