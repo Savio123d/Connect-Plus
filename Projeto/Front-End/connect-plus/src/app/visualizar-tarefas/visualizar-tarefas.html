@@ -1,0 +1,327 @@
+<div class="pagina-kanban">
+  <div class="layout-kanban">
+    <aside class="sidebar">
+      <div>
+        <h1 class="logo">Connect+</h1>
+        <p class="logo-subtitulo">
+          Conectando pessoas, fotalecendo equipes.
+        </p>
+      </div>
+
+      <nav class="menu-lateral">
+        <button
+          *ngFor="let item of menuItems"
+          class="menu-item"
+          [class.ativo]="item === 'Quadro de tarefas'"
+        >
+          {{ item }}
+        </button>
+      </nav>
+
+      <div class="sidebar-rodape">
+        <div class="sidebar-linha"></div>
+      </div>
+    </aside>
+    <main class="conteudo">
+      <section class="topo-workspace">
+        <div class="topo-header">
+          <div>
+            <p class="topo-tag">Workspace</p>
+            <h2 class="topo-titulo">Quadro de tarefas</h2>
+            <p class="topo-texto">
+              Organize o fluxo da sprint, acompanhe o andamento das entregas e mova os cards entre as etapas do quadro.
+            </p>
+          </div>
+
+          <button (click)="abrirCriacao()" class="btn-nova-tarefa">
+            + Nova tarefa
+          </button>
+        </div>
+
+        <div class="resumo-cards">
+          <div class="resumo-card">
+            <p class="resumo-label">Tarefas hoje</p>
+            <h3 class="resumo-numero">{{ tarefasHoje }}</h3>
+            <p class="resumo-texto">Entre backlog, execução e concluídas</p>
+          </div>
+
+          <div class="resumo-card">
+            <p class="resumo-label">Em andamento</p>
+            <h3 class="resumo-numero">{{ fazendo.length }}</h3>
+            <p class="resumo-texto">Cards em desenvolvimento agora</p>
+          </div>
+
+          <div class="resumo-card">
+            <p class="resumo-label">Concluídas</p>
+            <h3 class="resumo-numero">{{ concluida.length }}</h3>
+            <p class="resumo-texto">Entrega finalizada nesta sprint</p>
+          </div>
+        </div>
+      </section>
+      <section class="kanban">
+        <div class="coluna">
+          <div class="coluna-topo">
+            <h3 class="coluna-titulo">Backlog</h3>
+            <span class="coluna-contador">{{ backlog.length }}</span>
+          </div>
+
+          <div
+            class="lista-cards"
+            cdkDropList
+            #backlogList="cdkDropList"
+            [cdkDropListData]="backlog"
+            [cdkDropListConnectedTo]="[aFazerList, fazendoList, concluidaList]"
+            (cdkDropListDropped)="drop($event)"
+          >
+            <article
+              *ngFor="let tarefa of backlog"
+              class="card-tarefa"
+              cdkDrag
+              (dblclick)="abrirEdicao(tarefa)"
+            >
+              <div class="card-topo">
+                <h4 class="card-titulo">{{ tarefa.titulo }}</h4>
+
+                <span
+                  class="badge-prioridade"
+                  [ngClass]="{
+                    'badge-alta': tarefa.prioridade === 'Alta',
+                    'badge-media': tarefa.prioridade === 'Média',
+                    'badge-baixa': tarefa.prioridade === 'Baixa'
+                  }"
+                >
+                  {{ tarefa.prioridade }}
+                </span>
+              </div>
+
+              <div class="card-info">
+                <p><strong>Responsável:</strong> {{ tarefa.responsavel }}</p>
+                <p><strong>Prazo:</strong> {{ tarefa.prazo }}</p>
+              </div>
+            </article>
+          </div>
+        </div>
+        <div class="coluna">
+          <div class="coluna-topo">
+            <h3 class="coluna-titulo">A começar</h3>
+            <span class="coluna-contador azul">{{ aFazer.length }}</span>
+          </div>
+
+          <div
+            class="lista-cards"
+            cdkDropList
+            #aFazerList="cdkDropList"
+            [cdkDropListData]="aFazer"
+            [cdkDropListConnectedTo]="[backlogList, fazendoList, concluidaList]"
+            (cdkDropListDropped)="drop($event)"
+          >
+            <article
+              *ngFor="let tarefa of aFazer"
+              class="card-tarefa"
+              cdkDrag
+              (dblclick)="abrirEdicao(tarefa)"
+            >
+              <div class="card-topo">
+                <h4 class="card-titulo">{{ tarefa.titulo }}</h4>
+
+                <span
+                  class="badge-prioridade"
+                  [ngClass]="{
+                    'badge-alta': tarefa.prioridade === 'Alta',
+                    'badge-media': tarefa.prioridade === 'Média',
+                    'badge-baixa': tarefa.prioridade === 'Baixa'
+                  }"
+                >
+                  {{ tarefa.prioridade }}
+                </span>
+              </div>
+
+              <div class="card-info">
+                <p><strong>Responsável:</strong> {{ tarefa.responsavel }}</p>
+                <p><strong>Prazo:</strong> {{ tarefa.prazo }}</p>
+              </div>
+            </article>
+          </div>
+        </div>
+        <div class="coluna">
+          <div class="coluna-topo">
+            <h3 class="coluna-titulo">Em execução</h3>
+            <span class="coluna-contador roxo">{{ fazendo.length }}</span>
+          </div>
+
+          <div
+            class="lista-cards"
+            cdkDropList
+            #fazendoList="cdkDropList"
+            [cdkDropListData]="fazendo"
+            [cdkDropListConnectedTo]="[backlogList, aFazerList, concluidaList]"
+            (cdkDropListDropped)="drop($event)"
+          >
+            <article
+              *ngFor="let tarefa of fazendo"
+              class="card-tarefa"
+              cdkDrag
+              (dblclick)="abrirEdicao(tarefa)"
+            >
+              <div class="card-topo">
+                <h4 class="card-titulo">{{ tarefa.titulo }}</h4>
+
+                <span
+                  class="badge-prioridade"
+                  [ngClass]="{
+                    'badge-alta': tarefa.prioridade === 'Alta',
+                    'badge-media': tarefa.prioridade === 'Média',
+                    'badge-baixa': tarefa.prioridade === 'Baixa'
+                  }"
+                >
+                  {{ tarefa.prioridade }}
+                </span>
+              </div>
+
+              <div class="card-info">
+                <p><strong>Responsável:</strong> {{ tarefa.responsavel }}</p>
+                <p><strong>Prazo:</strong> {{ tarefa.prazo }}</p>
+              </div>
+            </article>
+          </div>
+        </div>
+        <div class="coluna">
+          <div class="coluna-topo">
+            <h3 class="coluna-titulo">Concluída</h3>
+            <span class="coluna-contador verde">{{ concluida.length }}</span>
+          </div>
+
+          <div
+            class="lista-cards"
+            cdkDropList
+            #concluidaList="cdkDropList"
+            [cdkDropListData]="concluida"
+            [cdkDropListConnectedTo]="[backlogList, aFazerList, fazendoList]"
+            (cdkDropListDropped)="drop($event)"
+          >
+            <article
+              *ngFor="let tarefa of concluida"
+              class="card-tarefa"
+              cdkDrag
+              (dblclick)="abrirEdicao(tarefa)"
+            >
+              <div class="card-topo">
+                <h4 class="card-titulo">{{ tarefa.titulo }}</h4>
+
+                <span
+                  class="badge-prioridade"
+                  [ngClass]="{
+                    'badge-alta': tarefa.prioridade === 'Alta',
+                    'badge-media': tarefa.prioridade === 'Média',
+                    'badge-baixa': tarefa.prioridade === 'Baixa'
+                  }"
+                >
+                  {{ tarefa.prioridade }}
+                </span>
+              </div>
+
+              <div class="card-info">
+                <p><strong>Responsável:</strong> {{ tarefa.responsavel }}</p>
+                <p><strong>Prazo:</strong> {{ tarefa.prazo }}</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <div
+    *ngIf="modalAberto"
+    (click)="fecharModal()"
+    class="overlay-modal"
+  >
+    <div
+      (click)="$event.stopPropagation()"
+      class="modal-tarefa"
+    >
+      <div class="modal-topo">
+        <div>
+          <p class="modal-tag">
+            {{ modoModal === 'criar' ? 'Nova tarefa' : 'Editar tarefa' }}
+          </p>
+          <h2 class="modal-titulo">
+            {{ modoModal === 'criar' ? 'Criar atividade' : 'Editar atividade' }}
+          </h2>
+        </div>
+
+        <button (click)="fecharModal()" class="btn-fechar">
+          Fechar
+        </button>
+      </div>
+
+      <form class="form-grid" (ngSubmit)="salvarTarefa()">
+        <div class="form-grupo full">
+          <label for="titulo">Título</label>
+          <input
+            id="titulo"
+            name="titulo"
+            type="text"
+            [(ngModel)]="formTarefa.titulo"
+            placeholder="Digite o título da tarefa"
+          />
+        </div>
+
+        <div class="form-grupo full">
+          <label for="descricao">Descrição</label>
+          <textarea
+            id="descricao"
+            name="descricao"
+            rows="4"
+            [(ngModel)]="formTarefa.descricao"
+            placeholder="Descreva a atividade"
+          ></textarea>
+        </div>
+
+        <div class="form-grupo">
+          <label for="responsavel">Responsável</label>
+          <input
+            id="responsavel"
+            name="responsavel"
+            type="text"
+            [(ngModel)]="formTarefa.responsavel"
+            placeholder="Nome do responsável"
+          />
+        </div>
+
+        <div class="form-grupo">
+          <label for="prazo">Prazo</label>
+          <input
+            id="prazo"
+            name="prazo"
+            type="text"
+            [(ngModel)]="formTarefa.prazo"
+            placeholder="dd/mm/aaaa"
+          />
+        </div>
+
+        <div class="form-grupo full">
+          <label for="prioridade">Prioridade</label>
+          <select
+            id="prioridade"
+            name="prioridade"
+            [(ngModel)]="formTarefa.prioridade"
+          >
+            <option value="Baixa">Baixa</option>
+            <option value="Média">Média</option>
+            <option value="Alta">Alta</option>
+          </select>
+        </div>
+
+        <div class="form-acoes">
+          <button type="button" (click)="fecharModal()" class="btn-secundario">
+            Cancelar
+          </button>
+
+          <button type="submit" class="btn-primario">
+            {{ modoModal === 'criar' ? 'Criar tarefa' : 'Salvar alterações' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
