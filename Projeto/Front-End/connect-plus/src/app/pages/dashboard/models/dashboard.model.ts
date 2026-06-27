@@ -1,6 +1,7 @@
 export interface DesempenhoEquipe {
   mes: number;
   total: number;
+  excluido?: string | boolean | null;
 }
 
 export interface DashboardResumo {

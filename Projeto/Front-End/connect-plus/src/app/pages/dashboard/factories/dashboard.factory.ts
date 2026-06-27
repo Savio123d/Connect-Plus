@@ -1,11 +1,11 @@
 import { AreaChartBuilder, AreaChartOptions } from '../builders/area-chart.builder';
 import { BarChartBuilder, BarChartOptions } from '../builders/bar-chart.builder';
-import { DashboardCard, DashboardResumo } from '../models/dashboard.model';
+import { DashboardCard, DashboardResumo, DesempenhoEquipe } from '../models/dashboard.model';
 
 export interface DashboardViewModel {
   cards: DashboardCard[];
-  areaChartOptions: AreaChartOptions;
-  barChartOptions: BarChartOptions;
+  areaChartOptions?: AreaChartOptions;
+  barChartOptions?: BarChartOptions;
 }
 
 export class DashboardFactory {
@@ -25,10 +25,12 @@ export class DashboardFactory {
   ];
 
   static criarDashboard(resumo: DashboardResumo): DashboardViewModel {
+    const ocultarGraficos = this.temItemExcluidoNoHistorico(resumo);
+
     return {
       cards: this.criarCards(resumo),
-      areaChartOptions: this.criarGraficoDesempenho(resumo),
-      barChartOptions: this.criarGraficoStatusTarefas(resumo),
+      areaChartOptions: ocultarGraficos ? undefined : this.criarGraficoDesempenho(resumo),
+      barChartOptions: ocultarGraficos ? undefined : this.criarGraficoStatusTarefas(resumo),
     };
   }
 
@@ -61,9 +63,9 @@ export class DashboardFactory {
     ];
   }
 
-  static criarGraficoDesempenho(resumo: DashboardResumo): AreaChartOptions {
-    const desempenhoPorMes = Array<number>(12).fill(0);
+  static criarGraficoDesempenho(resumo: DashboardResumo): AreaChartOptions | undefined {
     const historico = resumo.desempenhoEquipe ?? resumo.tarefasConcluidasPorMes ?? [];
+    const desempenhoPorMes = Array<number>(12).fill(0);
 
     historico.forEach((item) => {
       const indiceMes = item.mes - 1;
@@ -89,5 +91,19 @@ export class DashboardFactory {
         resumo.tarefasAtrasadas ?? 0,
       ])
       .build();
+  }
+
+  private static foiMarcadoComoExcluido(item: DesempenhoEquipe): boolean {
+    if (typeof item.excluido === 'boolean') {
+      return item.excluido;
+    }
+
+    return item.excluido !== null && item.excluido !== undefined && String(item.excluido).trim() !== '';
+  }
+
+  private static temItemExcluidoNoHistorico(resumo: DashboardResumo): boolean {
+    const historico = resumo.desempenhoEquipe ?? resumo.tarefasConcluidasPorMes ?? [];
+
+    return historico.some((item) => this.foiMarcadoComoExcluido(item));
   }
 }
