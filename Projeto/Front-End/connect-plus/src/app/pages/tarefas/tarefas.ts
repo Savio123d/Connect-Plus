@@ -4,8 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { catchError, of } from 'rxjs';
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
-
-import { Sidebar } from '../../components/sidebar/sidebar';
+import { AuthSessionService } from '../../core/auth-session.service';
 
 type StatusTarefa =
   | 'pendente'
@@ -64,7 +63,7 @@ interface ResponsavelOption {
 @Component({
   selector: 'app-tarefas',
   standalone: true,
-  imports: [CommonModule, FormsModule, DragDropModule, Sidebar],
+  imports: [CommonModule, FormsModule, DragDropModule],
   templateUrl: './tarefas.html',
   styleUrl: './tarefas.css',
 })
@@ -72,7 +71,6 @@ export class Tarefas implements OnInit {
   private readonly apiTarefas = 'http://localhost:8080/api/tarefas';
   private readonly apiProjetos = 'http://localhost:8080/api/projetos';
 
-  private readonly apiResponsaveis = 'http://localhost:8080/api/usuario-empresa';
   private readonly apiUsuarios = 'http://localhost:8080/api/usuarios';
 
   telaAtual: 'kanban' | 'formulario' | 'detalhes' = 'kanban';
@@ -82,16 +80,17 @@ export class Tarefas implements OnInit {
   salvando = false;
   mensagemErro = '';
 
-  empresaPadraoId = 1;
 
-  projetoPadrao: ProjetoOption = {
-    id: 1,
-    nome: 'Projeto padrão Connect+',
-    idEmpresa: 1,
-  };
 
   tarefas: TarefaResponseDTO[] = [];
   tarefaSelecionada: TarefaResponseDTO | null = null;
+
+  private empresaPadraoId = 0;
+  private projetoPadrao: ProjetoOption = {
+    id: 0,
+    nome: 'Selecione um projeto',
+    idEmpresa: 0,
+  };
 
   projetos: ProjetoOption[] = [this.projetoPadrao];
   responsaveis: ResponsavelOption[] = [];
@@ -209,9 +208,22 @@ export class Tarefas implements OnInit {
     },
   ];
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private authSessionService: AuthSessionService,
+  ) {}
 
   ngOnInit(): void {
+    const empresaId = this.authSessionService.obterIdEmpresa();
+
+    if (!empresaId) {
+      this.mensagemErro = 'Não foi possível identificar a empresa do usuário logado. Faça login novamente.';
+      return;
+    }
+
+    this.empresaPadraoId = empresaId;
+    this.projetoPadrao.idEmpresa = empresaId;
+
     this.carregarDadosIniciais();
   }
 
@@ -225,7 +237,7 @@ export class Tarefas implements OnInit {
     this.carregando = true;
     this.mensagemErro = '';
 
-    this.http.get<TarefaResponseDTO[]>(this.apiTarefas).subscribe({
+    this.http.get<TarefaResponseDTO[]>(`${this.apiTarefas}/empresa/${this.empresaPadraoId}`).subscribe({
       next: (tarefas) => {
         this.tarefas = tarefas;
         this.carregando = false;
@@ -240,7 +252,7 @@ export class Tarefas implements OnInit {
 
   carregarProjetos(): void {
     this.http
-      .get<any[]>(this.apiProjetos)
+      .get<any[]>(`${this.apiProjetos}?empresaId=${this.empresaPadraoId}`)
       .pipe(catchError(() => of([])))
       .subscribe((projetos) => {
         const projetosMapeados: ProjetoOption[] = projetos
@@ -288,11 +300,8 @@ export class Tarefas implements OnInit {
   }
   carregarResponsaveis(): void {
     this.http
-      .get<any[]>(this.apiResponsaveis)
-      .pipe(
-        catchError(() => this.http.get<any[]>(this.apiUsuarios)),
-        catchError(() => of([])),
-      )
+      .get<any[]>(`${this.apiUsuarios}/empresa/${this.empresaPadraoId}`)
+      .pipe(catchError(() => of([])))
       .subscribe((responsaveis) => {
         this.responsaveis = responsaveis
           .map((responsavel) => {
@@ -300,8 +309,6 @@ export class Tarefas implements OnInit {
               responsavel.idUsuarioEmpresa ??
               responsavel.idResponsavelUsuarioEmpresa ??
               responsavel.usuarioEmpresa?.idUsuarioEmpresa ??
-              responsavel.idUsuario ??
-              responsavel.usuario?.idUsuario ??
               responsavel.id;
 
             const nome =
@@ -310,36 +317,7 @@ export class Tarefas implements OnInit {
               responsavel.usuario?.nome ??
               `Responsável #${id}`;
 
-            const idProjetoUnico =
-              responsavel.idProjeto ??
-              responsavel.projetoId ??
-              responsavel.projeto?.idProjeto ??
-              responsavel.projeto?.id;
-
-            const projetosArray =
-              responsavel.idProjetos ??
-              responsavel.projetosIds ??
-              responsavel.projetos ??
-              responsavel.projetosVinculados ??
-              [];
-
-            const idsProjetosArray = Array.isArray(projetosArray)
-              ? projetosArray
-                  .map((projeto: any) =>
-                    typeof projeto === 'number' ? projeto : (projeto.idProjeto ?? projeto.id),
-                  )
-                  .filter((idProjeto: any) => idProjeto !== undefined && idProjeto !== null)
-              : [];
-
-            const idProjetos = Array.from(
-              new Set(
-                [idProjetoUnico, ...idsProjetosArray].filter(
-                  (idProjeto) => idProjeto !== undefined && idProjeto !== null,
-                ),
-              ),
-            ) as number[];
-
-            return { id, nome, idProjetos };
+            return { id, nome, idProjetos: [] };
           })
           .filter((responsavel) => responsavel.id !== undefined && responsavel.id !== null);
       });
@@ -347,6 +325,14 @@ export class Tarefas implements OnInit {
 
   get responsaveisDoProjetoSelecionado(): ResponsavelOption[] {
     if (!this.filtroProjetoId) {
+      return this.responsaveis;
+    }
+
+    const responsaveisComVinculoProjeto = this.responsaveis.filter((responsavel) =>
+      responsavel.idProjetos?.includes(this.filtroProjetoId as number),
+    );
+
+    if (responsaveisComVinculoProjeto.length === 0) {
       return this.responsaveis;
     }
 

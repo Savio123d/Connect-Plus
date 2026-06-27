@@ -3,6 +3,7 @@ import { ChangeDetectorRef, OnDestroy, Component, OnInit, inject } from '@angula
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { AuthSessionService } from '../../core/auth-session.service';
 
 interface MenuItem {
   label: string;
@@ -48,6 +49,7 @@ export class Sidebar implements OnInit, OnDestroy {
   private router = inject(Router);
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
+  private authSessionService = inject(AuthSessionService);
 
   usuarioLogado: UsuarioLogado | null = null;
 
@@ -217,6 +219,8 @@ export class Sidebar implements OnInit, OnDestroy {
   }
 
   sair(): void {
+    this.authSessionService.limparSessao();
+
     localStorage.removeItem('usuarioLogado');
     localStorage.removeItem('idUsuario');
     localStorage.removeItem('idUsuarioEmpresa');

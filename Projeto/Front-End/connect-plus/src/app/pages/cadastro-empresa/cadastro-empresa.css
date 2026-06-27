@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
 :root {
   --background: #f7f8fc;
   --card: #ffffff;
@@ -85,6 +83,21 @@ body {
   margin: 0 auto;
   display: grid;
   gap: 24px;
+}
+
+.feedback {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.feedback-error {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
 }
 
 .cadastro-card {
@@ -228,6 +241,12 @@ body {
 
 .btn:hover {
   transform: translateY(-1px);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+  transform: none;
 }
 
 .btn-secondary-custom {

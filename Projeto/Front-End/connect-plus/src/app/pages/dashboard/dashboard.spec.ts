@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
 
 import { Menu } from './dashboard';
+import { DashboardService } from './dashboard.service';
 
 describe('Menu', () => {
   let component: Menu;
@@ -8,7 +10,15 @@ describe('Menu', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Menu]
+      imports: [Menu],
+      providers: [
+        {
+          provide: DashboardService,
+          useValue: {
+            buscarResumo: () => of({}),
+          },
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(Menu);

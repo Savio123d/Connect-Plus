@@ -1,110 +1,94 @@
-<div class="pagina-projetos">
-  <app-sidebar></app-sidebar>
+<div class="projetos-page">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <h1 class="h4 fw-bold mb-1">Projetos</h1>
+      <p class="text-secondary mb-0">Gerencie todos os projetos da empresa</p>
+    </div>
 
-  <main class="conteudo-projetos">
-    <header class="topbar">
-      <div class="campo-busca">
-        <span class="icone-busca">⌕</span>
+    <div class="d-flex gap-2 flex-grow-1 justify-content-end" style="max-width: 520px">
+      <div class="input-group">
+        <span class="input-group-text bg-white border-end-0">
+          <i class="material-icons fs-6 text-secondary">search</i>
+        </span>
         <input
           type="text"
-          placeholder="Buscar projetos, tarefas, pessoas..."
+          class="form-control border-start-0"
+          placeholder="Buscar projeto..."
           [(ngModel)]="termoBusca"
         />
       </div>
-
-      <div class="acoes-topbar">
-        <button class="botao-notificacao" type="button">⌁</button>
-        <div class="avatar-usuario">JD</div>
-      </div>
-    </header>
-
-    <section class="cabecalho-pagina">
-      <div>
-        <h1>Projetos</h1>
-        <p>Gerencie todos os projetos da empresa</p>
-      </div>
-
-      <button class="botao-novo" type="button" (click)="novoProjeto()">
-        <span>+</span>
-        Novo Projeto
+      <button class="btn btn-purple text-nowrap" type="button" (click)="novoProjeto()">
+        <i class="material-icons align-middle fs-6">add</i> Novo Projeto
       </button>
-    </section>
+    </div>
+  </div>
 
-    <section class="grid-projetos">
-      <article
-        class="card-projeto"
-        *ngFor="let projeto of projetosFiltrados"
-        (click)="abrirProjeto(projeto.id)"
-      >
-        <div class="topo-card">
-          <div class="icone-projeto">▣</div>
-
-          <div class="info-principal">
-            <h2>{{ projeto.nome }}</h2>
-            <p>{{ projeto.descricao }}</p>
-          </div>
-        </div>
-
-        <div class="linha-status">
-          <div>
-            <span class="badge" [ngClass]="statusClasse(projeto)">
-              {{ statusTexto(projeto) }}
-            </span>
-
-            <span class="badge atrasado" *ngIf="projeto.atrasado">
-              ⚠ Atrasado
-            </span>
-          </div>
-
-          <div class="prazo" [class.prazo-atrasado]="projeto.atrasado">
-            <span>□</span>
-            {{ dataFormatada(projeto.prazo) }}
-          </div>
-        </div>
-
-        <div class="progresso-info">
-          <span>Progresso</span>
-          <strong>{{ projeto.progresso }}%</strong>
-        </div>
-
-        <div class="barra-progresso">
-          <div class="barra-preenchida" [style.width.%]="projeto.progresso"></div>
-        </div>
-
-        <div class="rodape-card">
-          <div class="membros">
-            <span>♙</span>
-            {{ projeto.membros.length }} membros
-          </div>
-
-          <div class="lider">
-            <div class="avatar-pequeno">{{ projeto.lider.iniciais }}</div>
-            <div>
-              <span>Líder</span>
-              <strong>{{ projeto.lider.nome }}</strong>
+  <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
+    <div class="col" *ngFor="let projeto of projetosFiltrados">
+      <div class="card border-0 shadow-sm h-100 card-projeto" (click)="abrirProjeto(projeto.id)">
+        <div class="card-body d-flex flex-column">
+          <div class="d-flex gap-3 mb-3">
+            <div class="icone-projeto"><i class="material-icons">folder</i></div>
+            <div class="min-w-0">
+              <h2 class="h6 fw-bold mb-1">{{ projeto.nome }}</h2>
+              <p class="text-secondary small mb-0">{{ projeto.descricao }}</p>
             </div>
           </div>
-        </div>
 
-        <div class="acoes-card">
-          <button
-            class="botao-concluir"
-            type="button"
-            (click)="concluirProjeto($event, projeto.id)"
-            [disabled]="projeto.status === 'concluido'"
-          >
-            ⊙ {{ projeto.status === 'concluido' ? 'Finalizado' : 'Concluir' }}
-          </button>
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <span class="badge chip" [ngClass]="statusClasse(projeto)">{{ statusTexto(projeto) }}</span>
+            <span class="badge chip cancelado" *ngIf="projeto.atrasado">
+              <i class="material-icons fs-6 align-middle">warning</i> Atrasado
+            </span>
+          </div>
 
-          <button
-            class="botao-excluir"
-            type="button"
-            (click)="excluirProjeto($event, projeto.id)"
-          >
-            🗑
-          </button>
+          <div class="d-flex align-items-center gap-1 text-secondary small mb-3"
+            [class.text-danger]="projeto.atrasado">
+            <i class="material-icons fs-6">event</i> {{ dataFormatada(projeto.prazo) }}
+          </div>
+
+          <div class="d-flex justify-content-between small mb-1">
+            <span class="text-secondary">Progresso</span>
+            <strong>{{ projeto.progresso }}%</strong>
+          </div>
+          <div class="progress mb-3" style="height: 6px">
+            <div class="progress-bar bg-purple" [style.width.%]="projeto.progresso"></div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center pt-3 border-top mt-auto">
+            <div class="d-flex align-items-center gap-1 text-secondary small">
+              <i class="material-icons fs-6">group</i> {{ projeto.membros.length }} membros
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <div class="avatar-pequeno">{{ projeto.lider.iniciais }}</div>
+              <div class="lh-1">
+                <span class="d-block text-secondary" style="font-size: 0.7rem">Líder</span>
+                <strong class="small">{{ projeto.lider.nome }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 mt-3">
+            <button
+              class="btn btn-sm btn-success flex-grow-1"
+              type="button"
+              (click)="concluirProjeto($event, projeto.id)"
+              [disabled]="projeto.status === 'concluido'"
+            >
+              <i class="material-icons align-middle fs-6">check_circle</i>
+              {{ projeto.status === 'concluido' ? 'Finalizado' : 'Concluir' }}
+            </button>
+            <button class="btn btn-sm btn-outline-danger" type="button" (click)="excluirProjeto($event, projeto.id)">
+              <i class="material-icons align-middle fs-6">delete</i>
+            </button>
+          </div>
         </div>
-      </article>
-    </section>
-  </main>
+      </div>
+    </div>
+  </div>
+
+  <div class="text-center text-secondary py-5" *ngIf="projetosFiltrados.length === 0">
+    <i class="material-icons fs-1 d-block mb-2 opacity-50">folder_off</i>
+    Nenhum projeto encontrado.
+  </div>
 </div>

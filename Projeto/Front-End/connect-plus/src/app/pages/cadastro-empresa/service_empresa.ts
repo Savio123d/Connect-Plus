@@ -16,7 +16,7 @@ export interface CadastroEmpresaCompleto {
   providedIn: 'root',
 })
 export class EmpresaService {
-  private apiUrl = '/api/empresas';
+  private readonly apiUrl = 'http://localhost:8080/api/empresas';
 
   constructor(private http: HttpClient) {}
 

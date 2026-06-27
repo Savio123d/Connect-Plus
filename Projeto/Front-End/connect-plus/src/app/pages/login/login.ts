@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
 import { LoginService } from './login.service';
 
 @Component({
@@ -15,6 +16,7 @@ export class Login {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private loginService = inject(LoginService);
+  private cdr = inject(ChangeDetectorRef);
 
   titulo = 'Connect+';
   mostrarSenha = false;
