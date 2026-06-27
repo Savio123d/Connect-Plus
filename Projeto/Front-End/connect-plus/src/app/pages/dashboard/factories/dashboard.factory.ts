@@ -9,7 +9,7 @@ export interface DashboardViewModel {
 }
 
 export class DashboardFactory {
-  private static  meses = [
+  private static meses = [
     'Jan',
     'Fev',
     'Mar',
@@ -35,7 +35,7 @@ export class DashboardFactory {
   static criarCards(resumo: DashboardResumo): DashboardCard[] {
     return [
       {
-        titulo: 'Usuários Ativos',
+        titulo: 'Usuarios Ativos',
         valor: resumo.usuariosAtivos ?? 0,
         icone: 'people',
         iconeClasse: 'icone-usuarios',
@@ -47,7 +47,7 @@ export class DashboardFactory {
         iconeClasse: 'icone-projetos',
       },
       {
-        titulo: 'Tarefas Concluídas',
+        titulo: 'Tarefas Concluidas',
         valor: resumo.tarefasConcluidas ?? 0,
         icone: 'check_circle',
         iconeClasse: 'icone-tarefas',
@@ -75,13 +75,13 @@ export class DashboardFactory {
 
     return new AreaChartBuilder()
       .withCategories(this.meses)
-      .withSeries('Tarefas concluídas', desempenhoPorMes)
+      .withSeries('Tarefas concluidas', desempenhoPorMes)
       .build();
   }
 
   static criarGraficoStatusTarefas(resumo: DashboardResumo): BarChartOptions {
     return new BarChartBuilder()
-      .withCategories(['Concluídas', 'Em Andamento', 'Pendentes', 'Atrasadas'])
+      .withCategories(['Concluidas', 'Em Andamento', 'Pendentes', 'Atrasadas'])
       .withSeries('Tarefas', [
         resumo.tarefasConcluidas ?? 0,
         resumo.tarefasEmAndamento ?? 0,

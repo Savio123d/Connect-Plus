@@ -1,32 +1,19 @@
-<app-sidebar></app-sidebar>
-
-<section class="area-dashboard">
-  <header class="barra-topo">
-    <div class="campo-pesquisa">
-      <mat-icon>search</mat-icon>
-      <input type="text" placeholder="Pesquisar..." />
-    </div>
-
-    <div class="acoes-topo">
-      <button class="btn-notificacao" type="button">
-        <mat-icon>notifications</mat-icon>
-        <span class="notificacao-dot"></span>
-      </button>
-
-      <div class="avatar-topo">
-        GP
-      </div>
-    </div>
-  </header>
-
-  <main class="conteudo-dashboard">
+<main class="conteudo-dashboard">
     <div class="cabecalho-dashboard">
       <h1>Dashboard</h1>
-      <p>Visão geral da sua empresa</p>
+      <p>Visao geral da sua empresa</p>
     </div>
 
-    <ng-container *ngIf="carregando; else dashboardContent">
+    <ng-container *ngIf="carregando">
       <p>Carregando dashboard...</p>
+    </ng-container>
+
+    <div class="alert alert-danger" *ngIf="!carregando && mensagemErro">
+      {{ mensagemErro }}
+    </div>
+
+    <ng-container *ngIf="!carregando && !mensagemErro">
+      <ng-container *ngTemplateOutlet="dashboardContent"></ng-container>
     </ng-container>
 
     <ng-template #dashboardContent>
@@ -79,5 +66,4 @@
         </div>
       </section>
     </ng-template>
-  </main>
-</section>
+</main>

@@ -1,17 +1,22 @@
-import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
+import { LoginService } from './login.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './login.html',
-  styleUrl: './login.css'
+  styleUrl: './login.css',
 })
 export class Login {
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private loginService = inject(LoginService);
+  private cdr = inject(ChangeDetectorRef);
 
   titulo = 'Connect+';
   mostrarSenha = false;
@@ -22,7 +27,7 @@ export class Login {
   loginForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     senha: ['', [Validators.required, Validators.minLength(6)]],
-    lembrarMe: [false]
+    lembrarMe: [false],
   });
 
   get email() {
@@ -47,11 +52,41 @@ export class Login {
     }
 
     this.carregando = true;
+    this.cdr.detectChanges();
 
     const dadosLogin = this.loginForm.getRawValue();
 
+    this.loginService
+      .login(dadosLogin)
+      .pipe(
+        finalize(() => {
+          this.carregando = false;
+          this.cdr.detectChanges();
+        }),
+      )
+      .subscribe({
+        next: (resposta) => {
+          this.loginService.salvarLogin(resposta);
 
-      this.router.navigate(['/dashboard']);
-   
+          this.mensagemSucesso = 'Login realizado com sucesso!';
+          this.cdr.detectChanges();
+
+          this.router.navigate(['/dashboard']);
+        },
+
+        error: (erro) => {
+          console.log('Erro no login:', erro);
+
+          if (erro.status === 401 || erro.status === 403) {
+            this.mensagemErro = 'E-mail ou senha incorretos.';
+          } else if (erro.status === 0) {
+            this.mensagemErro = 'Não foi possível conectar com o servidor.';
+          } else {
+            this.mensagemErro = 'Erro ao tentar fazer login. Tente novamente.';
+          }
+
+          this.cdr.detectChanges();
+        },
+      });
   }
 }

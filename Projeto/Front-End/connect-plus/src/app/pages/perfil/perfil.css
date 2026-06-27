@@ -1,0 +1,278 @@
+* {
+  box-sizing: border-box;
+}
+
+.perfil-main {
+  min-width: 0;
+}
+
+.page-header {
+  padding: 38px 0 24px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.page-header p {
+  margin: 8px 0 0;
+  color: #6b7280;
+  font-size: 15px;
+}
+
+.profile-card,
+.section-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+}
+
+.profile-card {
+  padding: 34px;
+  display: flex;
+  gap: 34px;
+}
+
+.profile-left {
+  width: 130px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.avatar-profile {
+  width: 112px;
+  height: 112px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #60a5fa, #8b5cf6);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-size: 36px;
+  font-weight: 500;
+  box-shadow: 0 0 0 4px #e5e7eb;
+}
+
+.level-pill {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #f97316;
+  color: white;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.profile-content {
+  flex: 1;
+}
+
+.profile-info h2 {
+  margin: 4px 0 6px;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.profile-info p {
+  margin: 0 0 24px;
+  color: #6b7280;
+  font-size: 15px;
+}
+
+.info-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  margin-bottom: 24px;
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.info-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+}
+
+.info-icon.blue {
+  background: #eef4ff;
+  color: #2563eb;
+}
+
+.info-icon.purple {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+
+.info-item span {
+  display: block;
+  color: #6b7280;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.info-item strong {
+  color: #111827;
+  font-size: 14px;
+}
+
+.xp-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.xp-header span {
+  font-weight: 700;
+}
+
+.progress-bar {
+  height: 9px;
+  width: 100%;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #070816;
+  border-radius: 999px;
+}
+
+.xp-area p {
+  margin: 8px 0 0;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.section-card {
+  margin-top: 30px;
+  padding: 26px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 26px;
+}
+
+.section-title h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+
+.achievement-card {
+  height: 110px;
+  border-radius: 12px;
+  background: #f4f5fb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: #111827;
+  gap: 10px;
+}
+
+.achievement-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: white;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.achievement-card strong {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.conquista-verde {
+  background: linear-gradient(135deg, #22c55e, #4ade80);
+}
+
+.conquista-laranja {
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+}
+
+.conquista-azul {
+  background: linear-gradient(135deg, #2563eb, #60a5fa);
+}
+
+.conquista-roxo {
+  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.history-item {
+  min-height: 66px;
+  border-radius: 10px;
+  background: #f4f5fb;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.history-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.history-number {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: white;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+}
+
+.history-item h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.history-item p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.history-item > strong {
+  color: #5b21b6;
+  font-size: 14px;
+  font-weight: 900;
+}

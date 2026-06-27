@@ -1,0 +1,113 @@
+<div class="projeto-form-page">
+  <div class="mb-4">
+    <h1 class="h4 fw-bold mb-1">Criar Novo Projeto</h1>
+    <p class="text-secondary mb-0">Preencha as informacoes do projeto</p>
+  </div>
+
+  <form (ngSubmit)="criarProjeto()" class="mx-auto" style="max-width: 760px">
+    <div class="alert alert-danger" *ngIf="mensagemErro">
+      {{ mensagemErro }}
+    </div>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <h2 class="h6 fw-bold mb-4">
+          <i class="material-icons align-middle text-purple me-1">work</i>
+          Informacoes do Projeto
+        </h2>
+
+        <div class="mb-3">
+          <label class="form-label">Nome do Projeto</label>
+          <input
+            type="text"
+            class="form-control"
+            name="nome"
+            placeholder="Ex: Sistema de Vendas Online"
+            [(ngModel)]="nome"
+          />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Descricao</label>
+          <textarea
+            class="form-control"
+            rows="3"
+            name="descricao"
+            placeholder="Descreva os objetivos e escopo do projeto..."
+            [(ngModel)]="descricao"
+          ></textarea>
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label class="form-label">Lider do Projeto</label>
+            <select
+              class="form-select"
+              name="liderId"
+              [(ngModel)]="liderId"
+              [disabled]="carregandoUsuarios || projetosService.usuariosDisponiveis.length === 0"
+            >
+              <option [ngValue]="null">
+                {{ carregandoUsuarios ? 'Carregando usuarios...' : 'Selecione o lider' }}
+              </option>
+              <option *ngFor="let usuario of projetosService.usuariosDisponiveis" [ngValue]="usuario.id">
+                {{ usuario.nome }} - {{ usuario.cargo }}
+              </option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Prazo Final</label>
+            <input type="date" class="form-control" name="prazo" [(ngModel)]="prazo" />
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Participantes da empresa</label>
+
+          <div class="alert alert-warning small mb-3" *ngIf="!carregandoUsuarios && participantes.length === 0">
+            Nenhum usuario ativo encontrado para a empresa logada.
+          </div>
+
+          <div class="row row-cols-1 row-cols-md-2 g-2">
+            <div class="col" *ngFor="let participante of participantes">
+              <label class="d-flex align-items-center gap-2 p-2 border rounded card-participante">
+                <input
+                  class="form-check-input m-0 flex-shrink-0"
+                  type="checkbox"
+                  [(ngModel)]="participante.selecionado"
+                  [name]="'participante' + participante.id"
+                  [disabled]="participante.id === liderId"
+                />
+                <div class="avatar-participante">{{ participante.iniciais }}</div>
+                <div class="lh-1 min-w-0">
+                  <strong class="small d-block text-truncate">{{ participante.nome }}</strong>
+                  <span class="text-secondary" style="font-size: 0.75rem">{{ participante.cargo }}</span>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert-info d-flex gap-2 small">
+          <i class="material-icons fs-6">lightbulb</i>
+          <div>
+            <strong>Dica</strong><br />
+            A lista acima mostra apenas usuarios ativos vinculados a empresa do login atual.
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-light" routerLink="/projetos">Cancelar</button>
+          <button
+            type="submit"
+            class="btn btn-purple"
+            [disabled]="enviando || carregandoUsuarios || projetosService.usuariosDisponiveis.length === 0"
+          >
+            {{ enviando ? 'Criando...' : 'Criar Projeto' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

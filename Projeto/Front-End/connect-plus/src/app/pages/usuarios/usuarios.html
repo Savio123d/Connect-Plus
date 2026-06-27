@@ -1,71 +1,261 @@
 <div class="layout-usuarios">
-  <app-sidebar></app-sidebar>
 
-  <section class="area-usuarios">
-    <header class="topo-usuarios">
-      <h1>Visualização de Usuários</h1>
-    </header>
+  <div class="area-direita">
+    <main class="pagina-usuarios">
+      <div class="cabecalho-pagina">
+        <div>
+          <h1>Usuários</h1>
+          <p>Gerencie todos os usuários da plataforma</p>
+        </div>
 
-    <main class="conteudo-usuarios">
-      <div *ngIf="carregando" class="alert alert-light border mt-3">
-        Carregando usuários...
+        <button class="btn-primario" type="button" (click)="abrirCriar()">
+          <span>+</span>
+          Novo Usuário
+        </button>
       </div>
 
-      <div *ngIf="erro" class="alert alert-danger mt-3">
-        {{ erro }}
-      </div>
+      <section class="card-usuarios">
+        <div class="barra-busca">
+          <span>⌕</span>
 
-      <div class="tabela-card mt-3">
-        <table class="table table-hover mb-0">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nome</th>
-              <th>E-mail</th>
-              <th>Status</th>
-            </tr>
-          </thead>
+          <input
+            type="text"
+            placeholder="Buscar usuários por nome, email, função ou setor..."
+            [(ngModel)]="busca"
+            (ngModelChange)="filtrarUsuarios()"
+          />
+        </div>
 
-          <tbody>
-            <tr
-              *ngFor="let usuario of usuarios"
-              (click)="selecionarUsuario(usuario.id)"
-              [class.linha-selecionada]="usuarioSelecionadoId === usuario.id"
-              class="linha-clicavel"
-            >
-              <td>{{ usuario.id }}</td>
-              <td>{{ usuario.nome }}</td>
-              <td>{{ usuario.email }}</td>
-              <td>{{ usuario.status }}</td>
-            </tr>
+        <p class="mensagem erro" *ngIf="erro">
+          {{ erro }}
+        </p>
 
-            <tr *ngIf="!carregando && usuarios.length === 0">
-              <td colspan="4" class="text-center text-muted py-4">
-                Nenhum usuário cadastrado.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+        <p class="mensagem" *ngIf="carregando">
+          Carregando...
+        </p>
+
+        <div class="tabela-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Usuário</th>
+                <th>Email</th>
+                <th>Função</th>
+                <th>Setor</th>
+                <th>Nível</th>
+                <th>Status</th>
+                <th class="centro">Ações</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr *ngFor="let usuario of usuariosFiltrados">
+                <td>
+                  <div class="usuario-info">
+                    <div class="avatar">
+                      {{ iniciais(usuario.nome) }}
+                    </div>
+
+                    <div>
+                      <strong>{{ usuario.nome }}</strong>
+                      <small>{{ usuario.xp || 0 }} XP</small>
+                    </div>
+                  </div>
+                </td>
+
+                <td>
+                  <div class="email-info">
+                    <span>✉</span>
+                    {{ usuario.email }}
+                  </div>
+                </td>
+
+                <td>
+                  <span class="badge funcao">
+                    {{ usuario.cargo || 'Colaborador' }}
+                  </span>
+                </td>
+
+                <td>
+                  {{ usuario.departamento || 'Não informado' }}
+                </td>
+
+                <td>
+                  <span class="badge nivel">
+                    Nível {{ usuario.nivel || 1 }}
+                  </span>
+                </td>
+
+                <td>
+                  <span class="badge status" [ngClass]="classeStatus(usuario.status)">
+                    {{ usuario.status || 'Ativo' }}
+                  </span>
+                </td>
+
+                <td>
+                  <div class="acoes">
+                    <button
+                      class="btn-acao editar"
+                      type="button"
+                      title="Editar usuário"
+                      (click)="abrirEditar(usuario)"
+                    >
+                      ✎
+                    </button>
+
+                    <button
+                      class="btn-acao excluir"
+                      type="button"
+                      title="Excluir usuário"
+                      (click)="abrirExcluir(usuario)"
+                    >
+                      🗑
+                    </button>
+                  </div>
+                </td>
+              </tr>
+
+              <tr *ngIf="usuariosFiltrados.length === 0 && !carregando">
+                <td colspan="7" class="sem-registros">
+                  Nenhum usuário encontrado.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
     </main>
-  </section>
+  </div>
+</div>
 
-  <aside class="barra-acoes">
-    <div class="painel-acoes">
-      <button
-        class="btn btn-outline-primary btn-acao"
-        (click)="editarUsuario()"
-        [disabled]="usuarioSelecionadoId === null"
-      >
-        Editar
-      </button>
+<!-- Modal Criar / Editar -->
+<div class="modal-backdrop" *ngIf="modal === 'criar' || modal === 'editar'">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="titulo-modal">
+        <span>{{ modal === 'criar' ? '👤' : '✎' }}</span>
+        <h2>{{ tituloModal() }}</h2>
+      </div>
 
-      <button
-        class="btn btn-primary btn-acao"
-        (click)="novoUsuario()"
-      >
-        Novo
+      <button class="btn-fechar" type="button" (click)="fecharModal()">
+        ×
       </button>
     </div>
-  </aside>
+
+    <div class="form-grid">
+      <div class="campo">
+        <label>Nome Completo</label>
+        <input
+          type="text"
+          placeholder="Nome do usuário"
+          [(ngModel)]="formUsuario.nome"
+        />
+      </div>
+
+      <div class="campo">
+        <label>Email</label>
+        <input
+          type="email"
+          placeholder="email@empresa.com"
+          [(ngModel)]="formUsuario.email"
+        />
+      </div>
+
+      <div class="campo">
+        <label>Função</label>
+        <select [(ngModel)]="formUsuario.cargo">
+          <option
+            *ngFor="let funcao of funcoes"
+            [value]="funcao.value"
+          >
+            {{ funcao.label }}
+          </option>
+        </select>
+      </div>
+
+      <div class="campo">
+        <label>Setor</label>
+        <select [(ngModel)]="formUsuario.departamento">
+          <option
+            *ngFor="let setor of setores"
+            [value]="setor.value"
+          >
+            {{ setor.label }}
+          </option>
+        </select>
+      </div>
+
+      <div class="campo" *ngIf="modal === 'criar'">
+        <label>Senha Temporária</label>
+        <input
+          type="password"
+          placeholder="********"
+          [(ngModel)]="formUsuario.senha"
+        />
+      </div>
+
+      <div class="campo">
+        <label>Status</label>
+        <select [(ngModel)]="formUsuario.status">
+          <option
+            *ngFor="let status of statusOptions"
+            [value]="status.value"
+          >
+            {{ status.label }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="aviso-edicao" *ngIf="modal === 'editar'">
+      <strong>✎ Editando Usuário</strong>
+      <p>
+        As alterações serão salvas imediatamente após clicar em
+        "Salvar Alterações".
+      </p>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secundario" type="button" (click)="fecharModal()">
+        Cancelar
+      </button>
+
+      <button class="btn-primario" type="button" (click)="salvarUsuario()">
+        {{ textoBotaoModal() }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Excluir -->
+<div class="modal-backdrop" *ngIf="modal === 'excluir'">
+  <div class="modal-card modal-exclusao">
+    <div class="modal-header">
+      <div class="titulo-modal vermelho">
+        <span>🗑</span>
+        <h2>Confirmar Exclusão</h2>
+      </div>
+
+      <button class="btn-fechar" type="button" (click)="fecharModal()">
+        ×
+      </button>
+    </div>
+
+    <p class="texto-exclusao">
+      Tem certeza que deseja excluir o usuário
+      <strong>{{ usuarioSelecionado?.nome }}</strong>?
+      <br />
+      Esta ação não pode ser desfeita.
+    </p>
+
+    <div class="modal-footer">
+      <button class="btn-secundario" type="button" (click)="fecharModal()">
+        Cancelar
+      </button>
+
+      <button class="btn-perigo" type="button" (click)="confirmarExclusao()">
+        Excluir
+      </button>
+    </div>
+  </div>
 </div>

@@ -1,21 +1,118 @@
-<aside class="sidebar">
-  <div class="logo-area">
-    <div class="logo-box">C+</div>
-    <h2 class="logo">Connect+</h2>
-  </div>
+<div class="layout-auth">
+  <aside class="sidebar">
+    <div class="logo-area">
+      <h2 class="logo">Connect +</h2>
+    </div>
 
-  <nav class="menu">
-    <a
-      *ngFor="let item of menuItems"
-      [routerLink]="item.route"
-      (click)="onMenuClick(item)"
-      routerLinkActive="ativo"
-      [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
-      class="menu-item"
-    >
-      <span class="material-icons icone">{{ item.icon }}</span>
-      <span class="texto">{{ item.label }}</span>
-    </a>
-  </nav>
+    <nav class="menu">
+      <a
+        *ngFor="let item of menuItems"
+        [routerLink]="item.route"
+        routerLinkActive="ativo"
+        [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+        class="menu-item"
+        (click)="onMenuClick($event, item)"
+      >
+        <span class="material-icons icone">{{ item.icon }}</span>
+        <span class="texto">{{ item.label }}</span>
+      </a>
+    </nav>
+  </aside>
 
-</aside>
+  <section class="area-principal">
+    <header class="topbar">
+      <div class="topbar-busca">
+        <span class="material-icons">search</span>
+
+        <input
+          type="text"
+          placeholder="Buscar projetos, tarefas, pessoas..."
+          [(ngModel)]="termoBusca"
+          (keyup.enter)="pesquisarGlobal()"
+        />
+      </div>
+
+      <div class="topbar-acoes">
+        <div class="notificacao-area">
+          <button
+            type="button"
+            class="btn-notificacao"
+            aria-label="Notificações"
+            (click)="alternarNotificacoes()"
+          >
+            <span class="material-icons">notifications</span>
+
+            <span
+              *ngIf="quantidadeNaoLidas > 0"
+              class="badge-notificacao"
+            >
+              {{ quantidadeNaoLidas }}
+            </span>
+          </button>
+
+          <div
+            class="dropdown-notificacoes"
+            *ngIf="mostrarNotificacoes"
+          >
+            <div class="dropdown-cabecalho">
+              <strong>Notificações</strong>
+              <span>{{ quantidadeNaoLidas }} não lidas</span>
+            </div>
+
+            <ng-container *ngIf="notificacoes.length > 0; else semNotificacoes">
+              <button
+                type="button"
+                class="item-notificacao"
+                *ngFor="let notificacao of notificacoes"
+                [class.nao-lida]="!notificacao.lida"
+                (click)="marcarComoLida(notificacao)"
+              >
+                <strong>
+                  {{ notificacao.titulo || 'Notificação' }}
+                </strong>
+
+                <span>
+                  {{ notificacao.mensagem }}
+                </span>
+
+                <small>
+                  {{ notificacao.dataCriacao | date: 'dd/MM HH:mm' }}
+                </small>
+              </button>
+            </ng-container>
+
+            <ng-template #semNotificacoes>
+              <div class="sem-notificacoes">
+                Nenhuma notificação encontrada.
+              </div>
+            </ng-template>
+          </div>
+        </div>
+
+        <div class="perfil-area">
+          <div
+            class="perfil-avatar"
+            [title]="usuarioLogado?.nome || 'Usuário'"
+          >
+            <img
+              *ngIf="usuarioLogado?.avatar; else avatarIniciais"
+              [src]="usuarioLogado?.avatar"
+              alt="Avatar do usuário"
+              class="avatar-imagem"
+            />
+
+            <ng-template #avatarIniciais>
+              <span class="avatar-iniciais">
+                {{ iniciaisUsuario }}
+              </span>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="conteudo">
+      <router-outlet></router-outlet>
+    </main>
+  </section>
+</div>

@@ -3,32 +3,33 @@ import { ChangeDetectorRef, Component, OnInit, ViewEncapsulation } from '@angula
 import { MatIconModule } from '@angular/material/icon';
 import { NgApexchartsModule } from 'ng-apexcharts';
 
-import { Sidebar } from '../../components/sidebar/sidebar';
 import { DashboardService } from './dashboard.service';
-
-import { DashboardFactory } from './factories/dashboard.factory';
-import { DashboardCard } from './models/dashboard.model';
+import { LoginService } from '../login/login.service';
 import { AreaChartOptions } from './builders/area-chart.builder';
 import { BarChartOptions } from './builders/bar-chart.builder';
+import { DashboardFactory } from './factories/dashboard.factory';
+import { DashboardCard } from './models/dashboard.model';
 
 @Component({
   selector: 'app-dashboard-gestor',
   standalone: true,
-  imports: [CommonModule, Sidebar, MatIconModule, NgApexchartsModule],
+  imports: [CommonModule, MatIconModule, NgApexchartsModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
   encapsulation: ViewEncapsulation.None,
 })
-export default class Menu implements OnInit {
+export class Menu implements OnInit {
   cards: DashboardCard[] = [];
 
   areaChartOptions?: AreaChartOptions;
   barChartOptions?: BarChartOptions;
 
   carregando = true;
+  mensagemErro = '';
 
   constructor(
     private dashboardService: DashboardService,
+    private loginService: LoginService,
     private cdr: ChangeDetectorRef,
   ) {}
 
@@ -37,14 +38,19 @@ export default class Menu implements OnInit {
   }
 
   carregarDashboard(): void {
-    this.dashboardService.buscarResumo(1).subscribe({
-      next: (resumo) => {
-        console.log('RESUMO DO DASHBOARD:', resumo);
+    const empresaId = this.loginService.getEmpresaId();
 
+    if (!empresaId) {
+      this.mensagemErro = 'Não foi possível identificar a empresa do usuário logado. Faça login novamente.';
+      this.carregando = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.dashboardService.buscarResumo(empresaId).subscribe({
+      next: (resumo) => {
         try {
           const dashboard = DashboardFactory.criarDashboard(resumo);
-
-          console.log('DASHBOARD MONTADO:', dashboard);
 
           this.cards = dashboard.cards;
           this.areaChartOptions = dashboard.areaChartOptions;
@@ -58,6 +64,7 @@ export default class Menu implements OnInit {
       },
       error: (erro) => {
         console.error('Erro ao carregar dashboard:', erro);
+        this.mensagemErro = 'Erro ao carregar os dados da empresa.';
         this.carregando = false;
         this.cdr.detectChanges();
       },

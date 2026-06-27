@@ -1,0 +1,91 @@
+:host {
+  --roxo: #7c3aed;
+  display: block;
+  font-family: Inter, Arial, sans-serif;
+}
+
+.text-purple {
+  color: var(--roxo) !important;
+}
+
+.bg-purple {
+  background-color: var(--roxo) !important;
+}
+
+.btn-purple {
+  background-color: var(--roxo);
+  border-color: var(--roxo);
+  color: #fff;
+}
+
+.btn-purple:hover,
+.btn-purple:focus {
+  background-color: #6d28d9;
+  border-color: #6d28d9;
+  color: #fff;
+}
+
+.min-w-0 {
+  min-width: 0;
+}
+
+.card-projeto {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card-projeto:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(17, 24, 39, 0.12) !important;
+}
+
+.icone-projeto {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--roxo), #4f46e5);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.avatar-pequeno {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #60a5fa, #a78bfa);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* Cores de status (retorno de statusClasse) */
+.chip {
+  font-weight: 600;
+}
+
+.andamento {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.concluido {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.planejamento {
+  background-color: #fef9c3;
+  color: #a16207;
+}
+
+.cancelado {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}

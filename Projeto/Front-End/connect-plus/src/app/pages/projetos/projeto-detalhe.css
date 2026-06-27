@@ -1,0 +1,158 @@
+:host {
+  --roxo: #7c3aed;
+  --roxo-claro: #ede9fe;
+  display: block;
+  font-family: Inter, Arial, sans-serif;
+}
+
+/* Tema roxo (Bootstrap não tem) */
+.text-purple {
+  color: var(--roxo) !important;
+}
+
+.bg-purple {
+  background-color: var(--roxo) !important;
+}
+
+.bg-purple-subtle {
+  background-color: var(--roxo-claro) !important;
+}
+
+.btn-purple {
+  background-color: var(--roxo);
+  border-color: var(--roxo);
+  color: #fff;
+}
+
+.btn-purple:hover,
+.btn-purple:focus {
+  background-color: #6d28d9;
+  border-color: #6d28d9;
+  color: #fff;
+}
+
+.btn-voltar {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.controle-status {
+  min-width: 190px;
+}
+
+/* Abas */
+.nav-pills .nav-link {
+  color: #4b5563;
+  background: transparent;
+}
+
+.nav-pills .nav-link.active {
+  background-color: var(--roxo);
+  color: #fff;
+}
+
+/* Avatar e ícones */
+.avatar-pessoa {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #60a5fa, #a78bfa);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.icone-resumo {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--roxo), #4f46e5);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.status-circulo {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+  background: #9ca3af;
+}
+
+.linha-pessoa {
+  border: 1px solid #eceef3;
+  background: #fff;
+}
+
+.linha-pessoa.destaque {
+  background: var(--roxo-claro);
+  border-color: #ddd6fe;
+}
+
+/* Cores de status / prioridade (valores retornados pelos métodos classe*) */
+.chip {
+  font-weight: 600;
+}
+
+.andamento {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+.status-circulo.andamento {
+  background: #2563eb;
+}
+
+.concluido {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+.status-circulo.concluido {
+  background: #16a34a;
+}
+
+.planejamento {
+  background-color: #fef9c3;
+  color: #a16207;
+}
+
+.pendente {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+.status-circulo.pendente {
+  background: #9ca3af;
+}
+
+.cancelado {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.alta {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.media {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.baixa {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
