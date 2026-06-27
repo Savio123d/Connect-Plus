@@ -22,12 +22,20 @@ public class SecurityConfig {
         return http
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
+
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        .requestMatchers("/api/empresas/**").permitAll()
-                        .requestMatchers("/api/usuarios/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/usuarios/**").permitAll()
+                        .requestMatchers("/api/usuario-empresa/**").permitAll()
+                        .requestMatchers("/api/usuarioempresas/**").permitAll()
+                        .requestMatchers("/api/empresas/**").permitAll()
+                        .requestMatchers("/api/projetos/**").permitAll()
+                        .requestMatchers("/api/tarefas/**").permitAll()
+                        .requestMatchers("/api/recompensas/**").permitAll()
+                        .requestMatchers("/api/pedidos-resgate/**").permitAll()
+                        .requestMatchers("/api/notificacoes/**").permitAll()
 
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/swagger-ui.html").permitAll()
@@ -35,6 +43,10 @@ public class SecurityConfig {
 
                         .anyRequest().permitAll()
                 )
+
+                .httpBasic(httpBasic -> httpBasic.disable())
+                .formLogin(form -> form.disable())
+
                 .build();
     }
 }
