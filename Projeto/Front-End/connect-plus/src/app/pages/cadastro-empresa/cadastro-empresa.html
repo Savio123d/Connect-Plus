@@ -1,1 +1,164 @@
-<p>cadastro-empresa works!</p>
+<div class="cadastro-page">
+  <header class="cadastro-header">
+    <div class="brand">
+      <span class="brand-icon">C+</span>
+      <span class="brand-name">Connect+</span>
+    </div>
+
+    <h1 class="page-title">Cadastro de Empresa</h1>
+    <p class="page-subtitle">Complete os dados da sua empresa para comecar</p>
+  </header>
+
+  <form
+    class="cadastro-stack"
+    [formGroup]="cadastroForm"
+    (ngSubmit)="onSubmit()"
+  >
+    <div class="feedback feedback-error" *ngIf="mensagemErro">
+      {{ mensagemErro }}
+    </div>
+
+    <section class="cadastro-card">
+      <div class="card-header-custom">
+        <span class="section-icon">i</span>
+        <h2 class="section-title">Informacoes da Empresa</h2>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-12">
+          <label class="form-label">Razao Social</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="razaoSocial"
+            placeholder="Nome completo da empresa"
+          />
+        </div>
+
+        <div class="col-12">
+          <label class="form-label">Nome Fantasia</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="nomeFantasia"
+            placeholder="Nome comercial"
+          />
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">CNPJ</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="cnpj"
+            maxlength="18"
+            placeholder="00.000.000/0000-00"
+          />
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Situacao</label>
+          <select class="form-select" formControlName="status">
+            <option [value]="Status.Ativa">Ativa</option>
+            <option [value]="Status.Inativa">Inativa</option>
+          </select>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Cidade</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="cidade"
+            placeholder="Nome da cidade"
+          />
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">UF</label>
+          <select class="form-select" formControlName="uf">
+            <option value="" disabled>Selecione</option>
+            <option *ngFor="let uf of estados" [value]="uf">
+              {{ uf }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <section class="cadastro-card">
+      <div class="card-header-custom">
+        <span class="section-icon section-icon-blue">i</span>
+        <h2 class="section-title">Primeiro Acesso - Credenciais Temporarias</h2>
+      </div>
+
+      <p class="section-description">
+        Defina as credenciais de primeiro acesso para o administrador da empresa
+      </p>
+
+      <div class="row g-4">
+        <div class="col-12">
+          <label class="form-label">Nome do Gestor</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="nomeAdmin"
+            placeholder="Nome completo do responsavel"
+          />
+        </div>
+
+        <div class="col-12">
+          <label class="form-label">Email de Acesso (Login)</label>
+          <input
+            type="email"
+            class="form-control"
+            formControlName="emailAdmin"
+            placeholder="admin@suaempresa.com"
+          />
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Senha Temporaria</label>
+          <input
+            type="password"
+            class="form-control"
+            formControlName="senhaAdmin"
+            placeholder="Minimo 8 caracteres"
+          />
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Confirmar Senha</label>
+          <input
+            type="password"
+            class="form-control"
+            formControlName="confirmarSenhaAdmin"
+            placeholder="Repita a senha"
+          />
+        </div>
+      </div>
+
+      <div class="info-box">
+        <span class="info-icon">i</span>
+        <div>
+          <strong>Pronto para comecar!</strong>
+          <p>
+            Apos o cadastro, o gestor podera fazer login com essas
+            credenciais e sera solicitada a alteracao da senha no primeiro
+            acesso.
+          </p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn btn-secondary-custom" routerLink="/login">
+          Voltar
+        </button>
+
+        <button type="submit" class="btn btn-primary-custom" [disabled]="enviando">
+          {{ enviando ? 'Cadastrando...' : 'Cadastrar Empresa' }}
+        </button>
+      </div>
+    </section>
+  </form>
+</div>

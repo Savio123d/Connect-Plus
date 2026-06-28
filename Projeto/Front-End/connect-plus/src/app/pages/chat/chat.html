@@ -1,0 +1,318 @@
+<section class="chat-page">
+  <aside class="chat-sidebar">
+    <div class="chat-search">
+      <span class="search-icon">🔎</span>
+      <input
+        type="text"
+        placeholder="Buscar ou iniciar novo chat"
+        [(ngModel)]="termoBusca"
+      />
+    </div>
+
+    <div class="chat-filters">
+      <button
+        type="button"
+        [class.active]="filtroTipo === ''"
+        (click)="alterarFiltro('')"
+      >
+        Todas
+      </button>
+
+      <button
+        type="button"
+        [class.active]="filtroTipo === 'privada'"
+        (click)="alterarFiltro('privada')"
+      >
+        Privadas
+      </button>
+
+      <button
+        type="button"
+        [class.active]="filtroTipo === 'grupo'"
+        (click)="alterarFiltro('grupo')"
+      >
+        Grupos
+      </button>
+    </div>
+
+    <div class="new-group-area">
+  <button type="button" class="new-group-button" (click)="abrirModalGrupo()">
+    + Novo grupo
+  </button>
+</div>
+
+   <div class="loading-sidebar" *ngIf="carregandoConversas && conversas.length === 0">
+  Carregando conversas...
+</div>
+
+<div class="conversation-list" *ngIf="!carregandoConversas || conversas.length > 0">
+      <!-- Conversas já existentes -->
+      <button
+        type="button"
+        class="conversation-item"
+        *ngFor="let conversa of conversasFiltradas"
+        [class.active]="conversaEstaSelecionada(conversa)"
+        (click)="selecionarConversa(conversa)"
+      >
+        <div class="avatar" [class.group]="conversa.tipo === 'grupo'">
+          {{ obterIniciais(conversa.nome) }}
+        </div>
+
+        <div class="conversation-info">
+          <div class="conversation-top">
+            <strong>{{ conversa.nome }}</strong>
+
+            <span *ngIf="conversa.ultimaMensagem">
+              {{ formatarHorario(conversa.ultimaMensagem.enviadaEm) }}
+            </span>
+          </div>
+
+          <div class="conversation-subtitle">
+            {{ obterSubtitulo(conversa) }}
+          </div>
+
+          <p>
+            {{ obterPreviaMensagem(conversa) }}
+          </p>
+        </div>
+      </button>
+
+      <!-- Pessoas da empresa aparecem quando pesquisa -->
+      <div class="contact-results" *ngIf="termoBusca.trim()">
+        <div class="section-label">Pessoas</div>
+
+        <button
+          type="button"
+          class="conversation-item contact-item"
+          *ngFor="let usuario of usuariosFiltrados"
+          (click)="abrirOuCriarConversaComUsuario(usuario)"
+        >
+          <div class="avatar">
+            {{ obterIniciais(usuario.nome) }}
+          </div>
+
+          <div class="conversation-info">
+            <div class="conversation-top">
+              <strong>{{ usuario.nome }}</strong>
+
+              <span *ngIf="usuarioJaTemConversa(usuario)">
+                Já existe
+              </span>
+            </div>
+
+            <div class="conversation-subtitle">
+              {{ usuario.email }}
+            </div>
+
+            <p>
+              Clique para iniciar conversa
+            </p>
+          </div>
+        </button>
+
+        <div
+          class="empty-sidebar"
+          *ngIf="usuariosFiltrados.length === 0 && !carregandoUsuarios"
+        >
+          Nenhum usuário encontrado nessa empresa.
+        </div>
+      </div>
+
+      <div
+        class="empty-sidebar"
+        *ngIf="conversasFiltradas.length === 0 && !termoBusca.trim()"
+      >
+        Nenhuma conversa encontrada.
+      </div>
+    </div>
+  </aside>
+
+  <main class="chat-main">
+    <ng-container *ngIf="conversaSelecionada; else semConversa">
+      <header class="chat-header">
+        <div class="header-left">
+          <div
+            class="avatar large"
+            [class.group]="conversaSelecionada.tipo === 'grupo'"
+          >
+            {{ obterIniciais(conversaSelecionada.nome) }}
+          </div>
+
+          <div>
+            <h2>{{ conversaSelecionada.nome }}</h2>
+
+            <span>
+              {{
+                conversaSelecionada.tipo === 'grupo'
+                  ? 'Grupo'
+                  : 'Conversa privada'
+              }}
+              • {{ conversaSelecionada.participantes.length }} participante(s)
+            </span>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <span class="status-online"></span>
+          <span>Online</span>
+        </div>
+      </header>
+
+      <div class="error-message" *ngIf="mensagemErro">
+        {{ mensagemErro }}
+      </div>
+
+      <div
+        class="messages-container"
+        #mensagensContainer
+        *ngIf="!carregandoMensagens"
+      >
+        <div class="date-divider">
+          <span>Histórico da conversa</span>
+        </div>
+
+        <div
+          class="message-row"
+          *ngFor="let mensagem of conversaSelecionada.mensagens"
+          [class.sent]="mensagem.enviadaPeloUsuarioLogado"
+          [class.received]="!mensagem.enviadaPeloUsuarioLogado"
+        >
+          <div
+            class="avatar mini"
+            *ngIf="!mensagem.enviadaPeloUsuarioLogado"
+          >
+            {{ obterIniciais(mensagem.remetente.nome) }}
+          </div>
+
+          <div class="message-content">
+            <span
+              class="sender-name"
+              *ngIf="!mensagem.enviadaPeloUsuarioLogado"
+            >
+              {{ mensagem.remetente.nome }}
+            </span>
+
+            <div class="message-bubble">
+              <p *ngIf="mensagem.conteudo">
+                {{ mensagem.conteudo }}
+              </p>
+
+              <a
+                *ngIf="mensagem.anexo"
+                class="attachment"
+                [href]="mensagem.anexo.data"
+                target="_blank"
+              >
+                📎 {{ mensagem.anexo.filename }}
+              </a>
+            </div>
+
+            <div class="message-time">
+              {{ formatarData(mensagem.enviadaEm) }}
+              {{ formatarHorario(mensagem.enviadaEm) }}
+
+              <span *ngIf="mensagem.enviadaPeloUsuarioLogado">
+                • {{ mensagem.quantidadeLeituras }} leitura(s)
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="empty-messages"
+          *ngIf="conversaSelecionada.mensagens.length === 0"
+        >
+          Nenhuma mensagem ainda. Manda a primeira 😄
+        </div>
+      </div>
+
+      <div class="loading-messages" *ngIf="carregandoMensagens">
+        Carregando mensagens...
+      </div>
+
+      <footer class="message-input-area">
+        <textarea
+          rows="1"
+          placeholder="Escrever uma mensagem"
+          [(ngModel)]="novaMensagem"
+          (keydown)="enviarComEnter($event)"
+        ></textarea>
+
+        <button
+          type="button"
+          class="send-button"
+          [disabled]="!novaMensagem.trim() || enviandoMensagem"
+          (click)="enviarMensagem()"
+        >
+          ➤
+        </button>
+      </footer>
+    </ng-container>
+
+    <ng-template #semConversa>
+      <div class="no-conversation">
+        <div class="no-conversation-icon">💬</div>
+        <h2>Selecione uma conversa</h2>
+        <p>Escolha uma conversa privada ou em grupo para visualizar o histórico.</p>
+      </div>
+    </ng-template>
+  </main>
+</section>
+<div class="modal-backdrop" *ngIf="modalGrupoAberto">
+  <div class="group-modal">
+    <header class="group-modal-header">
+      <h2>Novo grupo</h2>
+      <button type="button" (click)="fecharModalGrupo()">×</button>
+    </header>
+
+    <label class="group-label">
+      Nome do grupo
+      <input
+        type="text"
+        placeholder="Ex: Equipe do projeto"
+        [(ngModel)]="nomeGrupo"
+      />
+    </label>
+
+    <div class="group-users">
+      <h3>Participantes</h3>
+
+      <button
+        type="button"
+        class="group-user-item"
+        *ngFor="let usuario of usuariosEmpresa"
+        [class.selected]="usuarioSelecionadoGrupo(usuario)"
+        [disabled]="obterIdUsuarioEmpresaDoUsuario(usuario) === usuarioEmpresaId"
+        (click)="alternarParticipanteGrupo(usuario)"
+      >
+        <div class="avatar mini">
+          {{ obterIniciais(usuario.nome) }}
+        </div>
+
+        <div>
+          <strong>{{ usuario.nome }}</strong>
+          <span>{{ usuario.email }}</span>
+        </div>
+
+        <span class="check">
+          {{ usuarioSelecionadoGrupo(usuario) ? '✓' : '' }}
+        </span>
+      </button>
+    </div>
+
+    <footer class="group-modal-footer">
+      <button type="button" class="cancel-button" (click)="fecharModalGrupo()">
+        Cancelar
+      </button>
+
+      <button
+        type="button"
+        class="create-button"
+        [disabled]="criandoGrupo"
+        (click)="criarGrupo()"
+      >
+        {{ criandoGrupo ? 'Criando...' : 'Criar grupo' }}
+      </button>
+    </footer>
+  </div>
+</div>

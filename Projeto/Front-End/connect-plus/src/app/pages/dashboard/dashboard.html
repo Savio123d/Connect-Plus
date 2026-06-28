@@ -1,1 +1,69 @@
-<p>dashboard works!</p>
+<main class="conteudo-dashboard">
+    <div class="cabecalho-dashboard">
+      <h1>Dashboard</h1>
+      <p>Visao geral da sua empresa</p>
+    </div>
+
+    <ng-container *ngIf="carregando">
+      <p>Carregando dashboard...</p>
+    </ng-container>
+
+    <div class="alert alert-danger" *ngIf="!carregando && mensagemErro">
+      {{ mensagemErro }}
+    </div>
+
+    <ng-container *ngIf="!carregando && !mensagemErro">
+      <ng-container *ngTemplateOutlet="dashboardContent"></ng-container>
+    </ng-container>
+
+    <ng-template #dashboardContent>
+      <section class="cards-dashboard">
+        <div class="card-info" *ngFor="let card of cards">
+          <div class="linha-card">
+            <div class="icone-wrapper" [ngClass]="card.iconeClasse">
+              <mat-icon>{{ card.icone }}</mat-icon>
+            </div>
+          </div>
+
+          <span class="rotulo-card">{{ card.titulo }}</span>
+          <strong>{{ card.valor }}</strong>
+        </div>
+      </section>
+
+      <section class="graficos-dashboard" *ngIf="areaChartOptions || barChartOptions">
+        <div class="card-grafico" *ngIf="areaChartOptions as areaOptions">
+          <div class="titulo-grafico titulo-roxo">
+            <mat-icon>trending_up</mat-icon>
+            <h2>Desempenho da Equipe</h2>
+          </div>
+
+          <apx-chart
+            [series]="areaOptions.series"
+            [chart]="areaOptions.chart"
+            [xaxis]="areaOptions.xaxis"
+            [yaxis]="areaOptions.yaxis"
+            [stroke]="areaOptions.stroke"
+            [fill]="areaOptions.fill"
+            [dataLabels]="areaOptions.dataLabels">
+          </apx-chart>
+        </div>
+
+        <div class="card-grafico" *ngIf="barChartOptions as barOptions">
+          <div class="titulo-grafico titulo-azul">
+            <mat-icon>task_alt</mat-icon>
+            <h2>Status das Tarefas</h2>
+          </div>
+
+          <apx-chart
+            [series]="barOptions.series"
+            [chart]="barOptions.chart"
+            [xaxis]="barOptions.xaxis"
+            [yaxis]="barOptions.yaxis"
+            [plotOptions]="barOptions.plotOptions"
+            [dataLabels]="barOptions.dataLabels"
+            [fill]="barOptions.fill">
+          </apx-chart>
+        </div>
+      </section>
+    </ng-template>
+</main>
