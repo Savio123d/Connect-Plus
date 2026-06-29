@@ -1,7 +1,16 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { ChatEvento, ConversaDetalhe, ConversaResumo, Mensagem, TipoConversa, UsuarioChat } from './chat.model';
+import {
+  ChatEvento,
+  ConversaDetalhe,
+  ConversaResumo,
+  Mensagem,
+  MensagemAnexo,
+  TipoConversa,
+  TipoMensagem,
+  UsuarioChat,
+} from './chat.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -64,17 +73,34 @@ export class ChatService {
     idUsuarioEmpresa: number,
     idConversa: number,
     conteudo: string,
+    anexo?: MensagemAnexo,
+    tipo: TipoMensagem = anexo ? 'imagem' : 'texto',
   ): Observable<Mensagem> {
     return this.http.post<Mensagem>(
       `${this.apiUrl}/conversas/${idConversa}/mensagens`,
       {
         conteudo,
-        tipo: 'texto',
+        tipo,
+        anexo,
       },
       {
         headers: this.criarHeaders(idUsuarioEmpresa),
       },
     );
+  }
+
+  enviarImagemChat(
+    idUsuarioEmpresa: number,
+    idEmpresa: number,
+    arquivo: File,
+  ): Observable<MensagemAnexo> {
+    const formData = new FormData();
+    formData.append('arquivo', arquivo);
+
+    return this.http.post<MensagemAnexo>(`${this.apiUrl}/imagens/chat`, formData, {
+      headers: this.criarHeaders(idUsuarioEmpresa),
+      params: new HttpParams().set('empresaId', idEmpresa),
+    });
   }
 
   marcarMensagemComoLida(idUsuarioEmpresa: number, idMensagem: number): Observable<Mensagem> {

@@ -46,6 +46,18 @@ public class RecompensaModel {
     @Column(name = "xp_req", nullable = false)
     private Integer xpNecessario;
 
+    @Column(name = "quantidade_disponivel")
+    private Integer quantidadeDisponivel;
+
+    @Column(name = "categoria", length = 40)
+    private String categoria;
+
+    @Column(name = "icone", length = 40)
+    private String icone;
+
+    @Column(name = "cor", length = 40)
+    private String cor;
+
     @Column(name = "ativa", nullable = false)
     private Boolean ativa;
 

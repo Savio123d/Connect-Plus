@@ -198,7 +198,16 @@
               </p>
 
               <a
-                *ngIf="mensagem.anexo"
+                *ngIf="mensagem.anexo && ehAnexoImagem(mensagem)"
+                class="image-attachment"
+                [href]="mensagem.anexo.data"
+                target="_blank"
+              >
+                <img [src]="mensagem.anexo.data" [alt]="mensagem.anexo.filename" />
+              </a>
+
+              <a
+                *ngIf="mensagem.anexo && !ehAnexoImagem(mensagem)"
                 class="attachment"
                 [href]="mensagem.anexo.data"
                 target="_blank"
@@ -230,7 +239,37 @@
         Carregando mensagens...
       </div>
 
+      <div class="image-preview-area" *ngIf="imagemSelecionada">
+        <img [src]="imagemPreviewUrl" [alt]="imagemSelecionada.name" />
+
+        <div>
+          <strong>{{ imagemSelecionada.name }}</strong>
+          <span>{{ (imagemSelecionada.size / 1024 / 1024) | number: '1.1-1' }} MB</span>
+        </div>
+
+        <button type="button" (click)="limparImagemSelecionada()">
+          Remover
+        </button>
+      </div>
+
       <footer class="message-input-area">
+        <input
+          #imagemInput
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          class="file-input"
+          (change)="selecionarImagem($event)"
+        />
+
+        <button
+          type="button"
+          class="attach-button"
+          [disabled]="enviandoMensagem"
+          (click)="imagemInput.click()"
+        >
+          Imagem
+        </button>
+
         <textarea
           rows="1"
           placeholder="Escrever uma mensagem"
@@ -241,7 +280,7 @@
         <button
           type="button"
           class="send-button"
-          [disabled]="!novaMensagem.trim() || enviandoMensagem"
+          [disabled]="(!novaMensagem.trim() && !imagemSelecionada) || enviandoMensagem"
           (click)="enviarMensagem()"
         >
           ➤
