@@ -25,6 +25,17 @@ public class SaldoXpService {
         return saldoXpRepository.findById(idSaldoXp);
     }
 
+    public Integer buscarSaldoPorUsuarioEmpresa(Long idUsuarioEmpresa) {
+        if (idUsuarioEmpresa == null || idUsuarioEmpresa < 1) {
+            return 0;
+        }
+
+        return saldoXpRepository
+                .findByIdUsuarioEmpresa_IdUsuarioEmpresa(idUsuarioEmpresa)
+                .map(SaldoXpModel::getXpTotal)
+                .orElse(0);
+    }
+
     public SaldoXpModel atualizarSaldoXp(Long idSaldoXp, SaldoXpModel saldoXpModel) {
         SaldoXpModel saldoXp = saldoXpRepository.findById(idSaldoXp).get();
         saldoXp.setIdEmpresa(saldoXpModel.getIdEmpresa());

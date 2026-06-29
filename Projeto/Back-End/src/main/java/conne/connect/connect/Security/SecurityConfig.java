@@ -46,7 +46,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/empresas/**").permitAll()
                         .requestMatchers("/api/projetos/**").permitAll()
                         .requestMatchers("/api/tarefas/**").permitAll()
+                        .requestMatchers("/api/lojas/**").permitAll()
                         .requestMatchers("/api/recompensas/**").permitAll()
+                        .requestMatchers("/api/saldos-xp/**").permitAll()
+                        .requestMatchers("/api/saldo-xp/**").permitAll()
                         .requestMatchers("/api/pedidos-resgate/**").permitAll()
                         .requestMatchers("/api/notificacoes/**").permitAll()
 

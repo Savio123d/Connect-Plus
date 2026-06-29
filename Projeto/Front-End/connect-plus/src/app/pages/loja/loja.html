@@ -1,39 +1,196 @@
-<div class="layout-loja">
-  <main class="conteudo-loja">
-    <div class="topo-loja">
-      <h1>Loja</h1>
+<section class="loja-page">
+  <div class="loja-header">
+    <div>
+      <h1>Loja de Recompensas</h1>
+      <p>Troque seus pontos XP por recompensas da sua empresa.</p>
     </div>
 
-    <div class="area-produtos">
-      <div class="card-produto">
-        <div class="imagem-produto fundo-black-roxo">
-          <span>Black Purple</span>
-        </div>
-        <h3>Fundo Black</h3>
-        <p>Tema escuro com detalhes em roxo</p>
-        <span class="preco">100 XP</span>
-        <button (click)="comprar('Fundo Black', 100)">Comprar</button>
-      </div>
+    <button type="button" class="btn-primary" (click)="abrirNovoItem()">
+      <i class="bi bi-plus-lg"></i>
+      Nova Recompensa
+    </button>
+  </div>
 
-      <div class="card-produto">
-        <div class="imagem-produto fundo-dourado-branco">
-          <span>Golden White</span>
-        </div>
-        <h3>Fundo Dourado</h3>
-        <p>Tema dourado com detalhes em branco</p>
-        <span class="preco">150 XP</span>
-        <button (click)="comprar('Fundo Dourado', 150)">Comprar</button>
-      </div>
+  <div class="alerta erro" *ngIf="mensagemErro">
+    {{ mensagemErro }}
+  </div>
 
-      <div class="card-produto">
-        <div class="imagem-produto fundo-azul-neon">
-          <span>Blue Neon</span>
+  <div class="alerta sucesso" *ngIf="mensagemSucesso">
+    {{ mensagemSucesso }}
+  </div>
+
+  <section class="saldo-card">
+    <div class="saldo-info">
+      <span class="saldo-icon">
+        <i class="bi bi-trophy"></i>
+      </span>
+
+      <div>
+        <span>Seu Saldo XP</span>
+        <strong>{{ saldoXp | number: '1.0-0' }} XP</strong>
+        <small>Proximo nivel: {{ proximoNivel | number: '1.0-0' }} XP</small>
+
+        <div class="progresso" aria-hidden="true">
+          <span [style.width.%]="progressoNivel"></span>
         </div>
-        <h3>Fundo Azul Neon</h3>
-        <p>Tema moderno com detalhes claros</p>
-        <span class="preco">200 XP</span>
-        <button (click)="comprar('Fundo Azul Neon', 200)">Comprar</button>
       </div>
     </div>
-  </main>
+  </section>
+
+  <div class="secao-titulo">
+    <h2>Recompensas Disponiveis</h2>
+
+    <div class="filtros" aria-label="Filtrar recompensas">
+      <button
+        type="button"
+        *ngFor="let categoria of categorias"
+        [class.ativo]="filtroCategoria === categoria"
+        (click)="filtroCategoria = categoria"
+      >
+        {{ labelCategoria(categoria) }}
+      </button>
+    </div>
+  </div>
+
+  <div class="estado" *ngIf="carregando">
+    Carregando recompensas...
+  </div>
+
+  <div class="estado" *ngIf="!carregando && itensFiltrados.length === 0">
+    Nenhuma recompensa encontrada para esta categoria.
+  </div>
+
+  <section class="grid-recompensas" *ngIf="!carregando && itensFiltrados.length > 0">
+    <article class="recompensa-card" *ngFor="let item of itensFiltrados" [class.esgotado]="estaEsgotado(item)">
+      <div class="card-topo">
+        <span class="reward-icon" [ngClass]="classeCor(item.cor)">
+          <i class="bi" [ngClass]="iconeBootstrap(item.icone)"></i>
+        </span>
+
+        <span class="badge-categoria">{{ labelCategoria(item.categoria) }}</span>
+      </div>
+
+      <span class="badge-esgotado" *ngIf="estaEsgotado(item)">Esgotada</span>
+
+      <h3>{{ item.nome }}</h3>
+      <p>{{ item.descricao || 'Recompensa disponivel para resgate.' }}</p>
+
+      <div class="estoque">
+        <span>Quantidade disponivel</span>
+        <strong [class.vazio]="estaEsgotado(item)">
+          {{ estaEsgotado(item) ? 'Esgotada' : ((item.quantidadeDisponivel ?? 0) + ' un.') }}
+        </strong>
+      </div>
+
+      <div class="card-rodape">
+        <div class="custo">
+          <span><i class="bi bi-star-fill"></i> Custa</span>
+          <strong>{{ item.custoXp | number: '1.0-0' }} XP</strong>
+        </div>
+
+        <button type="button" class="btn-resgatar" [disabled]="estaEsgotado(item)" (click)="resgatarItem(item)">
+          {{ estaEsgotado(item) ? 'Esgotado' : 'Resgatar' }}
+        </button>
+      </div>
+
+      <div class="acoes-admin">
+        <button type="button" class="btn-secondary" (click)="editarItem(item)">
+          <i class="bi bi-pencil"></i>
+          Editar
+        </button>
+
+        <button type="button" class="btn-danger" (click)="excluirItem(item)">
+          <i class="bi bi-trash"></i>
+          Excluir
+        </button>
+      </div>
+    </article>
+  </section>
+
+  <section class="xp-help">
+    <span class="help-icon">
+      <i class="bi bi-gift"></i>
+    </span>
+
+    <div>
+      <h2>Como ganhar mais XP?</h2>
+      <p>Complete tarefas, alcance metas, ajude colegas e participe de projetos para acumular pontos.</p>
+
+      <div class="legenda-xp">
+        <span><i class="facil"></i> Tarefas faceis: +10 XP</span>
+        <span><i class="media"></i> Tarefas medias: +20 XP</span>
+        <span><i class="dificil"></i> Tarefas dificeis: +50 XP</span>
+      </div>
+    </div>
+  </section>
+</section>
+
+<div class="modal-backdrop" *ngIf="mostrarModal">
+  <form class="modal-recompensa" (ngSubmit)="salvarItem()">
+    <div class="modal-header">
+      <h2>{{ itemEditando ? 'Editar Recompensa' : 'Nova Recompensa' }}</h2>
+
+      <button type="button" class="btn-icon" aria-label="Fechar" (click)="fecharModal()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="form-grid">
+      <label>
+        Nome da Recompensa
+        <input name="nome" type="text" [(ngModel)]="formulario.nome" placeholder="Ex: Vale Presente" required />
+      </label>
+
+      <label>
+        Custo em XP
+        <input name="custoXp" type="number" min="1" [(ngModel)]="formulario.custoXp" placeholder="Ex: 500" required />
+      </label>
+
+      <label>
+        Quantidade Disponivel
+        <input name="quantidade" type="number" min="0" [(ngModel)]="formulario.quantidadeDisponivel" required />
+      </label>
+    </div>
+
+    <label>
+      Descricao
+      <textarea name="descricao" rows="4" [(ngModel)]="formulario.descricao" placeholder="Descreva a recompensa..."></textarea>
+    </label>
+
+    <div class="form-grid">
+      <label>
+        Categoria
+        <select name="categoria" [(ngModel)]="formulario.categoria">
+          <option *ngFor="let categoria of opcoesCategoria" [ngValue]="categoria">
+            {{ labelCategoria(categoria) }}
+          </option>
+        </select>
+      </label>
+
+      <label>
+        Icone
+        <select name="icone" [(ngModel)]="formulario.icone">
+          <option *ngFor="let icone of opcoesIcone" [ngValue]="icone">
+            {{ icone }}
+          </option>
+        </select>
+      </label>
+
+      <label>
+        Cor
+        <select name="cor" [(ngModel)]="formulario.cor">
+          <option *ngFor="let cor of opcoesCor" [ngValue]="cor">
+            {{ cor }}
+          </option>
+        </select>
+      </label>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" (click)="fecharModal()">Cancelar</button>
+      <button type="submit" class="btn-primary" [disabled]="salvando">
+        {{ salvando ? 'Salvando...' : (itemEditando ? 'Salvar Alteracoes' : 'Criar Recompensa') }}
+      </button>
+    </div>
+  </form>
 </div>
