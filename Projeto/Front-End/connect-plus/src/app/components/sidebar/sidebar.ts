@@ -75,6 +75,7 @@ export class Sidebar implements OnInit, OnDestroy {
     { label: 'Usuários', icon: 'group', route: '/usuarios' },
     { label: 'Configurações', icon: 'settings', route: '/configuracoes' },
     { label: 'Sair', icon: 'logout', route: '/login' },
+    { label: 'Suporte Interno', icon: 'support_agent', route: '/suporte-interno' },
   ];
 
   ngOnInit(): void {

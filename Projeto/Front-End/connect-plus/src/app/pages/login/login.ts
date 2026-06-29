@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { LoginService } from './login.service';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -13,6 +14,7 @@ import { LoginService } from './login.service';
   styleUrl: './login.css',
 })
 export class Login {
+
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private loginService = inject(LoginService);

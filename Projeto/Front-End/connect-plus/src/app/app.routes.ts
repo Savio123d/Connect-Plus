@@ -62,6 +62,14 @@ export const routes: Routes = [
         path: 'loja',
         loadComponent: () => import('./pages/loja/loja').then((module) => module.Loja),
       },
+        {
+        path: 'sobre-nos',
+        loadComponent: () => import('./pages/sobre-nos/sobre-nos').then((module) => module.SobreNos)
+        },
+        {
+        path: 'suporte-interno',
+        loadComponent: () => import('./pages/suporte-interno/suporte-interno.component').then((module) => module.SuporteInternoComponent)
+        }
     ],
   },
   {
