@@ -1,17 +1,16 @@
 package conne.connect.connect.Config;
 
-import conne.connect.connect.Services.MensageriaAcessoService;
-import conne.connect.connect.Services.MensageriaRealtimeService;
+import conne.connect.connect.Conversa.service.MensageriaAcessoService;
+import conne.connect.connect.Conversa.service.MensageriaRealtimeService;
+import java.io.IOException;
+import java.net.URI;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.socket.CloseStatus;
-import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
+import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import java.io.IOException;
-import java.net.URI;
 
 @Component
 public class ChatWebSocketHandler extends TextWebSocketHandler {

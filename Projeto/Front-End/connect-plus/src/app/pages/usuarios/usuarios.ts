@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Usuario, UsuarioService } from './usuario.service';
-import { Sidebar } from '../../components/sidebar/sidebar';
 
 type ModalUsuario = 'criar' | 'editar' | 'excluir' | null;
 
@@ -14,7 +13,7 @@ interface OpcaoSelect {
 @Component({
   selector: 'app-usuarios',
   standalone: true,
-  imports: [CommonModule, FormsModule, Sidebar],
+  imports: [CommonModule, FormsModule],
   templateUrl: './usuarios.html',
   styleUrl: './usuarios.css'
 })

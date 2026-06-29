@@ -2,7 +2,6 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Sidebar } from '../../components/sidebar/sidebar';
 import {
   MarcoStatus,
   Pessoa,
@@ -18,7 +17,7 @@ type AbaProjeto = 'equipe' | 'tarefas' | 'marcos' | 'horas';
 @Component({
   selector: 'app-projeto-detalhe',
   standalone: true,
-  imports: [CommonModule, FormsModule, Sidebar],
+  imports: [CommonModule, FormsModule],
   templateUrl: './projeto-detalhe.html',
   styleUrl: './projeto-detalhe.css',
 })

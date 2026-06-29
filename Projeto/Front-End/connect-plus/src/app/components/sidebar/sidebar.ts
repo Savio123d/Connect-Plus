@@ -3,6 +3,8 @@ import { ChangeDetectorRef, OnDestroy, Component, OnInit, inject } from '@angula
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { AuthSessionService } from '../../core/auth-session.service';
+import { environment } from '../../../environments/environment';
 
 interface MenuItem {
   label: string;
@@ -48,6 +50,7 @@ export class Sidebar implements OnInit, OnDestroy {
   private router = inject(Router);
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
+  private authSessionService = inject(AuthSessionService);
 
   usuarioLogado: UsuarioLogado | null = null;
 
@@ -59,7 +62,7 @@ export class Sidebar implements OnInit, OnDestroy {
   mostrarNotificacoes = false;
 
   private intervaloNotificacoes?: ReturnType<typeof setInterval>;
-  private readonly apiNotificacoes = 'http://localhost:8080/api/notificacoes';
+  private readonly apiNotificacoes = `${environment.apiBase}/api/notificacoes`;
 
   menuItems: MenuItem[] = [
     { label: 'Início', icon: 'home', route: '/dashboard' },
@@ -217,6 +220,8 @@ export class Sidebar implements OnInit, OnDestroy {
   }
 
   sair(): void {
+    this.authSessionService.limparSessao();
+
     localStorage.removeItem('usuarioLogado');
     localStorage.removeItem('idUsuario');
     localStorage.removeItem('idUsuarioEmpresa');

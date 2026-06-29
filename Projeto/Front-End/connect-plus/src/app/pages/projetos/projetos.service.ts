@@ -1,12 +1,13 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
-import { LoginService } from '../login/login.service';
+import { AuthSessionService } from '../../core/auth-session.service';
+import { environment } from '../../../environments/environment';
 
 export type ProjetoStatus = 'planejamento' | 'em_andamento' | 'concluido' | 'cancelado';
-export type PrioridadeProjeto = 'Alta' | 'Média' | 'Baixa';
-export type TarefaStatus = 'A Fazer' | 'Em Andamento' | 'Concluído';
-export type MarcoStatus = 'Pendente' | 'Em Andamento' | 'Concluído';
+export type PrioridadeProjeto = string;
+export type TarefaStatus = string;
+export type MarcoStatus = string;
 
 export interface Pessoa {
   id: number;
@@ -57,32 +58,32 @@ export interface Projeto {
   providedIn: 'root',
 })
 export class ProjetosService {
-  private readonly apiUrl = 'http://localhost:8080/api/projetos';
+  private readonly apiUrl = `${environment.apiBase}/api/projetos`;
 
   usuariosDisponiveis: Pessoa[] = [];
 
   constructor(
     private http: HttpClient,
-    private loginService: LoginService,
+    private authSessionService: AuthSessionService,
   ) {}
 
   listar(): Observable<Projeto[]> {
-    const empresaId = this.getEmpresaId();
-
-    return this.http.get<Projeto[]>(`${this.apiUrl}?empresaId=${empresaId}`);
+    return this.http.get<Projeto[]>(this.apiUrl, {
+      params: this.criarParamsEmpresa(),
+    });
   }
 
   buscarPorId(id: number): Observable<Projeto> {
-    const empresaId = this.getEmpresaId();
-
-    return this.http.get<Projeto>(`${this.apiUrl}/${id}?empresaId=${empresaId}`);
+    return this.http.get<Projeto>(`${this.apiUrl}/${id}`, {
+      params: this.criarParamsEmpresa(),
+    });
   }
 
   carregarUsuariosDisponiveis(): Observable<Pessoa[]> {
-    const empresaId = this.getEmpresaId();
-
     return this.http
-      .get<Pessoa[]>(`${this.apiUrl}/usuarios-disponiveis?empresaId=${empresaId}`)
+      .get<Pessoa[]>(`${this.apiUrl}/usuarios-disponiveis`, {
+        params: this.criarParamsEmpresa(),
+      })
       .pipe(tap((usuarios) => (this.usuariosDisponiveis = usuarios)));
   }
 
@@ -93,11 +94,9 @@ export class ProjetosService {
     liderId: number;
     membrosIds: number[];
   }): Observable<Projeto> {
-    const empresaId = this.getEmpresaId();
-
     return this.http.post<Projeto>(this.apiUrl, {
       ...dados,
-      empresaId,
+      empresaId: this.getEmpresaId(),
     });
   }
 
@@ -153,18 +152,22 @@ export class ProjetosService {
     const textos: Record<ProjetoStatus, string> = {
       planejamento: 'Planejamento',
       em_andamento: 'Em Andamento',
-      concluido: 'Concluído',
+      concluido: 'Concluido',
       cancelado: 'Cancelado',
     };
 
-    return textos[status];
+    return textos[status] ?? status;
+  }
+
+  private criarParamsEmpresa(): HttpParams {
+    return new HttpParams().set('empresaId', String(this.getEmpresaId()));
   }
 
   private getEmpresaId(): number {
-    const empresaId = this.loginService.getEmpresaId();
+    const empresaId = this.authSessionService.obterIdEmpresa();
 
     if (!empresaId) {
-      throw new Error('Empresa do usuário logado não encontrada.');
+      throw new Error('Empresa do usuario logado nao encontrada.');
     }
 
     return empresaId;

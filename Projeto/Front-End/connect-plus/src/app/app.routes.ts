@@ -1,11 +1,10 @@
 import { Routes } from '@angular/router';
-import { SobreNos } from './pages/sobre-nos/sobre-nos';
 
 export const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'login',
+    redirectTo: 'sobre-nos',
   },
   {
     path: 'login',
@@ -17,8 +16,8 @@ export const routes: Routes = [
       import('./pages/cadastro-empresa/cadastro-empresa').then((module) => module.CadastroEmpresa),
   },
   {
-    path: 'login',
-    loadComponent: () => import('./pages/login/login').then((module) => module.Login),
+    path: 'sobre-nos',
+    loadComponent: () => import('./pages/sobre-nos/sobre-nos').then((module) => module.SobreNos),
   },
   {
     path: '',
@@ -27,6 +26,10 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         loadComponent: () => import('./pages/dashboard/dashboard').then((module) => module.Menu),
+      },
+      {
+        path: 'perfil',
+        loadComponent: () => import('./pages/perfil/perfil').then((module) => module.Perfil),
       },
       {
         path: 'usuarios',

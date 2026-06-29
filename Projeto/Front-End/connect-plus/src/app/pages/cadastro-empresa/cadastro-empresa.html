@@ -6,7 +6,7 @@
     </div>
 
     <h1 class="page-title">Cadastro de Empresa</h1>
-    <p class="page-subtitle">Complete os dados da sua empresa para começar</p>
+    <p class="page-subtitle">Complete os dados da sua empresa para comecar</p>
   </header>
 
   <form
@@ -14,15 +14,19 @@
     [formGroup]="cadastroForm"
     (ngSubmit)="onSubmit()"
   >
+    <div class="feedback feedback-error" *ngIf="mensagemErro">
+      {{ mensagemErro }}
+    </div>
+
     <section class="cadastro-card">
       <div class="card-header-custom">
-        <span class="section-icon">▣</span>
-        <h2 class="section-title">Informações da Empresa</h2>
+        <span class="section-icon">i</span>
+        <h2 class="section-title">Informacoes da Empresa</h2>
       </div>
 
       <div class="row g-4">
         <div class="col-12">
-          <label class="form-label">Razão Social</label>
+          <label class="form-label">Razao Social</label>
           <input
             type="text"
             class="form-control"
@@ -47,13 +51,13 @@
             type="text"
             class="form-control"
             formControlName="cnpj"
-            maxlength="14"
+            maxlength="18"
             placeholder="00.000.000/0000-00"
           />
         </div>
 
         <div class="col-md-6">
-          <label class="form-label">Situação</label>
+          <label class="form-label">Situacao</label>
           <select class="form-select" formControlName="status">
             <option [value]="Status.Ativa">Ativa</option>
             <option [value]="Status.Inativa">Inativa</option>
@@ -84,8 +88,8 @@
 
     <section class="cadastro-card">
       <div class="card-header-custom">
-        <span class="section-icon section-icon-blue">▣</span>
-        <h2 class="section-title">Primeiro Acesso - Credenciais Temporárias</h2>
+        <span class="section-icon section-icon-blue">i</span>
+        <h2 class="section-title">Primeiro Acesso - Credenciais Temporarias</h2>
       </div>
 
       <p class="section-description">
@@ -99,7 +103,7 @@
             type="text"
             class="form-control"
             formControlName="nomeAdmin"
-            placeholder="Nome completo do responsável"
+            placeholder="Nome completo do responsavel"
           />
         </div>
 
@@ -114,12 +118,12 @@
         </div>
 
         <div class="col-md-6">
-          <label class="form-label">Senha Temporária</label>
+          <label class="form-label">Senha Temporaria</label>
           <input
             type="password"
             class="form-control"
             formControlName="senhaAdmin"
-            placeholder="Mínimo 8 caracteres"
+            placeholder="Minimo 8 caracteres"
           />
         </div>
 
@@ -137,10 +141,10 @@
       <div class="info-box">
         <span class="info-icon">i</span>
         <div>
-          <strong>Pronto para começar!</strong>
+          <strong>Pronto para comecar!</strong>
           <p>
-            Após o cadastro, o gestor poderá fazer login com essas
-            credenciais e será solicitada a alteração da senha no primeiro
+            Apos o cadastro, o gestor podera fazer login com essas
+            credenciais e sera solicitada a alteracao da senha no primeiro
             acesso.
           </p>
         </div>
@@ -151,8 +155,8 @@
           Voltar
         </button>
 
-        <button type="submit" class="btn btn-primary-custom">
-          Cadastrar Empresa
+        <button type="submit" class="btn btn-primary-custom" [disabled]="enviando">
+          {{ enviando ? 'Cadastrando...' : 'Cadastrar Empresa' }}
         </button>
       </div>
     </section>

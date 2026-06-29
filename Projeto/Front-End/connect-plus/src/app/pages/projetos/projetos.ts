@@ -2,13 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Sidebar } from '../../components/sidebar/sidebar';
 import { Projeto, ProjetosService } from './projetos.service';
 
 @Component({
   selector: 'app-projetos',
   standalone: true,
-  imports: [CommonModule, FormsModule, Sidebar],
+  imports: [CommonModule, FormsModule],
   templateUrl: './projetos.html',
   styleUrl: './projetos.css',
 })

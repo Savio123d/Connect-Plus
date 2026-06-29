@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 export interface CadastroEmpresaCompleto {
   razaoSocial: string;
@@ -16,7 +17,7 @@ export interface CadastroEmpresaCompleto {
   providedIn: 'root',
 })
 export class EmpresaService {
-  private apiUrl = '/api/empresas';
+  private readonly apiUrl = `${environment.apiBase}/api/empresas`;
 
   constructor(private http: HttpClient) {}
 
