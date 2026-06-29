@@ -16,6 +16,7 @@ import {
   ConversaDetalhe,
   ConversaResumo,
   Mensagem,
+  MensagemAnexo,
   TipoConversa,
   UsuarioChat,
 } from './chat.model';
@@ -42,6 +43,8 @@ export class Chat implements OnInit, OnDestroy, AfterViewChecked {
   termoBusca = '';
   novaMensagem = '';
   filtroTipo: TipoConversa | '' = '';
+  imagemSelecionada: File | null = null;
+  imagemPreviewUrl = '';
 
   carregandoConversas = false;
   enviandoMensagem = false;
@@ -57,6 +60,8 @@ export class Chat implements OnInit, OnDestroy, AfterViewChecked {
   private precisaRolarFinal = false;
   private tentandoReconectar = false;
   carregandoMensagens = false;
+  private readonly tiposImagemPermitidos = ['image/png', 'image/jpeg', 'image/webp'];
+  private readonly tamanhoMaximoImagem = 5 * 1024 * 1024;
 
   constructor(
     private chatService: ChatService,
@@ -89,6 +94,8 @@ export class Chat implements OnInit, OnDestroy, AfterViewChecked {
     if (this.socket) {
       this.socket.close();
     }
+
+    this.liberarPreviewImagem();
   }
 
   get conversasFiltradas(): ConversaResumo[] {
@@ -367,7 +374,7 @@ export class Chat implements OnInit, OnDestroy, AfterViewChecked {
   enviarMensagem(): void {
     const texto = this.novaMensagem.trim();
 
-    if (!texto || !this.conversaSelecionada || this.enviandoMensagem) {
+    if ((!texto && !this.imagemSelecionada) || !this.conversaSelecionada || this.enviandoMensagem) {
       return;
     }
 
@@ -375,10 +382,32 @@ export class Chat implements OnInit, OnDestroy, AfterViewChecked {
 
     this.enviandoMensagem = true;
 
-    this.chatService.enviarMensagem(this.usuarioEmpresaId, idConversa, texto).subscribe({
+    if (this.imagemSelecionada) {
+      this.chatService
+        .enviarImagemChat(this.usuarioEmpresaId, this.empresaId, this.imagemSelecionada)
+        .subscribe({
+          next: (anexo) => this.enviarMensagemComAnexo(idConversa, texto, anexo),
+          error: (erro) => {
+            this.ngZone.run(() => {
+              console.error('Erro ao enviar imagem:', erro);
+              this.mensagemErro = erro?.error?.message ?? 'Nao foi possivel enviar a imagem.';
+              this.enviandoMensagem = false;
+              this.atualizarTela();
+            });
+          },
+        });
+      return;
+    }
+
+    this.enviarMensagemComAnexo(idConversa, texto);
+  }
+
+  private enviarMensagemComAnexo(idConversa: number, texto: string, anexo?: MensagemAnexo): void {
+    this.chatService.enviarMensagem(this.usuarioEmpresaId, idConversa, texto, anexo, anexo ? 'imagem' : 'texto').subscribe({
       next: (mensagem) => {
         this.ngZone.run(() => {
           this.novaMensagem = '';
+          this.limparImagemSelecionada();
           this.enviandoMensagem = false;
 
           if (this.conversaSelecionada?.id === idConversa) {
@@ -400,6 +429,36 @@ export class Chat implements OnInit, OnDestroy, AfterViewChecked {
         });
       },
     });
+  }
+
+  selecionarImagem(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const arquivo = input.files?.[0];
+    input.value = '';
+
+    if (!arquivo) {
+      return;
+    }
+
+    if (!this.tiposImagemPermitidos.includes(arquivo.type)) {
+      this.mensagemErro = 'Envie apenas imagens PNG, JPG ou WebP.';
+      return;
+    }
+
+    if (arquivo.size > this.tamanhoMaximoImagem) {
+      this.mensagemErro = 'A imagem deve ter no maximo 5 MB.';
+      return;
+    }
+
+    this.mensagemErro = '';
+    this.liberarPreviewImagem();
+    this.imagemSelecionada = arquivo;
+    this.imagemPreviewUrl = URL.createObjectURL(arquivo);
+  }
+
+  limparImagemSelecionada(): void {
+    this.imagemSelecionada = null;
+    this.liberarPreviewImagem();
   }
 
   private atualizarUltimaMensagemDaConversa(idConversa: number, mensagem: Mensagem): void {
@@ -460,10 +519,16 @@ export class Chat implements OnInit, OnDestroy, AfterViewChecked {
     }
 
     if (conversa.ultimaMensagem.anexo) {
-      return `Arquivo: ${conversa.ultimaMensagem.anexo.filename}`;
+      return this.ehAnexoImagem(conversa.ultimaMensagem)
+        ? `Imagem: ${conversa.ultimaMensagem.anexo.filename}`
+        : `Arquivo: ${conversa.ultimaMensagem.anexo.filename}`;
     }
 
     return conversa.ultimaMensagem.conteudo || 'Mensagem sem texto';
+  }
+
+  ehAnexoImagem(mensagem: Mensagem): boolean {
+    return mensagem.tipo === 'imagem' || mensagem.anexo?.tipoMime?.startsWith('image/') === true;
   }
 
   formatarHorario(data?: string): string {
@@ -607,6 +672,13 @@ export class Chat implements OnInit, OnDestroy, AfterViewChecked {
 
   private atualizarTela(): void {
     this.cdr.detectChanges();
+  }
+
+  private liberarPreviewImagem(): void {
+    if (this.imagemPreviewUrl) {
+      URL.revokeObjectURL(this.imagemPreviewUrl);
+      this.imagemPreviewUrl = '';
+    }
   }
 
   private buscarUsuarioEmpresaId(): number {
