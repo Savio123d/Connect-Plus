@@ -13,6 +13,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -35,6 +36,7 @@ public class UsuarioService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional(readOnly = true)
     public List<UsuarioDTO> findAll() {
         return usuarioRepository.findAll()
                 .stream()
@@ -43,6 +45,7 @@ public class UsuarioService {
     }
 
     @Cacheable(value = "usuariosPorEmpresa", key = "#idEmpresa")
+    @Transactional(readOnly = true)
     public List<UsuarioDTO> listarUsuariosDaEmpresa(Long idEmpresa) {
         return usuarioEmpresaRepository.findByIdEmpresa_IdEmpresa(idEmpresa)
                 .stream()
@@ -60,6 +63,7 @@ public class UsuarioService {
         return UsuarioDTO.fromModel(usuarioRepository.save(usuarioModel));
     }
 
+    @Transactional(readOnly = true)
     public UsuarioDTO buscarPorId(Long idUsuario){
         return UsuarioDTO.fromModel(buscarUsuarioExistente(idUsuario));
     }

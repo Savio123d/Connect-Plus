@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UsuarioEmpresaService {
@@ -14,6 +15,7 @@ public class UsuarioEmpresaService {
     @Autowired
     private UsuarioEmpresaRepository usuarioEmpresaRepository;
 
+    @Transactional(readOnly = true)
     public List<UsuarioEmpresaModel> findAll() {
         return usuarioEmpresaRepository.findAll();
     }
@@ -24,6 +26,7 @@ public class UsuarioEmpresaService {
         return usuarioEmpresaRepository.save(usuarioEmpresaModel);
     }
 
+    @Transactional(readOnly = true)
     public Optional<UsuarioEmpresaModel> buscarPorId(Long idUsuarioEmpresa) {
         return usuarioEmpresaRepository.findById(idUsuarioEmpresa);
     }

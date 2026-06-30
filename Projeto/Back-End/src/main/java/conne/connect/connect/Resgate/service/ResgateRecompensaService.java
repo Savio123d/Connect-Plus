@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ResgateRecompensaService {
@@ -13,6 +14,7 @@ public class ResgateRecompensaService {
     @Autowired
     private ResgateRecompensaRepository resgateRecompensaRepository;
 
+    @Transactional(readOnly = true)
     public List<ResgateRecompensaModel> findAll() {
         return resgateRecompensaRepository.findAll();
     }
@@ -21,6 +23,7 @@ public class ResgateRecompensaService {
         return resgateRecompensaRepository.save(resgateRecompensaModel);
     }
 
+    @Transactional(readOnly = true)
     public Optional<ResgateRecompensaModel> buscarPorId(Long idResgateRecompensa) {
         return resgateRecompensaRepository.findById(idResgateRecompensa);
     }

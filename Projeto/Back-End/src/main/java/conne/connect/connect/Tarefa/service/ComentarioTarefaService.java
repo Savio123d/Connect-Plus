@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ComentarioTarefaService {
@@ -13,6 +14,7 @@ public class ComentarioTarefaService {
     @Autowired
     private ComentarioTarefaRepository comentarioTarefaRepository;
 
+    @Transactional(readOnly = true)
     public List<ComentarioTarefaModel> findAll() {
         return comentarioTarefaRepository.findAll();
     }
@@ -21,6 +23,7 @@ public class ComentarioTarefaService {
         return comentarioTarefaRepository.save(comentarioTarefaModel);
     }
 
+    @Transactional(readOnly = true)
     public Optional<ComentarioTarefaModel> buscarPorId(Long idComentarioTarefa) {
         return comentarioTarefaRepository.findById(idComentarioTarefa);
     }

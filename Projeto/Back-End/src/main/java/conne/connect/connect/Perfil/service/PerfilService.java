@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -42,6 +43,7 @@ public class PerfilService {
         this.transacaoXpRepository = transacaoXpRepository;
     }
 
+    @Transactional(readOnly = true)
     public PerfilResponseDTO buscarPerfil(Long idUsuarioEmpresa) {
         if (idUsuarioEmpresa == null || idUsuarioEmpresa < 1) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuario empresa invalido.");

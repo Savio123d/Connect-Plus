@@ -38,16 +38,19 @@ public class TarefaService {
     @Autowired
     private UsuarioEmpresaRepository usuarioEmpresaRepository;
 
+    @Transactional(readOnly = true)
     public List<TarefaModel> findAll() {
         return tarefaRepository.findAll();
     }
 
     @Cacheable(value = "tarefasPorEmpresa", key = "#empresaId")
+    @Transactional(readOnly = true)
     public List<TarefaModel> listarPorEmpresa(Long empresaId) {
         return tarefaRepository.findByIdEmpresa_IdEmpresaAndExcluidoIsNull(empresaId);
     }
 
     @Cacheable(value = "tarefaPorId", key = "#idTarefa")
+    @Transactional(readOnly = true)
     public TarefaModel buscarPorId(Long idTarefa) {
         return tarefaRepository.findById(idTarefa)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarefa nao encontrada"));

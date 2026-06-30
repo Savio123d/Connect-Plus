@@ -12,6 +12,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -20,6 +21,7 @@ public class NotificacaoService {
     @Autowired
     private NotificacaoRepository notificacaoRepository;
 
+    @Transactional(readOnly = true)
     public List<NotificacaoModel> findAll() {
         return notificacaoRepository.findAll();
     }
@@ -32,6 +34,7 @@ public class NotificacaoService {
         return notificacaoRepository.save(notificacaoModel);
     }
 
+    @Transactional(readOnly = true)
     public Optional<NotificacaoModel> buscarPorId(Long idNotificacao) {
         return notificacaoRepository.findById(idNotificacao);
     }
@@ -75,6 +78,7 @@ public class NotificacaoService {
         notificacaoRepository.save(notificacao);
     }
 
+    @Transactional(readOnly = true)
     public List<NotificacaoResponseDTO> buscarPorUsuarioEmpresa(Long idUsuarioEmpresa) {
         return notificacaoRepository
                 .findByIdUsuarioEmpresa_IdUsuarioEmpresaAndExcluidoIsNullOrderByDataCriacaoDesc(
@@ -86,6 +90,7 @@ public class NotificacaoService {
     }
 
     @Cacheable(value = "notificacoesUltimas", key = "#idUsuarioEmpresa")
+    @Transactional(readOnly = true)
     public List<NotificacaoResponseDTO> buscarUltimasPorUsuarioEmpresa(Long idUsuarioEmpresa) {
         return notificacaoRepository
                 .findTop5ByIdUsuarioEmpresa_IdUsuarioEmpresaAndExcluidoIsNullOrderByDataCriacaoDesc(
@@ -97,6 +102,7 @@ public class NotificacaoService {
     }
 
     @Cacheable(value = "notificacoesNaoLidas", key = "#idUsuarioEmpresa")
+    @Transactional(readOnly = true)
     public long contarNaoLidasPorUsuarioEmpresa(Long idUsuarioEmpresa) {
         return notificacaoRepository
                 .countByIdUsuarioEmpresa_IdUsuarioEmpresaAndLidaFalseAndExcluidoIsNull(
