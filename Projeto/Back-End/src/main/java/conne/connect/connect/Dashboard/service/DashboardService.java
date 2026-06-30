@@ -8,6 +8,7 @@ import conne.connect.connect.Tarefa.repository.TarefaRepository;
 import conne.connect.connect.Usuario.repository.UsuarioEmpresaRepository;
 import java.time.LocalDate;
 import java.util.List;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -30,6 +31,7 @@ public class DashboardService {
         this.feedbackRepository = feedbackRepository;
     }
 
+    @Cacheable(value = "dashboardResumo", key = "#empresaId")
     public DashboardResumoDTO buscarResumo(Long empresaId) {
         Integer anoAtual = LocalDate.now().getYear();
 
