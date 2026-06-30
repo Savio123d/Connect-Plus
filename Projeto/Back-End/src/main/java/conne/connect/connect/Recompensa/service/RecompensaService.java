@@ -47,6 +47,7 @@ public class RecompensaService {
     @Autowired
     private ResgateRecompensaRepository resgateRecompensaRepository;
 
+    @Transactional(readOnly = true)
     public List<RecompensaModel> findAll() {
         return recompensaRepository.findAll();
     }
@@ -55,6 +56,7 @@ public class RecompensaService {
         return recompensaRepository.save(recompensaModel);
     }
 
+    @Transactional(readOnly = true)
     public Optional<RecompensaModel> buscarPorId(Long idRecompensa) {
         return recompensaRepository.findById(idRecompensa);
     }
@@ -73,6 +75,7 @@ public class RecompensaService {
         recompensaRepository.deleteById(idRecompensa);
     }
 
+    @Transactional(readOnly = true)
     public List<LojaItemDTO> listarItensLoja(Long idEmpresa, Long idUsuarioEmpresa, boolean somenteAtivas) {
         validarIdEmpresa(idEmpresa);
 
@@ -85,6 +88,7 @@ public class RecompensaService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public LojaItemDTO buscarItemLoja(Long idRecompensa, Long idEmpresa, Long idUsuarioEmpresa) {
         RecompensaModel recompensa = buscarRecompensaDaEmpresa(idRecompensa, idEmpresa);
         return toLojaItemDTO(recompensa, idUsuarioEmpresa);

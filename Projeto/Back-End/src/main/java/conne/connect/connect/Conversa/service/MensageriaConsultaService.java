@@ -14,31 +14,37 @@ import conne.connect.connect.Conversa.repository.ConversaParticipanteRepository;
 import conne.connect.connect.Conversa.repository.MensagemRepository;
 import conne.connect.connect.Conversa.repository.MsgAnexoRepository;
 import conne.connect.connect.Conversa.repository.MsgLeituraRepository;
+import conne.connect.connect.Imagem.service.ImagemSistemaService;
 import conne.connect.connect.Usuario.model.UsuarioEmpresaModel;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional(readOnly = true)
 public class MensageriaConsultaService {
 
     private final ConversaParticipanteRepository conversaParticipanteRepository;
     private final MensagemRepository mensagemRepository;
     private final MsgLeituraRepository msgLeituraRepository;
     private final MsgAnexoRepository msgAnexoRepository;
+    private final ImagemSistemaService imagemSistemaService;
 
     public MensageriaConsultaService(
             ConversaParticipanteRepository conversaParticipanteRepository,
             MensagemRepository mensagemRepository,
             MsgLeituraRepository msgLeituraRepository,
-            MsgAnexoRepository msgAnexoRepository
+            MsgAnexoRepository msgAnexoRepository,
+            ImagemSistemaService imagemSistemaService
     ) {
         this.conversaParticipanteRepository = conversaParticipanteRepository;
         this.mensagemRepository = mensagemRepository;
         this.msgLeituraRepository = msgLeituraRepository;
         this.msgAnexoRepository = msgAnexoRepository;
+        this.imagemSistemaService = imagemSistemaService;
     }
 
     public List<ConversaResumoDTO> listarConversas(UsuarioEmpresaModel usuarioLogado, TipoConversa tipo) {
@@ -180,7 +186,7 @@ public class MensageriaConsultaService {
         MensagemAnexoDTO dto = new MensagemAnexoDTO();
         dto.setId(anexo.getIdMsgAnexo());
         dto.setFilename(anexo.getNome());
-        dto.setData(anexo.getUrl());
+        dto.setData(imagemSistemaService.urlPublica(anexo.getUrl()));
         dto.setTipoMime(anexo.getTipo());
         dto.setTamanho(anexo.getTamanho());
         return dto;

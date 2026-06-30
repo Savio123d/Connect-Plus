@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SaldoXpService {
@@ -13,6 +14,7 @@ public class SaldoXpService {
     @Autowired
     private SaldoXpRepository saldoXpRepository;
 
+    @Transactional(readOnly = true)
     public List<SaldoXpModel> findAll() {
         return saldoXpRepository.findAll();
     }
@@ -21,10 +23,12 @@ public class SaldoXpService {
         return saldoXpRepository.save(saldoXpModel);
     }
 
+    @Transactional(readOnly = true)
     public Optional<SaldoXpModel> buscarPorId(Long idSaldoXp) {
         return saldoXpRepository.findById(idSaldoXp);
     }
 
+    @Transactional(readOnly = true)
     public Integer buscarSaldoPorUsuarioEmpresa(Long idUsuarioEmpresa) {
         if (idUsuarioEmpresa == null || idUsuarioEmpresa < 1) {
             return 0;

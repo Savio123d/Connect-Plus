@@ -19,6 +19,7 @@ import conne.connect.connect.Conversa.repository.ConversaRepository;
 import conne.connect.connect.Conversa.repository.MensagemRepository;
 import conne.connect.connect.Conversa.repository.MsgAnexoRepository;
 import conne.connect.connect.Conversa.repository.MsgLeituraRepository;
+import conne.connect.connect.Imagem.service.ImagemSistemaService;
 import conne.connect.connect.Usuario.model.UsuarioEmpresaModel;
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
@@ -41,6 +42,7 @@ public class MensageriaService {
     private final MensageriaAcessoService mensageriaAcessoService;
     private final MensageriaConsultaService mensageriaConsultaService;
     private final MensageriaRealtimeService mensageriaRealtimeService;
+    private final ImagemSistemaService imagemSistemaService;
 
     public MensageriaService(
             ConversaParticipanteRepository conversaParticipanteRepository,
@@ -50,7 +52,8 @@ public class MensageriaService {
             MsgAnexoRepository msgAnexoRepository,
             MensageriaAcessoService mensageriaAcessoService,
             MensageriaConsultaService mensageriaConsultaService,
-            MensageriaRealtimeService mensageriaRealtimeService
+            MensageriaRealtimeService mensageriaRealtimeService,
+            ImagemSistemaService imagemSistemaService
     ) {
         this.conversaParticipanteRepository = conversaParticipanteRepository;
         this.conversaRepository = conversaRepository;
@@ -60,6 +63,7 @@ public class MensageriaService {
         this.mensageriaAcessoService = mensageriaAcessoService;
         this.mensageriaConsultaService = mensageriaConsultaService;
         this.mensageriaRealtimeService = mensageriaRealtimeService;
+        this.imagemSistemaService = imagemSistemaService;
     }
 
     @Transactional
@@ -289,7 +293,9 @@ public class MensageriaService {
         MsgAnexoModel anexo = new MsgAnexoModel();
         anexo.setIdMensagem(mensagem);
         anexo.setNome(anexoDTO.getFilename().trim());
-        anexo.setUrl(anexoDTO.getData().trim());
+        // Guardamos apenas a CHAVE do S3 (ex.: "chat/6/uuid.png"), nunca a URL completa.
+        String chave = imagemSistemaService.extrairChave(anexoDTO.getData());
+        anexo.setUrl(chave != null ? chave : anexoDTO.getData().trim());
         anexo.setTipo(anexoDTO.getTipoMime());
         anexo.setTamanho(anexoDTO.getTamanho());
         msgAnexoRepository.save(anexo);

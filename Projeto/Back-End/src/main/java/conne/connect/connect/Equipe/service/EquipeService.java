@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class EquipeService {
@@ -13,6 +14,7 @@ public class EquipeService {
     @Autowired
     private EquipeRepository equipeRepository;
 
+    @Transactional(readOnly = true)
     public List<EquipeModel> findAll() {
         return equipeRepository.findAll();
     }
@@ -21,6 +23,7 @@ public class EquipeService {
         return equipeRepository.save(equipeModel);
     }
 
+    @Transactional(readOnly = true)
     public Optional<EquipeModel> buscarPorId(Long idEquipe) {
         return equipeRepository.findById(idEquipe);
     }

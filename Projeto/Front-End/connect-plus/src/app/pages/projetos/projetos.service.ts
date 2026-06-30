@@ -25,6 +25,7 @@ export interface TarefaProjeto {
   id: number;
   titulo: string;
   responsavel: string;
+  idResponsavelUsuarioEmpresa?: number | null;
   prioridade: PrioridadeProjeto;
   status: TarefaStatus;
 }
@@ -120,7 +121,14 @@ export class ProjetosService {
     return this.http.post<Projeto>(`${this.apiUrl}/${projetoId}/marcos`, marco);
   }
 
-  adicionarTarefa(projetoId: number, tarefa: Omit<TarefaProjeto, 'id'>): Observable<Projeto> {
+  adicionarTarefa(
+    projetoId: number,
+    tarefa: Omit<TarefaProjeto, 'id'> & {
+      responsavelId?: number | null;
+      idResponsavelUsuarioEmpresa?: number | null;
+      horasEstimadas?: number;
+    },
+  ): Observable<Projeto> {
     return this.http.post<Projeto>(`${this.apiUrl}/${projetoId}/tarefas`, tarefa);
   }
 

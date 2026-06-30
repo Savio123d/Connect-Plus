@@ -382,8 +382,9 @@
           </div>
           <div class="mb-3">
             <label class="form-label">Responsável</label>
-            <select class="form-select" [(ngModel)]="novaTarefaResponsavel">
-              <option *ngFor="let membro of p.membros" [ngValue]="membro.nome">{{ membro.nome }}</option>
+            <select class="form-select" [(ngModel)]="novaTarefaResponsavelId">
+              <option [ngValue]="null">Selecione um responsável</option>
+              <option *ngFor="let membro of p.membros" [ngValue]="membro.id">{{ membro.nome }}</option>
             </select>
           </div>
           <div class="row g-3">

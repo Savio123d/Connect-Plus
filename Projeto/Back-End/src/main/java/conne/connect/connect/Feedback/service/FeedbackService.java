@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class FeedbackService {
@@ -13,6 +14,7 @@ public class FeedbackService {
     @Autowired
     private FeedbackRepository feedbackRepository;
 
+    @Transactional(readOnly = true)
     public List<FeedbackModel> findAll() {
         return feedbackRepository.findAll();
     }
@@ -21,6 +23,7 @@ public class FeedbackService {
         return feedbackRepository.save(feedbackModel);
     }
 
+    @Transactional(readOnly = true)
     public Optional<FeedbackModel> buscarPorId(Long idFeedback) {
         return feedbackRepository.findById(idFeedback);
     }

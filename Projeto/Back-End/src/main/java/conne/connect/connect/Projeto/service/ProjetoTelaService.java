@@ -12,9 +12,15 @@ import conne.connect.connect.Projeto.mapper.ProjetoTelaMapper;
 import conne.connect.connect.Projeto.model.MarcoProjetoTelaModel;
 import conne.connect.connect.Projeto.model.PessoaProjetoTelaModel;
 import conne.connect.connect.Projeto.model.ProjetoTelaModel;
-import conne.connect.connect.Projeto.model.TarefaProjetoTelaModel;
 import conne.connect.connect.Projeto.repository.PessoaProjetoTelaRepository;
 import conne.connect.connect.Projeto.repository.ProjetoTelaRepository;
+import conne.connect.connect.Tarefa.dto.TarefaRequestDTO;
+import conne.connect.connect.Tarefa.enums.DificuldadeTarefa;
+import conne.connect.connect.Tarefa.enums.PrioridadeTarefa;
+import conne.connect.connect.Tarefa.enums.StatusTarefa;
+import conne.connect.connect.Tarefa.model.TarefaModel;
+import conne.connect.connect.Tarefa.repository.TarefaRepository;
+import conne.connect.connect.Tarefa.service.TarefaService;
 import conne.connect.connect.Usuario.model.UsuarioEmpresaModel;
 import conne.connect.connect.Usuario.model.UsuarioModel;
 import conne.connect.connect.Usuario.repository.UsuarioEmpresaRepository;
@@ -23,6 +29,8 @@ import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +41,8 @@ public class ProjetoTelaService {
     private final PessoaProjetoTelaRepository pessoaRepository;
     private final EmpresaRepository empresaRepository;
     private final UsuarioEmpresaRepository usuarioEmpresaRepository;
+    private final TarefaService tarefaService;
+    private final TarefaRepository tarefaRepository;
     private final ProjetoTelaMapper mapper;
 
     public ProjetoTelaService(
@@ -40,16 +50,21 @@ public class ProjetoTelaService {
         PessoaProjetoTelaRepository pessoaRepository,
         EmpresaRepository empresaRepository,
         UsuarioEmpresaRepository usuarioEmpresaRepository,
+        TarefaService tarefaService,
+        TarefaRepository tarefaRepository,
         ProjetoTelaMapper mapper
     ) {
         this.projetoRepository = projetoRepository;
         this.pessoaRepository = pessoaRepository;
         this.empresaRepository = empresaRepository;
         this.usuarioEmpresaRepository = usuarioEmpresaRepository;
+        this.tarefaService = tarefaService;
+        this.tarefaRepository = tarefaRepository;
         this.mapper = mapper;
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "projetosPorEmpresa", key = "#empresaId")
     public List<ProjetoResponseDTO> listar(Long empresaId) {
         validarEmpresaId(empresaId);
         return mapper.toResponseList(projetoRepository.findByEmpresa_IdEmpresaOrderByIdProjetoDesc(empresaId));
@@ -76,6 +91,7 @@ public class ProjetoTelaService {
     }
 
     @Transactional
+    @CacheEvict(value = "projetosPorEmpresa", allEntries = true)
     public ProjetoResponseDTO criar(ProjetoRequestDTO request) {
         validarCriacao(request);
 
@@ -110,6 +126,7 @@ public class ProjetoTelaService {
     }
 
     @Transactional
+    @CacheEvict(value = "projetosPorEmpresa", allEntries = true)
     public ProjetoResponseDTO atualizarStatus(Long id, String statusTexto) {
         if (statusTexto == null || statusTexto.isBlank()) {
             throw new IllegalArgumentException("Status do projeto e obrigatorio.");
@@ -130,6 +147,7 @@ public class ProjetoTelaService {
     }
 
     @Transactional
+    @CacheEvict(value = "projetosPorEmpresa", allEntries = true)
     public void excluir(Long id) {
         if (!projetoRepository.existsById(id)) {
             throw new IllegalArgumentException("Projeto nao encontrado.");
@@ -139,6 +157,7 @@ public class ProjetoTelaService {
     }
 
     @Transactional
+    @CacheEvict(value = "projetosPorEmpresa", allEntries = true)
     public ProjetoResponseDTO adicionarMembro(Long projetoId, Long usuarioId) {
         if (usuarioId == null) {
             throw new IllegalArgumentException("Usuario e obrigatorio.");
@@ -159,6 +178,7 @@ public class ProjetoTelaService {
     }
 
     @Transactional
+    @CacheEvict(value = "projetosPorEmpresa", allEntries = true)
     public ProjetoResponseDTO adicionarMarco(Long projetoId, ProjetoRequestDTO request) {
         if (request == null) {
             throw new IllegalArgumentException("Dados do marco nao enviados.");
@@ -183,6 +203,7 @@ public class ProjetoTelaService {
     }
 
     @Transactional
+    @CacheEvict(value = "projetosPorEmpresa", allEntries = true)
     public ProjetoResponseDTO adicionarTarefa(Long projetoId, ProjetoRequestDTO request) {
         if (request == null) {
             throw new IllegalArgumentException("Dados da tarefa nao enviados.");
@@ -193,18 +214,35 @@ public class ProjetoTelaService {
         if (request.titulo() == null || request.titulo().isBlank()) {
             throw new IllegalArgumentException("Titulo da tarefa e obrigatorio.");
         }
-        if (request.responsavel() == null || request.responsavel().isBlank()) {
+
+        Long empresaId = obterEmpresaIdDoProjeto(projeto);
+        Long responsavelId = resolverResponsavelId(projeto, request);
+
+        if (responsavelId == null) {
             throw new IllegalArgumentException("Responsavel da tarefa e obrigatorio.");
         }
 
-        TarefaProjetoTelaModel tarefa = new TarefaProjetoTelaModel();
-        tarefa.setTitulo(request.titulo().trim());
-        tarefa.setResponsavel(request.responsavel().trim());
-        tarefa.setPrioridade(request.prioridade() != null ? request.prioridade() : PrioridadeProjetoTela.MEDIA);
-        tarefa.setStatus(TarefaStatusProjetoTela.from(request.status()));
-        tarefa.setProjeto(projeto);
+        PessoaProjetoTelaModel responsavel = buscarPessoaDaEmpresa(responsavelId, empresaId);
 
-        projeto.getTarefas().add(tarefa);
+        boolean responsavelJaEhMembro = projeto.getMembros().stream()
+            .anyMatch(membro -> obterUsuarioEmpresaId(membro).equals(responsavelId));
+
+        if (!responsavelJaEhMembro) {
+            projeto.getMembros().add(responsavel);
+        }
+
+        TarefaRequestDTO tarefaRequest = new TarefaRequestDTO();
+        tarefaRequest.setIdEmpresa(empresaId);
+        tarefaRequest.setIdProjeto(projeto.getIdProjeto());
+        tarefaRequest.setIdResponsavelUsuarioEmpresa(responsavelId);
+        tarefaRequest.setTitulo(request.titulo().trim());
+        tarefaRequest.setDescricao("");
+        tarefaRequest.setPrioridade(prioridadeTarefa(request.prioridade()));
+        tarefaRequest.setDificuldade(DificuldadeTarefa.medio);
+        tarefaRequest.setStatus(statusTarefa(request.status()));
+        tarefaRequest.setHorasEstimadas(request.horasEstimadas() != null ? request.horasEstimadas() : 8);
+
+        tarefaService.criarTarefa(tarefaRequest);
         recalcularProgresso(projeto);
 
         return mapper.toResponse(projetoRepository.save(projeto));
@@ -307,6 +345,50 @@ public class ProjetoTelaService {
         return pessoa.getIdPessoa();
     }
 
+    private Long resolverResponsavelId(ProjetoTelaModel projeto, ProjetoRequestDTO request) {
+        if (request.idResponsavelUsuarioEmpresa() != null) {
+            return request.idResponsavelUsuarioEmpresa();
+        }
+
+        if (request.responsavelId() != null) {
+            return request.responsavelId();
+        }
+
+        if (request.responsavel() == null || request.responsavel().isBlank()) {
+            return null;
+        }
+
+        String nomeResponsavel = request.responsavel().trim();
+
+        return projeto.getMembros().stream()
+            .filter(membro -> membro.getNome() != null && membro.getNome().equalsIgnoreCase(nomeResponsavel))
+            .map(this::obterUsuarioEmpresaId)
+            .findFirst()
+            .orElse(null);
+    }
+
+    private PrioridadeTarefa prioridadeTarefa(PrioridadeProjetoTela prioridade) {
+        if (prioridade == null) {
+            return PrioridadeTarefa.media;
+        }
+
+        return switch (prioridade) {
+            case BAIXA -> PrioridadeTarefa.baixa;
+            case MEDIA -> PrioridadeTarefa.media;
+            case ALTA -> PrioridadeTarefa.alta;
+        };
+    }
+
+    private StatusTarefa statusTarefa(String statusTexto) {
+        TarefaStatusProjetoTela status = TarefaStatusProjetoTela.from(statusTexto);
+
+        return switch (status) {
+            case A_FAZER -> StatusTarefa.pendente;
+            case EM_ANDAMENTO -> StatusTarefa.em_andamento;
+            case CONCLUIDO -> StatusTarefa.concluida;
+        };
+    }
+
     private String nomeDoUsuario(UsuarioEmpresaModel usuarioEmpresa) {
         UsuarioModel usuario = usuarioEmpresa.getIdUsuario();
         return usuario != null && usuario.getNome() != null ? usuario.getNome() : "";
@@ -338,9 +420,13 @@ public class ProjetoTelaService {
     }
 
     private void recalcularProgresso(ProjetoTelaModel projeto) {
-        int totalTarefas = projeto.getTarefas().size();
-        int tarefasConcluidas = (int) projeto.getTarefas().stream()
-            .filter(tarefa -> tarefa.getStatus() == TarefaStatusProjetoTela.CONCLUIDO)
+        List<TarefaModel> tarefas = projeto.getIdProjeto() != null
+            ? tarefaRepository.findByIdProjeto_IdProjetoAndExcluidoIsNullOrderByIdTarefaAsc(projeto.getIdProjeto())
+            : List.of();
+
+        int totalTarefas = tarefas.size();
+        int tarefasConcluidas = (int) tarefas.stream()
+            .filter(tarefa -> tarefa.getStatus() == StatusTarefa.concluida)
             .count();
 
         int totalMarcos = projeto.getMarcos().size();

@@ -6,6 +6,10 @@ import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Configuration
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
@@ -23,6 +27,15 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(chatWebSocketHandler, "/ws/chat")
-                .setAllowedOriginPatterns(allowedOrigins);
+                .setAllowedOriginPatterns(limparOrigensPermitidas());
+    }
+
+    private String[] limparOrigensPermitidas() {
+        List<String> origensPermitidas = Arrays.stream(allowedOrigins)
+                .map(String::trim)
+                .filter(origem -> !origem.isEmpty())
+                .collect(Collectors.toList());
+
+        return origensPermitidas.toArray(new String[0]);
     }
 }

@@ -18,5 +18,8 @@ public record ProjetoRequestDTO(
     String titulo,
     LocalDate data,
     String responsavel,
-    PrioridadeProjetoTela prioridade
+    Long responsavelId,
+    Long idResponsavelUsuarioEmpresa,
+    PrioridadeProjetoTela prioridade,
+    Integer horasEstimadas
 ) {}
