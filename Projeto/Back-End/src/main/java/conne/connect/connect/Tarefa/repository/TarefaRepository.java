@@ -11,6 +11,8 @@ public interface TarefaRepository extends JpaRepository<TarefaModel, Long> {
 
     List<TarefaModel> findByIdEmpresa_IdEmpresaAndExcluidoIsNull(Long idEmpresa);
 
+    List<TarefaModel> findByIdProjeto_IdProjetoAndExcluidoIsNullOrderByIdTarefaAsc(Long idProjeto);
+
     @Query(value = """
             select cast(extract(month from concluida_em) as int) as mes,
                    count(*) as total
