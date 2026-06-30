@@ -9,6 +9,7 @@ import conne.connect.connect.Usuario.repository.UsuarioRepository;
 import conne.connect.connect.Xp.model.SaldoXpModel;
 import conne.connect.connect.Xp.repository.SaldoXpRepository;
 import java.util.List;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,7 @@ public class UsuarioService {
                 .toList();
     }
 
+    @Cacheable(value = "usuariosPorEmpresa", key = "#idEmpresa")
     public List<UsuarioDTO> listarUsuariosDaEmpresa(Long idEmpresa) {
         return usuarioEmpresaRepository.findByIdEmpresa_IdEmpresa(idEmpresa)
                 .stream()
