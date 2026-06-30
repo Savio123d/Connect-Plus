@@ -35,7 +35,7 @@ export class ProjetoDetalhe implements OnInit {
 
   modalTarefaAberto = false;
   novaTarefaTitulo = '';
-  novaTarefaResponsavel = '';
+  novaTarefaResponsavelId: number | null = null;
   novaTarefaPrioridade: PrioridadeProjeto = 'Média';
   novaTarefaStatus: TarefaStatus = 'A Fazer';
 
@@ -159,7 +159,7 @@ export class ProjetoDetalhe implements OnInit {
 
   abrirModalTarefa(): void {
     this.novaTarefaTitulo = '';
-    this.novaTarefaResponsavel = this.projeto?.membros[0]?.nome ?? '';
+    this.novaTarefaResponsavelId = this.projeto?.membros[0]?.id ?? null;
     this.novaTarefaPrioridade = 'Média';
     this.novaTarefaStatus = 'A Fazer';
     this.modalTarefaAberto = true;
@@ -170,24 +170,42 @@ export class ProjetoDetalhe implements OnInit {
   }
 
   adicionarTarefa(): void {
-    if (!this.projeto || !this.novaTarefaTitulo || !this.novaTarefaResponsavel) {
+    if (!this.projeto || !this.novaTarefaTitulo || !this.novaTarefaResponsavelId) {
       alert('Preencha o título e o responsável da tarefa.');
       return;
     }
 
+    const responsavel = this.projeto.membros.find(
+      (membro) => membro.id === Number(this.novaTarefaResponsavelId),
+    );
+
     this.projetosService
       .adicionarTarefa(this.projeto.id, {
         titulo: this.novaTarefaTitulo,
-        responsavel: this.novaTarefaResponsavel,
+        responsavel: responsavel?.nome ?? '',
+        responsavelId: Number(this.novaTarefaResponsavelId),
+        idResponsavelUsuarioEmpresa: Number(this.novaTarefaResponsavelId),
         prioridade: this.novaTarefaPrioridade,
         status: this.novaTarefaStatus,
+        horasEstimadas: 8,
       })
       .subscribe({
         next: (projetoAtualizado) => {
           this.projeto = projetoAtualizado;
           this.fecharModalTarefa();
         },
-        error: () => alert('Não foi possível adicionar a tarefa.'),
+        error: (erro) => {
+          console.error('Erro ao adicionar tarefa:', erro);
+
+          const mensagem =
+            erro?.error?.erro ||
+            erro?.error?.message ||
+            erro?.error ||
+            erro?.message ||
+            'Nao foi possivel adicionar a tarefa.';
+
+          alert(mensagem);
+        },
       });
   }
 

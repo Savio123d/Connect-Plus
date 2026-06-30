@@ -1,5 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+
+import { AuthSessionService } from '../../core/auth-session.service';
+import {
+  ConquistaPerfil,
+  HistoricoDesempenho,
+  PerfilResponse,
+  PerfilService,
+  PerfilUsuario,
+} from './perfil.service';
 
 @Component({
   selector: 'app-perfil',
@@ -8,75 +17,79 @@ import { Component } from '@angular/core';
   templateUrl: './perfil.html',
   styleUrls: ['./perfil.css'],
 })
-export class Perfil {
-  usuario = {
-    nome: 'João Silva',
-    cargo: 'Desenvolvedor Full Stack',
-    email: 'joaosilva@empresa.com',
-    departamento: 'Tecnologia',
-    nivel: 7,
-    xpAtual: 3560,
-    xpProximoNivel: 5000,
-  };
+export class Perfil implements OnInit {
+  carregando = false;
+  mensagemErro = '';
 
-  conquistas = [
-    {
-      titulo: 'Primeira Tarefa',
-      icone: '◎',
-      cor: 'verde',
-    },
-    {
-      titulo: '10 Projetos',
-      icone: '🏆',
-      cor: 'laranja',
-    },
-    {
-      titulo: '100 Tarefas',
-      icone: '☆',
-      cor: 'azul',
-    },
-    {
-      titulo: 'MVP do Mês',
-      icone: '♙',
-      cor: 'roxo',
-    },
-  ];
+  usuario: PerfilUsuario = this.criarPerfilVazio();
+  conquistas: ConquistaPerfil[] = [];
+  historico: HistoricoDesempenho[] = [];
 
-  historico = [
-    {
-      mes: 'Janeiro',
-      tarefasConcluidas: 42,
-      xpGanho: 840,
-    },
-    {
-      mes: 'Fevereiro',
-      tarefasConcluidas: 38,
-      xpGanho: 760,
-    },
-    {
-      mes: 'Março',
-      tarefasConcluidas: 51,
-      xpGanho: 1020,
-    },
-    {
-      mes: 'Abril',
-      tarefasConcluidas: 47,
-      xpGanho: 940,
-    },
-  ];
+  constructor(
+    private perfilService: PerfilService,
+    private authSessionService: AuthSessionService,
+  ) {}
+
+  ngOnInit(): void {
+    this.carregarPerfil();
+  }
+
+  carregarPerfil(): void {
+    const idUsuarioEmpresa = this.pegarIdUsuarioEmpresa();
+
+    if (!idUsuarioEmpresa) {
+      this.mensagemErro = 'Nao foi possivel identificar o usuario logado. Faca login novamente.';
+      return;
+    }
+
+    this.carregando = true;
+    this.mensagemErro = '';
+
+    this.perfilService.buscarPerfil(idUsuarioEmpresa).subscribe({
+      next: (resposta: PerfilResponse) => {
+        this.usuario = resposta.usuario;
+        this.conquistas = resposta.conquistas ?? [];
+        this.historico = resposta.historico ?? [];
+        this.carregando = false;
+      },
+      error: (erro) => {
+        console.error('Erro ao buscar perfil:', erro);
+
+        this.limparPerfil();
+        this.mensagemErro = 'Nao foi possivel carregar os dados do perfil pela API.';
+        this.carregando = false;
+      },
+    });
+  }
+
+  pegarIdUsuarioEmpresa(): number | null {
+    const idUsuarioEmpresa = this.authSessionService.obterIdUsuarioEmpresa();
+    return idUsuarioEmpresa > 0 ? idUsuarioEmpresa : null;
+  }
+
+  limparPerfil(): void {
+    this.usuario = this.criarPerfilVazio();
+    this.conquistas = [];
+    this.historico = [];
+  }
 
   progressoXp(): number {
-    return Math.min(
-      (this.usuario.xpAtual / this.usuario.xpProximoNivel) * 100,
-      100
-    );
+    if (!this.usuario.xpProximoNivel || this.usuario.xpProximoNivel <= 0) {
+      return 0;
+    }
+
+    return Math.min((this.usuario.xpAtual / this.usuario.xpProximoNivel) * 100, 100);
   }
 
   xpRestante(): number {
-    return this.usuario.xpProximoNivel - this.usuario.xpAtual;
+    return Math.max(this.usuario.xpProximoNivel - this.usuario.xpAtual, 0);
   }
 
   iniciaisUsuario(): string {
+    if (!this.usuario.nome || !this.usuario.nome.trim()) {
+      return '--';
+    }
+
     const partesNome = this.usuario.nome.trim().split(' ');
 
     if (partesNome.length === 1) {
@@ -90,6 +103,28 @@ export class Perfil {
   }
 
   classeConquista(cor: string): string {
-    return `conquista-${cor}`;
+    return `conquista-${cor || 'azul'}`;
+  }
+
+  valorOuPlaceholder(valor: string | number | undefined | null): string {
+    if (valor === undefined || valor === null || valor === '') {
+      return 'Nao informado';
+    }
+
+    return String(valor);
+  }
+
+  private criarPerfilVazio(): PerfilUsuario {
+    return {
+      idUsuario: undefined,
+      idUsuarioEmpresa: undefined,
+      nome: '',
+      email: '',
+      cargo: '',
+      departamento: '',
+      nivel: 0,
+      xpAtual: 0,
+      xpProximoNivel: 500,
+    };
   }
 }

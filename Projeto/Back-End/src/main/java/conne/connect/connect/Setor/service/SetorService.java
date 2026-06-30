@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SetorService {
@@ -13,6 +14,7 @@ public class SetorService {
     @Autowired
     private SetorRepository setorRepository;
 
+    @Transactional(readOnly = true)
     public List<SetorModel> findAll() {
         return setorRepository.findAll();
     }
@@ -21,6 +23,7 @@ public class SetorService {
         return setorRepository.save(setorModel);
     }
 
+    @Transactional(readOnly = true)
     public Optional<SetorModel> buscarPorId(Long idSetor) {
         return setorRepository.findById(idSetor);
     }

@@ -1,0 +1,244 @@
+.suporte-publico {
+  min-height: 100vh;
+  width: 100%;
+  background: linear-gradient(135deg, #3f73e8 0%, #7a35f0 48%, #9a63f5 100%);
+  color: #ffffff;
+  overflow-x: hidden;
+}
+
+.topbar {
+  width: 100%;
+  height: 70px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.topbar-content {
+  max-width: 1230px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.brand-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #3367e8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.nav-links a {
+  color: rgba(255, 255, 255, 0.92);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 400;
+  transition: color 0.2s ease;
+}
+
+.nav-links a:hover {
+  color: #ffffff;
+}
+
+.suporte-container {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 48px 24px 60px;
+  text-align: center;
+}
+
+.hero-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 26px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-icon mat-icon {
+  width: 42px;
+  height: 42px;
+  font-size: 42px;
+  color: #ffffff;
+}
+
+.suporte-container h1 {
+  margin: 0;
+  font-size: 46px;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: #ffffff;
+}
+
+.subtitle {
+  margin: 18px auto 52px;
+  font-size: 19px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.cards-contato {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+.contato-card {
+  min-height: 234px;
+  padding: 32px 28px 26px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.10);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.card-icon mat-icon {
+  width: 34px;
+  height: 34px;
+  font-size: 34px;
+  color: #ffffff;
+}
+
+.card-icon.email {
+  background: linear-gradient(135deg, #2f80ed, #4aa3ff);
+}
+
+.card-icon.telefone {
+  background: linear-gradient(135deg, #1fc96b, #39d879);
+}
+
+.contato-card h2 {
+  margin: 0 0 14px;
+  font-size: 20px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.contato-card a {
+  margin-bottom: 18px;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.contato-card a:hover {
+  text-decoration: underline;
+}
+
+.card-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 13px;
+}
+
+.card-info mat-icon {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+}
+
+.ajuda-card {
+  min-height: 158px;
+  padding: 28px 42px 24px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.ajuda-card h3 {
+  margin: 0 0 16px;
+  font-size: 17px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.ajuda-card p {
+  max-width: 780px;
+  margin: 0 auto 20px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.ajuda-card span {
+  display: block;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .topbar-content {
+    padding: 0 18px;
+  }
+
+  .nav-links {
+    gap: 16px;
+  }
+
+  .suporte-container {
+    padding-top: 36px;
+  }
+
+  .suporte-container h1 {
+    font-size: 36px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+    margin-bottom: 36px;
+  }
+
+  .cards-contato {
+    grid-template-columns: 1fr;
+  }
+
+  .ajuda-card {
+    padding: 26px 22px;
+  }
+}

@@ -5,7 +5,9 @@ import conne.connect.connect.Usuario.repository.UsuarioEmpresaRepository;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UsuarioEmpresaService {
@@ -13,18 +15,23 @@ public class UsuarioEmpresaService {
     @Autowired
     private UsuarioEmpresaRepository usuarioEmpresaRepository;
 
+    @Transactional(readOnly = true)
     public List<UsuarioEmpresaModel> findAll() {
         return usuarioEmpresaRepository.findAll();
     }
 
+    // Cadastro/edicao/exclusao de vinculo invalida a lista de usuarios da empresa.
+    @CacheEvict(value = "usuariosPorEmpresa", allEntries = true)
     public UsuarioEmpresaModel criarUsuarioEmpresa(UsuarioEmpresaModel usuarioEmpresaModel) {
         return usuarioEmpresaRepository.save(usuarioEmpresaModel);
     }
 
+    @Transactional(readOnly = true)
     public Optional<UsuarioEmpresaModel> buscarPorId(Long idUsuarioEmpresa) {
         return usuarioEmpresaRepository.findById(idUsuarioEmpresa);
     }
 
+    @CacheEvict(value = "usuariosPorEmpresa", allEntries = true)
     public UsuarioEmpresaModel atualizarUsuarioEmpresa(Long idUsuarioEmpresa, UsuarioEmpresaModel usuarioEmpresaModel) {
         UsuarioEmpresaModel usuarioEmpresa = usuarioEmpresaRepository.findById(idUsuarioEmpresa).get();
         usuarioEmpresa.setIdEmpresa(usuarioEmpresaModel.getIdEmpresa());
@@ -35,6 +42,7 @@ public class UsuarioEmpresaService {
         return usuarioEmpresaRepository.save(usuarioEmpresa);
     }
 
+    @CacheEvict(value = "usuariosPorEmpresa", allEntries = true)
     public void excluirUsuarioEmpresa(Long idUsuarioEmpresa) {
         usuarioEmpresaRepository.deleteById(idUsuarioEmpresa);
     }

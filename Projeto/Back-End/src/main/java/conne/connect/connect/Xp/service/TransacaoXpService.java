@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class TransacaoXpService {
@@ -13,6 +14,7 @@ public class TransacaoXpService {
     @Autowired
     private TransacaoXpRepository transacaoXpRepository;
 
+    @Transactional(readOnly = true)
     public List<TransacaoXpModel> findAll() {
         return transacaoXpRepository.findAll();
     }
@@ -21,6 +23,7 @@ public class TransacaoXpService {
         return transacaoXpRepository.save(transacaoXpModel);
     }
 
+    @Transactional(readOnly = true)
     public Optional<TransacaoXpModel> buscarPorId(Long idTransacaoXp) {
         return transacaoXpRepository.findById(idTransacaoXp);
     }

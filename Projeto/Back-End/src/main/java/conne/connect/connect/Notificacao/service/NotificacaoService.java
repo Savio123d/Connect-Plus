@@ -7,8 +7,12 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -17,18 +21,28 @@ public class NotificacaoService {
     @Autowired
     private NotificacaoRepository notificacaoRepository;
 
+    @Transactional(readOnly = true)
     public List<NotificacaoModel> findAll() {
         return notificacaoRepository.findAll();
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "notificacoesNaoLidas", allEntries = true),
+            @CacheEvict(value = "notificacoesUltimas", allEntries = true)
+    })
     public NotificacaoModel criarNotificacao(NotificacaoModel notificacaoModel) {
         return notificacaoRepository.save(notificacaoModel);
     }
 
+    @Transactional(readOnly = true)
     public Optional<NotificacaoModel> buscarPorId(Long idNotificacao) {
         return notificacaoRepository.findById(idNotificacao);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "notificacoesNaoLidas", allEntries = true),
+            @CacheEvict(value = "notificacoesUltimas", allEntries = true)
+    })
     public NotificacaoModel atualizarNotificacao(
             Long idNotificacao,
             NotificacaoModel notificacaoModel
@@ -49,6 +63,10 @@ public class NotificacaoService {
         return notificacaoRepository.save(notificacao);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "notificacoesNaoLidas", allEntries = true),
+            @CacheEvict(value = "notificacoesUltimas", allEntries = true)
+    })
     public void excluirNotificacao(Long idNotificacao) {
         NotificacaoModel notificacao = notificacaoRepository.findById(idNotificacao)
                 .orElseThrow(() -> new ResponseStatusException(
@@ -60,6 +78,7 @@ public class NotificacaoService {
         notificacaoRepository.save(notificacao);
     }
 
+    @Transactional(readOnly = true)
     public List<NotificacaoResponseDTO> buscarPorUsuarioEmpresa(Long idUsuarioEmpresa) {
         return notificacaoRepository
                 .findByIdUsuarioEmpresa_IdUsuarioEmpresaAndExcluidoIsNullOrderByDataCriacaoDesc(
@@ -70,6 +89,8 @@ public class NotificacaoService {
                 .toList();
     }
 
+    @Cacheable(value = "notificacoesUltimas", key = "#idUsuarioEmpresa")
+    @Transactional(readOnly = true)
     public List<NotificacaoResponseDTO> buscarUltimasPorUsuarioEmpresa(Long idUsuarioEmpresa) {
         return notificacaoRepository
                 .findTop5ByIdUsuarioEmpresa_IdUsuarioEmpresaAndExcluidoIsNullOrderByDataCriacaoDesc(
@@ -80,6 +101,8 @@ public class NotificacaoService {
                 .toList();
     }
 
+    @Cacheable(value = "notificacoesNaoLidas", key = "#idUsuarioEmpresa")
+    @Transactional(readOnly = true)
     public long contarNaoLidasPorUsuarioEmpresa(Long idUsuarioEmpresa) {
         return notificacaoRepository
                 .countByIdUsuarioEmpresa_IdUsuarioEmpresaAndLidaFalseAndExcluidoIsNull(
@@ -87,6 +110,10 @@ public class NotificacaoService {
                 );
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "notificacoesNaoLidas", allEntries = true),
+            @CacheEvict(value = "notificacoesUltimas", allEntries = true)
+    })
     public NotificacaoResponseDTO marcarComoLida(Long idNotificacao) {
         NotificacaoModel notificacao = notificacaoRepository.findById(idNotificacao)
                 .orElseThrow(() -> new ResponseStatusException(

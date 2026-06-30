@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PedidoResgateService {
@@ -13,6 +14,7 @@ public class PedidoResgateService {
     @Autowired
     private PedidoResgateRepository pedidoResgateRepository;
 
+    @Transactional(readOnly = true)
     public List<PedidoResgateModel> findAll() {
         return pedidoResgateRepository.findAll();
     }
@@ -21,6 +23,7 @@ public class PedidoResgateService {
         return pedidoResgateRepository.save(pedidoResgateModel);
     }
 
+    @Transactional(readOnly = true)
     public Optional<PedidoResgateModel> buscarPorId(Long idPedidoResgate) {
         return pedidoResgateRepository.findById(idPedidoResgate);
     }

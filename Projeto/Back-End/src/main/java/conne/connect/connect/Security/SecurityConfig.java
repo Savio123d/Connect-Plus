@@ -15,6 +15,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 public class SecurityConfig {
@@ -46,7 +47,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/empresas/**").permitAll()
                         .requestMatchers("/api/projetos/**").permitAll()
                         .requestMatchers("/api/tarefas/**").permitAll()
+                        .requestMatchers("/api/imagens/**").permitAll()
+                        .requestMatchers("/api/lojas/**").permitAll()
                         .requestMatchers("/api/recompensas/**").permitAll()
+                        .requestMatchers("/api/saldos-xp/**").permitAll()
+                        .requestMatchers("/api/saldo-xp/**").permitAll()
+                        .requestMatchers("/api/perfil/**").permitAll()
                         .requestMatchers("/api/pedidos-resgate/**").permitAll()
                         .requestMatchers("/api/notificacoes/**").permitAll()
 
@@ -66,8 +72,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
+        List<String> origensPermitidas = limparOrigensPermitidas();
 
-        config.setAllowedOriginPatterns(Arrays.asList(allowedOrigins));
+        config.setAllowedOriginPatterns(origensPermitidas);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
@@ -76,5 +83,12 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", config);
 
         return source;
+    }
+
+    private List<String> limparOrigensPermitidas() {
+        return Arrays.stream(allowedOrigins)
+                .map(String::trim)
+                .filter(origem -> !origem.isEmpty())
+                .collect(Collectors.toList());
     }
 }

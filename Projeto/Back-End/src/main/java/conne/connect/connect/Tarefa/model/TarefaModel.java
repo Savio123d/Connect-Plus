@@ -1,15 +1,17 @@
 package conne.connect.connect.Tarefa.model;
 
 import conne.connect.connect.Empresa.model.EmpresaModel;
-import conne.connect.connect.Projeto.model.ProjetoModel;
+import conne.connect.connect.Projeto.model.ProjetoTelaModel;
 import conne.connect.connect.Tarefa.enums.DificuldadeTarefa;
 import conne.connect.connect.Tarefa.enums.PrioridadeTarefa;
 import conne.connect.connect.Tarefa.enums.StatusTarefa;
 import conne.connect.connect.Usuario.model.UsuarioEmpresaModel;
 import jakarta.persistence.Column;
+import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.EnumType;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -48,8 +50,12 @@ import lombok.Setter;
         private EmpresaModel idEmpresa;
 
         @ManyToOne
-        @JoinColumn(name = "projeto_id", nullable = false)
-        private ProjetoModel idProjeto;
+        @JoinColumn(
+                name = "projeto_id",
+                nullable = false,
+                foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT)
+        )
+        private ProjetoTelaModel idProjeto;
 
         @ManyToOne
         @JoinColumn(name = "resp_id")

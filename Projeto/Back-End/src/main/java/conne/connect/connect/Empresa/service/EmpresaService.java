@@ -11,13 +11,14 @@ import conne.connect.connect.Usuario.model.UsuarioEmpresaModel;
 import conne.connect.connect.Usuario.model.UsuarioModel;
 import conne.connect.connect.Usuario.repository.UsuarioEmpresaRepository;
 import conne.connect.connect.Usuario.repository.UsuarioRepository;
-import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -35,10 +36,12 @@ public class EmpresaService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Transactional(readOnly = true)
     public List<EmpresaModel> findAll() {
         return empresaRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Optional<EmpresaModel> buscarPorId(Long idEmpresa) {
         return empresaRepository.findById(idEmpresa);
     }
@@ -74,6 +77,7 @@ public class EmpresaService {
     }
 
     @Transactional
+    @CacheEvict(value = "usuariosPorEmpresa", allEntries = true)
     public void cadastrarUsuarioEmpresa(Long idEmpresa, CadastroUsuarioEmpresaDTO dto) {
         EmpresaModel empresa = buscarEmpresaExistente(idEmpresa);
         validarEmailDisponivel(dto.getEmail());

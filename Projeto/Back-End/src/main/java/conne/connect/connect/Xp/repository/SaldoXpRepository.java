@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface SaldoXpRepository extends JpaRepository<SaldoXpModel, Long> {
 
     Optional<SaldoXpModel> findByIdUsuarioEmpresa_IdUsuarioEmpresa(Long idUsuarioEmpresa);
+
+    Optional<SaldoXpModel> findByIdUsuarioEmpresa_IdUsuarioEmpresaAndIdEmpresa_IdEmpresa(Long idUsuarioEmpresa, Long idEmpresa);
 }

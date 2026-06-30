@@ -1,5 +1,5 @@
 export type TipoConversa = 'privada' | 'grupo';
-export type TipoMensagem = 'texto' | 'arquivo';
+export type TipoMensagem = 'texto' | 'arquivo' | 'imagem';
 
 export interface ParticipanteConversa {
   idUsuarioEmpresa: number;
