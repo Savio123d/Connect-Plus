@@ -1,117 +1,160 @@
-<main class="perfil-main">
-    <section class="page-header">
+<div class="perfil-page">
+  <div *ngIf="carregando" class="perfil-alerta">
+    Carregando dados do perfil...
+  </div>
+
+  <div *ngIf="mensagemErro && !carregando" class="perfil-alerta erro">
+    {{ mensagemErro }}
+  </div>
+
+  <section class="page-header">
+    <div>
       <h1>Meu Perfil</h1>
-      <p>Suas informações e desempenho</p>
-    </section>
+      <p>Suas informacoes e desempenho dentro do Connect+</p>
+    </div>
 
-    <section class="profile-card">
-      <div class="profile-left">
-        <div class="avatar-profile">
-          {{ iniciaisUsuario() }}
-        </div>
+    <button type="button" class="btn-refresh" (click)="carregarPerfil()" [disabled]="carregando">
+      Atualizar
+    </button>
+  </section>
 
-        <span class="level-pill">
-          Nível {{ usuario.nivel }}
-        </span>
+  <section class="profile-card">
+    <div class="profile-left">
+      <div class="avatar-profile">
+        {{ iniciaisUsuario() }}
       </div>
 
-      <div class="profile-content">
-        <div class="profile-info">
-          <h2>{{ usuario.nome }}</h2>
-          <p>{{ usuario.cargo }}</p>
-        </div>
+      <span class="level-pill">
+        Nivel {{ usuario.nivel || 0 }}
+      </span>
+    </div>
 
-        <div class="info-row">
-          <div class="info-item">
-            <div class="info-icon blue">✉</div>
+    <div class="profile-content">
+      <div class="profile-info">
+        <h2>{{ valorOuPlaceholder(usuario.nome) }}</h2>
+        <p>{{ valorOuPlaceholder(usuario.cargo) }}</p>
+      </div>
 
-            <div>
-              <span>E-mail</span>
-              <strong>{{ usuario.email }}</strong>
-            </div>
-          </div>
+      <div class="info-row">
+        <div class="info-item">
+          <div class="info-icon blue">Email</div>
 
-          <div class="info-item">
-            <div class="info-icon purple">▣</div>
-
-            <div>
-              <span>Departamento</span>
-              <strong>{{ usuario.departamento }}</strong>
-            </div>
+          <div>
+            <span>E-mail</span>
+            <strong>{{ valorOuPlaceholder(usuario.email) }}</strong>
           </div>
         </div>
 
-        <div class="xp-area">
-          <div class="xp-header">
-            <span>📈 Progresso XP</span>
-            <strong>
-              {{ usuario.xpAtual }} / {{ usuario.xpProximoNivel }} XP
-            </strong>
-          </div>
+        <div class="info-item">
+          <div class="info-icon purple">Setor</div>
 
-          <div class="progress-bar">
-            <div
-              class="progress-fill"
-              [style.width.%]="progressoXp()"
-            ></div>
+          <div>
+            <span>Departamento</span>
+            <strong>{{ valorOuPlaceholder(usuario.departamento) }}</strong>
           </div>
-
-          <p>
-            Faltam {{ xpRestante() }} XP para o próximo nível
-          </p>
         </div>
       </div>
-    </section>
 
-    <section class="section-card">
-      <header class="section-title">
-        <span>🏅</span>
-        <h2>Conquistas</h2>
-      </header>
+      <div class="info-row">
+        <div class="info-item">
+          <div class="info-icon blue">ID</div>
 
-      <div class="achievements-grid">
-        <article
-          class="achievement-card"
-          *ngFor="let conquista of conquistas"
-        >
-          <div
-            class="achievement-icon"
-            [ngClass]="classeConquista(conquista.cor)"
-          >
-            {{ conquista.icone }}
+          <div>
+            <span>ID Usuario</span>
+            <strong>{{ valorOuPlaceholder(usuario.idUsuario) }}</strong>
           </div>
+        </div>
 
-          <strong>{{ conquista.titulo }}</strong>
-        </article>
+        <div class="info-item">
+          <div class="info-icon purple">UE</div>
+
+          <div>
+            <span>ID Usuario Empresa</span>
+            <strong>{{ valorOuPlaceholder(usuario.idUsuarioEmpresa) }}</strong>
+          </div>
+        </div>
       </div>
-    </section>
 
-    <section class="section-card">
-      <header class="section-title">
-        <span>📈</span>
-        <h2>Histórico de Desempenho</h2>
-      </header>
-
-      <div class="history-list">
-        <article
-          class="history-item"
-          *ngFor="let item of historico; let i = index"
-        >
-          <div class="history-left">
-            <span class="history-number">
-              {{ i + 1 }}
-            </span>
-
-            <div>
-              <h3>{{ item.mes }}</h3>
-              <p>{{ item.tarefasConcluidas }} tarefas concluídas</p>
-            </div>
-          </div>
+      <div class="xp-area">
+        <div class="xp-header">
+          <span>Progresso XP</span>
 
           <strong>
-            +{{ item.xpGanho }} XP
+            {{ usuario.xpAtual || 0 }} / {{ usuario.xpProximoNivel || 500 }} XP
           </strong>
-        </article>
+        </div>
+
+        <div class="progress-bar">
+          <div
+            class="progress-fill"
+            [style.width.%]="progressoXp()"
+          ></div>
+        </div>
+
+        <p>
+          Faltam {{ xpRestante() }} XP para o proximo nivel
+        </p>
       </div>
-    </section>
-</main>
+    </div>
+  </section>
+
+  <section class="section-card">
+    <header class="section-title">
+      <h2>Conquistas</h2>
+    </header>
+
+    <div *ngIf="conquistas.length > 0" class="achievements-grid">
+      <article
+        class="achievement-card"
+        *ngFor="let conquista of conquistas"
+      >
+        <div
+          class="achievement-icon"
+          [ngClass]="classeConquista(conquista.cor)"
+        >
+          {{ conquista.icone }}
+        </div>
+
+        <strong>{{ conquista.titulo }}</strong>
+      </article>
+    </div>
+
+    <div *ngIf="conquistas.length === 0" class="empty-state">
+      <h2>Nenhuma conquista encontrada</h2>
+      <p>As conquistas serao exibidas quando houver XP suficiente.</p>
+    </div>
+  </section>
+
+  <section class="section-card">
+    <header class="section-title">
+      <h2>Historico de Desempenho</h2>
+    </header>
+
+    <div *ngIf="historico.length > 0" class="history-list">
+      <article
+        class="history-item"
+        *ngFor="let item of historico; let i = index"
+      >
+        <div class="history-left">
+          <span class="history-number">
+            {{ i + 1 }}
+          </span>
+
+          <div>
+            <h3>{{ valorOuPlaceholder(item.mes) }}</h3>
+            <p>{{ item.tarefasConcluidas || 0 }} tarefas concluidas</p>
+          </div>
+        </div>
+
+        <strong>
+          +{{ item.xpGanho || 0 }} XP
+        </strong>
+      </article>
+    </div>
+
+    <div *ngIf="historico.length === 0" class="empty-state">
+      <h2>Nenhum historico encontrado</h2>
+      <p>O desempenho mensal sera exibido conforme o usuario ganhar XP.</p>
+    </div>
+  </section>
+</div>
