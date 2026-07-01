@@ -98,11 +98,32 @@ public class EmpresaService {
     }
 
     public EmpresaModel atualizarEmpresa(Long idEmpresa, EmpresaModel empresaModel) {
-        EmpresaModel empresa = empresaRepository.findById(idEmpresa).get();
-        empresa.setRazaoSocial(empresaModel.getRazaoSocial());
-        empresa.setNomeFantasia(empresaModel.getNomeFantasia());
-        empresa.setCnpj(empresaModel.getCnpj());
-        empresa.setStatus(empresaModel.getStatus());
+        EmpresaModel empresa = buscarEmpresaExistente(idEmpresa);
+
+        if (empresaModel.getRazaoSocial() != null) {
+            empresa.setRazaoSocial(empresaModel.getRazaoSocial());
+        }
+
+        if (empresaModel.getNomeFantasia() != null) {
+            empresa.setNomeFantasia(empresaModel.getNomeFantasia());
+        }
+
+        if (empresaModel.getCnpj() != null) {
+            empresa.setCnpj(empresaModel.getCnpj());
+        }
+
+        if (empresaModel.getCidade() != null) {
+            empresa.setCidade(empresaModel.getCidade());
+        }
+
+        if (empresaModel.getUf() != null) {
+            empresa.setUf(empresaModel.getUf());
+        }
+
+        if (empresaModel.getStatus() != null) {
+            empresa.setStatus(empresaModel.getStatus());
+        }
+
         return empresaRepository.save(empresa);
     }
 

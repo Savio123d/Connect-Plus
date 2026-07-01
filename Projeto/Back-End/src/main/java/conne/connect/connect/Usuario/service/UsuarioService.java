@@ -1,5 +1,6 @@
 package conne.connect.connect.Usuario.service;
 
+import conne.connect.connect.Usuario.dto.AlterarSenhaRequestDTO;
 import conne.connect.connect.Usuario.dto.UsuarioDTO;
 import conne.connect.connect.Usuario.dto.UsuarioRequestDTO;
 import conne.connect.connect.Usuario.model.UsuarioEmpresaModel;
@@ -83,6 +84,22 @@ public class UsuarioService {
     public void excluirUsuario(Long idUsuario){
         UsuarioModel usuario = buscarUsuarioExistente(idUsuario);
         usuarioRepository.delete(usuario);
+    }
+
+
+    @Transactional
+    public void alterarSenha(Long idUsuario, AlterarSenhaRequestDTO request) {
+        UsuarioModel usuario = buscarUsuarioExistente(idUsuario);
+
+        if (!passwordEncoder.matches(request.getSenhaAtual(), usuario.getSenha())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Senha atual incorreta."
+            );
+        }
+
+        usuario.setSenha(passwordEncoder.encode(request.getNovaSenha()));
+        usuarioRepository.save(usuario);
     }
 
     private UsuarioDTO montarUsuarioEmpresaDTO(UsuarioEmpresaModel usuarioEmpresa) {
