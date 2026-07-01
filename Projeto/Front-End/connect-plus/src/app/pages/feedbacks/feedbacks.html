@@ -1,0 +1,373 @@
+<main class="feedbacks-page">
+  <section class="feedbacks-header">
+    <div>
+      <h1>Feedbacks</h1>
+      <p>Acompanhe reconhecimentos, avaliações 360° e pontos de melhoria da equipe.</p>
+    </div>
+
+    <button type="button" class="btn-novo" (click)="abrirNovoFeedback()">
+      <span class="material-icons">add</span>
+      Novo Feedback
+    </button>
+  </section>
+
+  <section class="cards-resumo">
+    <article class="card-resumo positivo">
+      <div class="icone-card">
+        <span class="material-icons">thumb_up</span>
+      </div>
+      <span>Feedbacks Positivos</span>
+      <strong>{{ resumo.positivos }}</strong>
+    </article>
+
+    <article class="card-resumo mediano">
+      <div class="icone-card">
+        <span class="material-icons">drag_handle</span>
+      </div>
+      <span>Feedbacks Medianos</span>
+      <strong>{{ resumo.medianos }}</strong>
+    </article>
+
+    <article class="card-resumo negativo">
+      <div class="icone-card">
+        <span class="material-icons">thumb_down</span>
+      </div>
+      <span>Feedbacks Negativos</span>
+      <strong>{{ resumo.negativos }}</strong>
+    </article>
+  </section>
+
+  <section class="filtros-feedbacks">
+    <button
+      type="button"
+      *ngFor="let filtro of filtros"
+      [class.ativo]="filtroAtivo === filtro.value"
+      (click)="alterarFiltro(filtro.value)"
+    >
+      {{ filtro.label }}
+    </button>
+  </section>
+
+  <div class="alerta sucesso" *ngIf="mensagemSucesso">
+    {{ mensagemSucesso }}
+  </div>
+
+  <div class="alerta erro" *ngIf="erro && !modal">
+    {{ erro }}
+  </div>
+
+  <section class="pendencias-360" *ngIf="filtroAtivo === 'avaliacao360'">
+    <div class="pendencias-topo">
+      <div>
+        <h2>Avaliações 360° pendentes</h2>
+        <p>
+          Quando um projeto é concluído, cada participante deve avaliar os colegas em até
+          <strong>5 dias</strong>.
+        </p>
+      </div>
+
+      <span class="contador-pendencias">{{ pendencias360.length }} pendência(s)</span>
+    </div>
+
+    <div class="criterios-info">
+      <span>Comprometimento</span>
+      <span>Nível de Entregas</span>
+      <span>Colaboração</span>
+      <span>Comunicação</span>
+    </div>
+
+    <ng-container *ngIf="carregando360; else conteudo360">
+      <div class="estado-vazio">Carregando avaliações 360°...</div>
+    </ng-container>
+
+    <ng-template #conteudo360>
+      <ng-container *ngIf="pendencias360.length > 0; else semPendencias360">
+        <article
+          class="pendencia-card"
+          *ngFor="let pendencia of pendencias360; trackBy: trackByPendencia"
+          [class.vencida]="pendencia.vencido"
+        >
+          <div class="avatar-pendencia">
+            {{ pendencia.destinatarioIniciais || 'US' }}
+          </div>
+
+          <div class="pendencia-info">
+            <strong>{{ pendencia.destinatarioNome }}</strong>
+            <span>Projeto: {{ pendencia.projetoNome }}</span>
+            <small>
+              Concluído em {{ pendencia.concluidoEm | date: 'dd/MM/yyyy' }} · Prazo até
+              {{ pendencia.prazoLimite | date: 'dd/MM/yyyy' }}
+            </small>
+          </div>
+
+          <span class="prazo-360" [class.vencido]="pendencia.vencido">
+            {{ textoPrazo360(pendencia) }}
+          </span>
+
+          <button
+            type="button"
+            class="btn-avaliar"
+            [disabled]="pendencia.vencido"
+            (click)="abrirAvaliacao360(pendencia)"
+          >
+            Avaliar
+          </button>
+        </article>
+      </ng-container>
+    </ng-template>
+
+    <ng-template #semPendencias360>
+      <div class="estado-vazio">
+        <span class="material-icons">verified</span>
+        <strong>Nenhuma avaliação 360° pendente.</strong>
+        <p>Quando um projeto for concluído, as avaliações aparecerão aqui.</p>
+      </div>
+    </ng-template>
+  </section>
+
+  <section class="lista-feedbacks">
+    <div class="lista-topo">
+      <div>
+        <h2>Histórico de Feedbacks</h2>
+        <p>Feedbacks exibidos em ordem cronológica.</p>
+      </div>
+      <span>{{ feedbacks.length }} registro(s)</span>
+    </div>
+
+    <ng-container *ngIf="carregando; else conteudoFeedbacks">
+      <div class="estado-vazio">Carregando feedbacks...</div>
+    </ng-container>
+
+    <ng-template #conteudoFeedbacks>
+      <ng-container *ngIf="feedbacks.length > 0; else semFeedbacks">
+        <article
+          class="feedback-card"
+          *ngFor="let feedback of feedbacks; trackBy: trackByFeedback"
+          [ngClass]="classeClassificacao(feedback.classificacao)"
+        >
+          <div class="icone-feedback">
+            <span class="material-icons">
+              {{ iconeClassificacao(feedback.classificacao) }}
+            </span>
+          </div>
+
+          <div class="feedback-conteudo">
+            <div class="feedback-linha-principal">
+              <div>
+                <h3>
+                  {{ feedback.autorNome || 'Remetente' }}
+                  <span>para</span>
+                  {{ feedback.destinatarioNome || 'Destinatário' }}
+                </h3>
+                <small>{{ feedback.dataCriacao | date: 'dd/MM/yyyy HH:mm' }}</small>
+              </div>
+
+              <span class="badge-classificacao" [ngClass]="classeClassificacao(feedback.classificacao)">
+                {{ textoClassificacao(feedback.classificacao) }}
+              </span>
+            </div>
+
+            <p class="comentario" *ngIf="feedback.comentario; else semComentario">
+              {{ feedback.comentario }}
+            </p>
+
+            <ng-template #semComentario>
+              <p class="comentario sem-comentario">Sem comentário adicional.</p>
+            </ng-template>
+
+            <div class="notas-360" *ngIf="feedback.avaliacao360">
+              <span>Média: <strong>{{ media360(feedback) }}</strong></span>
+              <span>Comprometimento: {{ feedback.comprometimento || '-' }}</span>
+              <span>Entregas: {{ feedback.nivelEntregas || '-' }}</span>
+              <span>Colaboração: {{ feedback.colaboracao || '-' }}</span>
+              <span>Comunicação: {{ feedback.comunicacao || '-' }}</span>
+            </div>
+
+            <div class="feedback-rodape">
+              <span class="categoria">
+                <span class="material-icons">sell</span>
+                {{ feedback.categoria }}
+              </span>
+
+              <span class="avaliacao360" *ngIf="feedback.avaliacao360">
+                <span class="material-icons">groups</span>
+                Avaliação 360°
+              </span>
+
+              <span class="avaliacao360" *ngIf="feedback.projetoNome">
+                <span class="material-icons">work</span>
+                {{ feedback.projetoNome }}
+              </span>
+            </div>
+          </div>
+        </article>
+      </ng-container>
+    </ng-template>
+
+    <ng-template #semFeedbacks>
+      <div class="estado-vazio">
+        <span class="material-icons">forum</span>
+        <strong>Nenhum feedback encontrado.</strong>
+        <p>Use o botão “Novo Feedback” para cadastrar o primeiro registro.</p>
+      </div>
+    </ng-template>
+  </section>
+
+  <div class="modal-backdrop" *ngIf="modal === 'novo'">
+    <section class="modal-feedback">
+      <div class="modal-header">
+        <div>
+          <h2>Novo Feedback</h2>
+          <p>Envie um feedback para outro colaborador da sua empresa.</p>
+        </div>
+
+        <button type="button" class="btn-fechar" (click)="fecharModal()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+
+      <div class="alerta erro" *ngIf="erro">
+        {{ erro }}
+      </div>
+
+      <form class="form-feedback" (ngSubmit)="salvarFeedback()">
+        <label>
+          Destinatário
+          <select [(ngModel)]="formFeedback.destinatarioUsuarioEmpresaId" name="destinatario" required>
+            <option [ngValue]="null">Selecione um colaborador</option>
+            <option
+              *ngFor="let colaborador of colaboradores"
+              [ngValue]="colaborador.idUsuarioEmpresa"
+            >
+              {{ colaborador.nome }} - {{ colaborador.cargo }}
+            </option>
+          </select>
+        </label>
+
+        <label>
+          Classificação
+          <select [(ngModel)]="formFeedback.classificacao" name="classificacao" required>
+            <option value="">Selecione a classificação</option>
+            <option
+              *ngFor="let classificacao of classificacoes"
+              [value]="classificacao.value"
+            >
+              {{ classificacao.label }}
+            </option>
+          </select>
+        </label>
+
+        <label>
+          Categoria
+          <select [(ngModel)]="formFeedback.categoria" name="categoria" required>
+            <option *ngFor="let categoria of categorias" [value]="categoria">
+              {{ categoria }}
+            </option>
+          </select>
+        </label>
+
+        <label class="campo-completo">
+          Descrição do feedback
+          <textarea
+            [(ngModel)]="formFeedback.comentario"
+            name="comentario"
+            rows="5"
+            placeholder="Descreva o reconhecimento, ponto de melhoria ou observação..."
+            required
+          ></textarea>
+        </label>
+
+        <div class="modal-acoes">
+          <button type="button" class="btn-secundario" (click)="fecharModal()">
+            Cancelar
+          </button>
+
+          <button type="submit" class="btn-salvar" [disabled]="salvando">
+            {{ salvando ? 'Salvando...' : 'Salvar Feedback' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" *ngIf="modal === 'avaliacao360'">
+    <section class="modal-feedback modal-360">
+      <div class="modal-header">
+        <div>
+          <h2>Avaliação 360°</h2>
+          <p>
+            Avalie {{ pendenciaSelecionada?.destinatarioNome }} no projeto
+            {{ pendenciaSelecionada?.projetoNome }}.
+          </p>
+        </div>
+
+        <button type="button" class="btn-fechar" (click)="fecharModal()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+
+      <div class="alerta lembrete">
+        A avaliação deve ser realizada até
+        {{ pendenciaSelecionada?.prazoLimite | date: 'dd/MM/yyyy' }}.
+      </div>
+
+      <div class="alerta erro" *ngIf="erro">
+        {{ erro }}
+      </div>
+
+      <form class="form-feedback form-360" (ngSubmit)="salvarAvaliacao360()">
+        <label>
+          Comprometimento
+          <select [(ngModel)]="form360.comprometimento" name="comprometimento" required>
+            <option [ngValue]="null">Nota de 1 a 5</option>
+            <option *ngFor="let nota of notas360" [ngValue]="nota">{{ nota }}</option>
+          </select>
+        </label>
+
+        <label>
+          Nível de Entregas
+          <select [(ngModel)]="form360.nivelEntregas" name="nivelEntregas" required>
+            <option [ngValue]="null">Nota de 1 a 5</option>
+            <option *ngFor="let nota of notas360" [ngValue]="nota">{{ nota }}</option>
+          </select>
+        </label>
+
+        <label>
+          Colaboração
+          <select [(ngModel)]="form360.colaboracao" name="colaboracao" required>
+            <option [ngValue]="null">Nota de 1 a 5</option>
+            <option *ngFor="let nota of notas360" [ngValue]="nota">{{ nota }}</option>
+          </select>
+        </label>
+
+        <label>
+          Comunicação
+          <select [(ngModel)]="form360.comunicacao" name="comunicacao" required>
+            <option [ngValue]="null">Nota de 1 a 5</option>
+            <option *ngFor="let nota of notas360" [ngValue]="nota">{{ nota }}</option>
+          </select>
+        </label>
+
+        <label class="campo-completo">
+          Comentário adicional
+          <textarea
+            [(ngModel)]="form360.comentario"
+            name="comentario360"
+            rows="5"
+            placeholder="Escreva um comentário opcional sobre a participação da pessoa no projeto..."
+          ></textarea>
+        </label>
+
+        <div class="modal-acoes">
+          <button type="button" class="btn-secundario" (click)="fecharModal()">
+            Cancelar
+          </button>
+
+          <button type="submit" class="btn-salvar" [disabled]="salvando">
+            {{ salvando ? 'Enviando...' : 'Enviar Avaliação' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+</main>
