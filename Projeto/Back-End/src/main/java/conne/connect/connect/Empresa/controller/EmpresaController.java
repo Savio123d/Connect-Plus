@@ -6,7 +6,6 @@ import conne.connect.connect.Empresa.service.EmpresaService;
 import conne.connect.connect.Usuario.dto.CadastroUsuarioEmpresaDTO;
 import jakarta.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +37,6 @@ public class EmpresaController {
         return ResponseEntity.status(HttpStatus.CREATED).body("Empresa e administrador cadastrados com sucesso.");
     }
 
-
     @PostMapping("/{idEmpresa}/usuarios")
     public ResponseEntity<String> cadastrarUsuarioEmpresa(
             @PathVariable Long idEmpresa,
@@ -54,12 +52,16 @@ public class EmpresaController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<EmpresaModel>> buscarPorId(@PathVariable("id") Long idEmpresa) {
-        return ResponseEntity.ok(empresaService.buscarPorId(idEmpresa));
+    public ResponseEntity<EmpresaModel> buscarPorId(@PathVariable("id") Long idEmpresa) {
+        return empresaService.buscarPorId(idEmpresa)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EmpresaModel> atualizar(@PathVariable("id") Long idEmpresa, @RequestBody EmpresaModel empresaModel) {
+    public ResponseEntity<EmpresaModel> atualizar(
+            @PathVariable("id") Long idEmpresa,
+            @RequestBody EmpresaModel empresaModel) {
         return ResponseEntity.ok(empresaService.atualizarEmpresa(idEmpresa, empresaModel));
     }
 }

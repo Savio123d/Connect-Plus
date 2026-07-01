@@ -66,16 +66,16 @@ export class Sidebar implements OnInit, OnDestroy {
 
   menuItems: MenuItem[] = [
     { label: 'Início', icon: 'home', route: '/dashboard' },
-    { label: 'Feedbacks', icon: 'feedback', route: '/feedbacks' },
-    { label: 'Perfil', icon: 'person', route: '/perfil' },
     { label: 'Quadro de Tarefas', icon: 'check_box', route: '/tarefas' },
-    { label: 'Chat', icon: 'chat', route: '/chat' },
-    { label: 'Projetos', icon: 'work', route: '/projetos' },
-    { label: 'Loja', icon: 'store', route: '/loja' },
-    { label: 'Usuários', icon: 'group', route: '/usuarios' },
+    { label: 'Chat', icon: 'chat_bubble_outline', route: '/chat' },
+    { label: 'Feedbacks', icon: 'mode_comment', route: '/feedbacks' },
+    { label: 'Loja', icon: 'storefront', route: '/loja' },
+    { label: 'Projetos', icon: 'business_center', route: '/projetos' },
+    { label: 'Perfil', icon: 'person_outline', route: '/perfil' },
+    { label: 'Usuários', icon: 'groups', route: '/usuarios' },
     { label: 'Configurações', icon: 'settings', route: '/configuracoes' },
+    { label: 'Suporte', icon: 'headphones', route: '/suporte-interno' },
     { label: 'Sair', icon: 'logout', route: '/login' },
-    { label: 'Suporte Interno', icon: 'support_agent', route: '/suporte-interno' },
   ];
 
   ngOnInit(): void {
