@@ -40,6 +40,10 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/tarefas/tarefas').then((module) => module.Tarefas),
       },
       {
+        path: 'feedbacks',
+        loadComponent: () => import('./pages/feedbacks/feedbacks').then((module) => module.Feedbacks),
+      },
+      {
         path: 'chat',
         loadComponent: () => import('./pages/chat/chat').then((module) => module.Chat),
       },
@@ -61,6 +65,11 @@ export const routes: Routes = [
       {
         path: 'loja',
         loadComponent: () => import('./pages/loja/loja').then((module) => module.Loja),
+      },
+      {
+        path: 'configuracoes',
+        loadComponent: () =>
+          import('./pages/configuracoes/configuracoes').then((module) => module.Configuracoes),
       },
         {
         path: 'sobre-nos',

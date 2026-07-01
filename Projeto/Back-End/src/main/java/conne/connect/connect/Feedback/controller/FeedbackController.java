@@ -1,55 +1,99 @@
 package conne.connect.connect.Feedback.controller;
 
-import conne.connect.connect.Feedback.model.FeedbackModel;
+import conne.connect.connect.Feedback.dto.Feedback360PendenteDTO;
+import conne.connect.connect.Feedback.dto.Feedback360RequestDTO;
+import conne.connect.connect.Feedback.dto.FeedbackRequestDTO;
+import conne.connect.connect.Feedback.dto.FeedbackResponseDTO;
+import conne.connect.connect.Feedback.dto.FeedbackResumoDTO;
 import conne.connect.connect.Feedback.service.FeedbackService;
-import java.net.URI;
 import java.util.List;
-import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.bind.annotation.*;
 
-@RequestMapping(path = "/api/feedbacks")
 @RestController
+@RequestMapping("/api/feedbacks")
+@CrossOrigin(origins = "http://localhost:4200")
 public class FeedbackController {
 
-    @Autowired
-    private FeedbackService feedbackService;
+    private final FeedbackService feedbackService;
 
-    @GetMapping
-    public ResponseEntity<List<FeedbackModel>> findAll() {
-        List<FeedbackModel> feedbacks = feedbackService.findAll();
-        return ResponseEntity.ok(feedbacks);
+    public FeedbackController(FeedbackService feedbackService) {
+        this.feedbackService = feedbackService;
+    }
+
+    @GetMapping("/empresa/{empresaId}")
+    public ResponseEntity<List<FeedbackResponseDTO>> listar(
+            @PathVariable Long empresaId,
+            @RequestParam(defaultValue = "todos") String filtro
+    ) {
+        return ResponseEntity.ok(
+                feedbackService.listarPorEmpresa(empresaId, filtro)
+        );
+    }
+
+    @GetMapping("/empresa/{empresaId}/resumo")
+    public ResponseEntity<FeedbackResumoDTO> buscarResumo(
+            @PathVariable Long empresaId
+    ) {
+        return ResponseEntity.ok(
+                feedbackService.buscarResumo(empresaId)
+        );
+    }
+
+    @GetMapping("/empresa/{empresaId}/360/pendentes")
+    public ResponseEntity<List<Feedback360PendenteDTO>> listarPendentes360(
+            @PathVariable Long empresaId,
+            @RequestParam Long autorUsuarioEmpresaId
+    ) {
+        return ResponseEntity.ok(
+                feedbackService.listarAvaliacoes360Pendentes(empresaId, autorUsuarioEmpresaId)
+        );
+    }
+
+    @GetMapping("/empresa/{empresaId}/{idFeedback}")
+    public ResponseEntity<FeedbackResponseDTO> buscarPorId(
+            @PathVariable Long empresaId,
+            @PathVariable Long idFeedback
+    ) {
+        return ResponseEntity.ok(
+                feedbackService.buscarPorId(empresaId, idFeedback)
+        );
     }
 
     @PostMapping
-    public ResponseEntity<FeedbackModel> criarFeedback(@RequestBody FeedbackModel feedbackModel) {
-        FeedbackModel feedback = feedbackService.criarFeedback(feedbackModel);
-        URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(feedback.getIdFeedback()).toUri();
-        return ResponseEntity.created(uri).body(feedback);
+    public ResponseEntity<FeedbackResponseDTO> criarFeedback(
+            @RequestBody FeedbackRequestDTO dto
+    ) {
+        return ResponseEntity.ok(
+                feedbackService.criarFeedback(dto)
+        );
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deletar(@PathVariable("id") Long idFeedback) {
-        feedbackService.excluirFeedback(idFeedback);
+    @PostMapping("/360")
+    public ResponseEntity<FeedbackResponseDTO> criarAvaliacao360(
+            @RequestBody Feedback360RequestDTO dto
+    ) {
+        return ResponseEntity.ok(
+                feedbackService.criarAvaliacao360(dto)
+        );
+    }
+
+    @PutMapping("/{idFeedback}")
+    public ResponseEntity<FeedbackResponseDTO> atualizarFeedback(
+            @PathVariable Long idFeedback,
+            @RequestBody FeedbackRequestDTO dto
+    ) {
+        return ResponseEntity.ok(
+                feedbackService.atualizarFeedback(idFeedback, dto)
+        );
+    }
+
+    @DeleteMapping("/empresa/{empresaId}/{idFeedback}")
+    public ResponseEntity<Void> excluirFeedback(
+            @PathVariable Long empresaId,
+            @PathVariable Long idFeedback
+    ) {
+        feedbackService.excluirFeedback(empresaId, idFeedback);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Optional<FeedbackModel>> buscarPorId(@PathVariable("id") Long idFeedback) {
-        return ResponseEntity.ok(feedbackService.buscarPorId(idFeedback));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<FeedbackModel> atualizar(@PathVariable("id") Long idFeedback, @RequestBody FeedbackModel feedbackModel) {
-        return ResponseEntity.ok(feedbackService.atualizarFeedback(idFeedback, feedbackModel));
     }
 }

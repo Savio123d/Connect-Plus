@@ -1,5 +1,6 @@
 package conne.connect.connect.Usuario.controller;
 
+import conne.connect.connect.Usuario.dto.AlterarSenhaRequestDTO;
 import conne.connect.connect.Usuario.dto.UsuarioDTO;
 import conne.connect.connect.Usuario.dto.UsuarioRequestDTO;
 import conne.connect.connect.Usuario.service.UsuarioService;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -75,5 +77,14 @@ public class UsuarioController {
             @Valid @RequestBody UsuarioRequestDTO usuarioRequestDTO
     ) {
         return ResponseEntity.ok(usuarioService.atualizarUsuario(idUsuario, usuarioRequestDTO));
+    }
+
+    @PatchMapping("/{id}/senha")
+    public ResponseEntity<Void> alterarSenha(
+            @PathVariable("id") Long idUsuario,
+            @Valid @RequestBody AlterarSenhaRequestDTO request
+    ) {
+        usuarioService.alterarSenha(idUsuario, request);
+        return ResponseEntity.noContent().build();
     }
 }

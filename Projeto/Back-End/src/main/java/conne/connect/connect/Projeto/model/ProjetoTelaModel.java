@@ -57,6 +57,9 @@ public class ProjetoTelaModel {
     @Column(nullable = false)
     private LocalDate inicio = LocalDate.now();
 
+    @Column(name = "concluido_em")
+    private LocalDate concluidoEm;
+
     @Column(nullable = false)
     private Integer progresso = 0;
 
@@ -152,6 +155,14 @@ public class ProjetoTelaModel {
 
     public void setInicio(LocalDate inicio) {
         this.inicio = inicio;
+    }
+
+    public LocalDate getConcluidoEm() {
+        return concluidoEm;
+    }
+
+    public void setConcluidoEm(LocalDate concluidoEm) {
+        this.concluidoEm = concluidoEm;
     }
 
     public Integer getProgresso() {
