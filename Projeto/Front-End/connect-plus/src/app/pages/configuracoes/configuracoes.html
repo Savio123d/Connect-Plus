@@ -1,0 +1,144 @@
+<main class="pagina-configuracoes">
+  <header class="cabecalho-configuracoes">
+    <h1>Configurações</h1>
+    <p>Gerencie as configurações da plataforma</p>
+  </header>
+
+  <nav class="abas-configuracoes" aria-label="Abas de configurações">
+    <button
+      type="button"
+      [class.ativa]="abaAtiva === 'geral'"
+      (click)="alterarAba('geral')"
+    >
+      Geral
+    </button>
+
+    <button
+      type="button"
+      [class.ativa]="abaAtiva === 'notificacoes'"
+      (click)="alterarAba('notificacoes')"
+    >
+      Notificações
+    </button>
+
+    <button
+      type="button"
+      [class.ativa]="abaAtiva === 'seguranca'"
+      (click)="alterarAba('seguranca')"
+    >
+      Segurança
+    </button>
+  </nav>
+
+  <p class="mensagem-feedback mensagem-sucesso" *ngIf="mensagemSucesso">
+    {{ mensagemSucesso }}
+  </p>
+
+  <p class="mensagem-feedback mensagem-erro" *ngIf="mensagemErro">
+    {{ mensagemErro }}
+  </p>
+
+  <section class="card-configuracoes" *ngIf="abaAtiva === 'geral'">
+    <div class="titulo-card">
+      <span class="material-icons icone-geral">public</span>
+      <h2>Configurações Gerais</h2>
+    </div>
+
+    <p class="estado-carregando" *ngIf="carregandoGeral">
+      Carregando dados da empresa...
+    </p>
+
+    <div class="form-grid">
+      <label class="campo">
+        <span>Nome da Empresa</span>
+        <input type="text" [(ngModel)]="empresa.nome" [disabled]="carregandoGeral || salvandoGeral" />
+      </label>
+
+      <label class="campo">
+        <span>Email de Contato</span>
+        <input type="email" [(ngModel)]="empresa.email" disabled />
+      </label>
+
+      <label class="campo campo-select">
+        <span>Idioma</span>
+        <select [(ngModel)]="empresa.idioma">
+          <option>Português (Brasil)</option>
+          <option>English</option>
+          <option>Español</option>
+        </select>
+      </label>
+
+      <label class="campo campo-select">
+        <span>Fuso Horário</span>
+        <select [(ngModel)]="empresa.fusoHorario">
+          <option>América/São Paulo (GMT-3)</option>
+          <option>America/New York (GMT-4)</option>
+          <option>Europe/Lisbon (GMT+1)</option>
+        </select>
+      </label>
+    </div>
+
+    <button
+      class="btn-salvar btn-salvar-compacto"
+      type="button"
+      [disabled]="carregandoGeral || salvandoGeral"
+      (click)="salvarConfiguracoesGerais()"
+    >
+      <span class="material-icons">save</span>
+      {{ salvandoGeral ? 'Salvando...' : 'Salvar Alterações' }}
+    </button>
+  </section>
+
+  <section class="card-configuracoes" *ngIf="abaAtiva === 'notificacoes'">
+    <div class="titulo-card">
+      <span class="material-icons icone-notificacoes">notifications_none</span>
+      <h2>Preferências de Notificações</h2>
+    </div>
+
+    <div class="lista-preferencias">
+      <label class="preferencia" *ngFor="let notificacao of notificacoes">
+        <span>
+          <strong>{{ notificacao.titulo }}</strong>
+          <small>{{ notificacao.descricao }}</small>
+        </span>
+
+        <input type="checkbox" [(ngModel)]="notificacao.ativa" />
+        <i aria-hidden="true"></i>
+      </label>
+    </div>
+
+    <button class="btn-salvar" type="button" [disabled]="salvandoNotificacoes" (click)="salvarPreferencias()">
+      <span class="material-icons">save</span>
+      {{ salvandoNotificacoes ? 'Salvando...' : 'Salvar Preferências' }}
+    </button>
+  </section>
+
+  <section class="card-configuracoes" *ngIf="abaAtiva === 'seguranca'">
+    <div class="titulo-card">
+      <span class="material-icons icone-seguranca">shield</span>
+      <h2>Segurança</h2>
+    </div>
+
+    <div class="form-senha">
+      <label class="campo">
+        <span>Senha Atual</span>
+        <input type="password" [(ngModel)]="senha.atual" autocomplete="current-password" />
+      </label>
+
+      <label class="campo">
+        <span>Nova Senha</span>
+        <input type="password" [(ngModel)]="senha.nova" autocomplete="new-password" />
+      </label>
+
+      <label class="campo">
+        <span>Confirmar Nova Senha</span>
+        <input type="password" [(ngModel)]="senha.confirmacao" autocomplete="new-password" />
+      </label>
+    </div>
+
+    <button class="btn-salvar" type="button" [disabled]="salvandoSenha" (click)="atualizarSenha()">
+      <span class="material-icons">save</span>
+      {{ salvandoSenha ? 'Atualizando...' : 'Atualizar Senha' }}
+    </button>
+  </section>
+</main>

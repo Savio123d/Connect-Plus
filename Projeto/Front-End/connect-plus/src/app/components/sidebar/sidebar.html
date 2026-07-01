@@ -1,7 +1,8 @@
 <div class="layout-auth">
   <aside class="sidebar">
     <div class="logo-area">
-      <h2 class="logo">Connect +</h2>
+      <div class="brand-mark">C+</div>
+      <h2 class="logo">Connect+</h2>
     </div>
 
     <nav class="menu">
@@ -10,6 +11,7 @@
         [routerLink]="item.route"
         routerLinkActive="ativo"
         [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+        [class.menu-item-sair]="item.label === 'Sair'"
         class="menu-item"
         (click)="onMenuClick($event, item)"
       >
