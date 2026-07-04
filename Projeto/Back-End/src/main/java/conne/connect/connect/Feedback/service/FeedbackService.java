@@ -8,8 +8,15 @@ import conne.connect.connect.Feedback.dto.FeedbackRequestDTO;
 import conne.connect.connect.Feedback.dto.FeedbackResponseDTO;
 import conne.connect.connect.Feedback.dto.FeedbackResumoDTO;
 import conne.connect.connect.Feedback.enums.FeedbackClassificacao;
+import conne.connect.connect.Feedback.model.Feedback360AvaliacaoModel;
+import conne.connect.connect.Feedback.model.Feedback360RodadaModel;
 import conne.connect.connect.Feedback.model.FeedbackModel;
+import conne.connect.connect.Feedback.repository.Feedback360AvaliacaoRepository;
+import conne.connect.connect.Feedback.repository.Feedback360RodadaRepository;
 import conne.connect.connect.Feedback.repository.FeedbackRepository;
+import conne.connect.connect.Notificacao.enums.TipoNotificacao;
+import conne.connect.connect.Notificacao.model.NotificacaoModel;
+import conne.connect.connect.Notificacao.service.NotificacaoService;
 import conne.connect.connect.Projeto.enums.ProjetoStatusTela;
 import conne.connect.connect.Projeto.model.PessoaProjetoTelaModel;
 import conne.connect.connect.Projeto.model.ProjetoTelaModel;
@@ -17,11 +24,13 @@ import conne.connect.connect.Projeto.repository.ProjetoTelaRepository;
 import conne.connect.connect.Tarefa.model.TarefaModel;
 import conne.connect.connect.Tarefa.repository.TarefaRepository;
 import conne.connect.connect.Usuario.model.UsuarioEmpresaModel;
+import conne.connect.connect.Usuario.model.UsuarioModel;
 import conne.connect.connect.Usuario.repository.UsuarioEmpresaRepository;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,26 +39,33 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class FeedbackService {
 
-    private static final int PRAZO_AVALIACAO_360_DIAS = 5;
-
     private final FeedbackRepository feedbackRepository;
+    private final Feedback360RodadaRepository feedback360RodadaRepository;
+    private final Feedback360AvaliacaoRepository feedback360AvaliacaoRepository;
     private final EmpresaRepository empresaRepository;
     private final UsuarioEmpresaRepository usuarioEmpresaRepository;
     private final ProjetoTelaRepository projetoTelaRepository;
     private final TarefaRepository tarefaRepository;
+    private final NotificacaoService notificacaoService;
 
     public FeedbackService(
             FeedbackRepository feedbackRepository,
+            Feedback360RodadaRepository feedback360RodadaRepository,
+            Feedback360AvaliacaoRepository feedback360AvaliacaoRepository,
             EmpresaRepository empresaRepository,
             UsuarioEmpresaRepository usuarioEmpresaRepository,
             ProjetoTelaRepository projetoTelaRepository,
-            TarefaRepository tarefaRepository
+            TarefaRepository tarefaRepository,
+            NotificacaoService notificacaoService
     ) {
         this.feedbackRepository = feedbackRepository;
+        this.feedback360RodadaRepository = feedback360RodadaRepository;
+        this.feedback360AvaliacaoRepository = feedback360AvaliacaoRepository;
         this.empresaRepository = empresaRepository;
         this.usuarioEmpresaRepository = usuarioEmpresaRepository;
         this.projetoTelaRepository = projetoTelaRepository;
         this.tarefaRepository = tarefaRepository;
+        this.notificacaoService = notificacaoService;
     }
 
     @Transactional(readOnly = true)
@@ -57,11 +73,10 @@ public class FeedbackService {
         validarEmpresaId(empresaId);
 
         List<FeedbackModel> feedbacks;
-
         String filtroNormalizado = filtro == null ? "todos" : filtro.toLowerCase();
 
         switch (filtroNormalizado) {
-            case "avaliacao360" -> feedbacks =
+            case "avaliacao360", "360" -> feedbacks =
                     feedbackRepository.findByIdEmpresa_IdEmpresaAndAvaliacao360TrueAndExcluidoIsNullOrderByDataCriacaoDesc(
                             empresaId
                     );
@@ -87,6 +102,62 @@ public class FeedbackService {
             default -> feedbacks =
                     feedbackRepository.findByIdEmpresa_IdEmpresaAndExcluidoIsNullOrderByDataCriacaoDesc(
                             empresaId
+                    );
+        }
+
+        return feedbacks.stream()
+                .map(FeedbackResponseDTO::fromModel)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<FeedbackResponseDTO> listarPorDestinatario(
+            Long empresaId,
+            Long destinatarioUsuarioEmpresaId,
+            String filtro
+    ) {
+        validarEmpresaId(empresaId);
+        buscarUsuarioEmpresaDaMesmaEmpresa(
+                destinatarioUsuarioEmpresaId,
+                empresaId,
+                "Usuário avaliado não pertence à empresa informada."
+        );
+
+        List<FeedbackModel> feedbacks;
+        String filtroNormalizado = filtro == null ? "todos" : filtro.toLowerCase();
+
+        switch (filtroNormalizado) {
+            case "avaliacao360", "360" -> feedbacks =
+                    feedbackRepository.findByIdEmpresa_IdEmpresaAndIdDestinatarioUsuarioEmpresa_IdUsuarioEmpresaAndAvaliacao360IsTrueAndExcluidoIsNullOrderByDataCriacaoDesc(
+                            empresaId,
+                            destinatarioUsuarioEmpresaId
+                    );
+
+            case "positivos" -> feedbacks =
+                    feedbackRepository.findByIdEmpresa_IdEmpresaAndIdDestinatarioUsuarioEmpresa_IdUsuarioEmpresaAndClassificacaoAndExcluidoIsNullOrderByDataCriacaoDesc(
+                            empresaId,
+                            destinatarioUsuarioEmpresaId,
+                            FeedbackClassificacao.POSITIVO
+                    );
+
+            case "medianos" -> feedbacks =
+                    feedbackRepository.findByIdEmpresa_IdEmpresaAndIdDestinatarioUsuarioEmpresa_IdUsuarioEmpresaAndClassificacaoAndExcluidoIsNullOrderByDataCriacaoDesc(
+                            empresaId,
+                            destinatarioUsuarioEmpresaId,
+                            FeedbackClassificacao.MEDIANO
+                    );
+
+            case "negativos" -> feedbacks =
+                    feedbackRepository.findByIdEmpresa_IdEmpresaAndIdDestinatarioUsuarioEmpresa_IdUsuarioEmpresaAndClassificacaoAndExcluidoIsNullOrderByDataCriacaoDesc(
+                            empresaId,
+                            destinatarioUsuarioEmpresaId,
+                            FeedbackClassificacao.NEGATIVO
+                    );
+
+            default -> feedbacks =
+                    feedbackRepository.findByIdEmpresa_IdEmpresaAndIdDestinatarioUsuarioEmpresa_IdUsuarioEmpresaAndExcluidoIsNullOrderByDataCriacaoDesc(
+                            empresaId,
+                            destinatarioUsuarioEmpresaId
                     );
         }
 
@@ -141,37 +212,83 @@ public class FeedbackService {
     ) {
         validarEmpresaId(empresaId);
 
-        UsuarioEmpresaModel autor = buscarUsuarioEmpresaDaMesmaEmpresa(
+        UsuarioEmpresaModel avaliador = buscarUsuarioEmpresaDaMesmaEmpresa(
                 autorUsuarioEmpresaId,
                 empresaId,
-                "Autor não pertence à empresa informada."
+                "Avaliador não pertence à empresa informada."
         );
 
-        return projetoTelaRepository
-                .findByEmpresa_IdEmpresaAndStatusAndConcluidoEmIsNotNullOrderByConcluidoEmDesc(
-                        empresaId,
-                        ProjetoStatusTela.concluido
-                )
+        return feedback360AvaliacaoRepository
+                .buscarPendentesDoAvaliador(empresaId, avaliador.getIdUsuarioEmpresa())
                 .stream()
-                .filter(projeto -> usuarioParticipaDoProjeto(projeto, autor.getIdUsuarioEmpresa()))
-                .flatMap(projeto -> projeto.getMembros().stream()
-                        .filter(membro -> Boolean.TRUE.equals(membro.getAtivo()))
-                        .filter(membro -> obterUsuarioEmpresaId(membro) != null)
-                        .filter(membro -> !autor.getIdUsuarioEmpresa().equals(obterUsuarioEmpresaId(membro)))
-                        .filter(membro -> !avaliacao360JaRespondida(
-                                empresaId,
-                                projeto.getIdProjeto(),
-                                autor.getIdUsuarioEmpresa(),
-                                obterUsuarioEmpresaId(membro)
-                        ))
-                        .map(membro -> montarPendente360(projeto, membro))
-                )
+                .map(this::montarPendente360)
                 .sorted(Comparator
-                        .comparing(Feedback360PendenteDTO::getVencido)
-                        .thenComparing(Feedback360PendenteDTO::getPrazoLimite)
-                        .thenComparing(Feedback360PendenteDTO::getProjetoNome)
-                        .thenComparing(Feedback360PendenteDTO::getDestinatarioNome))
+                        .comparing(Feedback360PendenteDTO::getProjetoNome, String.CASE_INSENSITIVE_ORDER)
+                        .thenComparing(Feedback360PendenteDTO::getDestinatarioNome, String.CASE_INSENSITIVE_ORDER))
                 .toList();
+    }
+
+    @Transactional
+    public int abrirRodada360ParaProjetoConcluido(ProjetoTelaModel projeto) {
+        if (projeto == null
+                || projeto.getIdProjeto() == null
+                || projeto.getEmpresa() == null
+                || projeto.getEmpresa().getIdEmpresa() == null
+                || projeto.getStatus() != ProjetoStatusTela.concluido) {
+            return 0;
+        }
+
+        ProjetoTelaModel projetoCompleto = projetoTelaRepository.findById(projeto.getIdProjeto())
+                .orElse(projeto);
+
+        Map<Long, UsuarioEmpresaModel> participantes = obterParticipantesAtivos(projetoCompleto);
+
+        if (participantes.size() < 2) {
+            return 0;
+        }
+
+        Long empresaId = projetoCompleto.getEmpresa().getIdEmpresa();
+        Long projetoId = projetoCompleto.getIdProjeto();
+
+        Feedback360RodadaModel rodada = feedback360RodadaRepository
+                .findByEmpresa_IdEmpresaAndProjeto_IdProjeto(empresaId, projetoId)
+                .orElseGet(() -> criarRodada360(projetoCompleto));
+
+        int avaliacoesCriadas = 0;
+
+        for (UsuarioEmpresaModel avaliador : participantes.values()) {
+            for (UsuarioEmpresaModel avaliado : participantes.values()) {
+                if (avaliador.getIdUsuarioEmpresa().equals(avaliado.getIdUsuarioEmpresa())) {
+                    continue;
+                }
+
+                boolean jaExiste = feedback360AvaliacaoRepository
+                        .existsByRodada_IdRodadaAndAvaliador_IdUsuarioEmpresaAndAvaliado_IdUsuarioEmpresa(
+                                rodada.getIdRodada(),
+                                avaliador.getIdUsuarioEmpresa(),
+                                avaliado.getIdUsuarioEmpresa()
+                        );
+
+                if (!jaExiste) {
+                    Feedback360AvaliacaoModel avaliacao = new Feedback360AvaliacaoModel();
+                    avaliacao.setRodada(rodada);
+                    avaliacao.setEmpresa(projetoCompleto.getEmpresa());
+                    avaliacao.setProjeto(projetoCompleto);
+                    avaliacao.setAvaliador(avaliador);
+                    avaliacao.setAvaliado(avaliado);
+                    avaliacao.setRespondida(false);
+
+                    feedback360AvaliacaoRepository.save(avaliacao);
+                    avaliacoesCriadas++;
+                }
+            }
+        }
+
+        if (avaliacoesCriadas > 0) {
+            notificarAberturaRodada360(projetoCompleto, participantes);
+        }
+
+        return avaliacoesCriadas;
     }
 
     @Transactional
@@ -222,81 +339,28 @@ public class FeedbackService {
     public FeedbackResponseDTO criarAvaliacao360(Feedback360RequestDTO dto) {
         validarAvaliacao360(dto);
 
-        EmpresaModel empresa = buscarEmpresa(dto.getEmpresaId());
+        Feedback360AvaliacaoModel avaliacaoPendente = buscarAvaliacaoPendente(dto);
+        Integer nota = obterNota360(dto);
 
-        UsuarioEmpresaModel autor = buscarUsuarioEmpresaDaMesmaEmpresa(
-                dto.getAutorUsuarioEmpresaId(),
-                dto.getEmpresaId(),
-                "Autor não pertence à empresa informada."
-        );
-
-        UsuarioEmpresaModel destinatario = buscarUsuarioEmpresaDaMesmaEmpresa(
-                dto.getDestinatarioUsuarioEmpresaId(),
-                dto.getEmpresaId(),
-                "Destinatário não pertence à empresa informada."
-        );
-
-        validarAutorDestinatarioDiferentes(autor, destinatario);
-
-        ProjetoTelaModel projeto = buscarProjetoDaEmpresa(dto.getProjetoId(), dto.getEmpresaId());
-
-        if (projeto.getStatus() != ProjetoStatusTela.concluido) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "A avaliação 360° só pode ser feita após a conclusão do projeto."
-            );
-        }
-
-        if (projeto.getConcluidoEm() == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Projeto concluído sem data de conclusão registrada. Conclua o projeto novamente."
-            );
-        }
-
-        if (LocalDate.now().isAfter(prazoLimite360(projeto))) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "O prazo de 5 dias para responder esta avaliação 360° foi encerrado."
-            );
-        }
-
-        if (!usuarioParticipaDoProjeto(projeto, autor.getIdUsuarioEmpresa())) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Autor não faz parte do projeto informado."
-            );
-        }
-
-        if (!usuarioParticipaDoProjeto(projeto, destinatario.getIdUsuarioEmpresa())) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Destinatário não faz parte do projeto informado."
-            );
-        }
-
-        if (avaliacao360JaRespondida(
-                dto.getEmpresaId(),
-                projeto.getIdProjeto(),
-                autor.getIdUsuarioEmpresa(),
-                destinatario.getIdUsuarioEmpresa()
-        )) {
+        if (Boolean.TRUE.equals(avaliacaoPendente.getRespondida())) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "Você já realizou esta avaliação 360°."
             );
         }
 
-        double media = calcularMedia360(dto);
-        FeedbackClassificacao classificacao = classificacaoPorMedia(media);
+        validarAutorDestinatarioDiferentes(
+                avaliacaoPendente.getAvaliador(),
+                avaliacaoPendente.getAvaliado()
+        );
 
         FeedbackModel feedback = new FeedbackModel();
-        feedback.setIdEmpresa(empresa);
-        feedback.setIdAutorUsuarioEmpresa(autor);
-        feedback.setIdDestinatarioUsuarioEmpresa(destinatario);
-        feedback.setIdProjeto(projeto);
-        feedback.setClassificacao(classificacao);
-        feedback.setNota((int) Math.round(media));
+        feedback.setIdEmpresa(avaliacaoPendente.getEmpresa());
+        feedback.setIdAutorUsuarioEmpresa(avaliacaoPendente.getAvaliador());
+        feedback.setIdDestinatarioUsuarioEmpresa(avaliacaoPendente.getAvaliado());
+        feedback.setIdProjeto(avaliacaoPendente.getProjeto());
+        feedback.setNota(nota);
+        feedback.setClassificacao(classificacaoPorNota(nota));
         feedback.setCategoria("Avaliação 360°");
         feedback.setComentario(dto.getComentario() != null ? dto.getComentario().trim() : "");
         feedback.setAvaliacao360(true);
@@ -305,8 +369,15 @@ public class FeedbackService {
         feedback.setColaboracao(dto.getColaboracao());
         feedback.setComunicacao(dto.getComunicacao());
 
-        FeedbackModel salvo = feedbackRepository.save(feedback);
-        return FeedbackResponseDTO.fromModel(salvo);
+        FeedbackModel feedbackSalvo = feedbackRepository.save(feedback);
+
+        avaliacaoPendente.setNota(nota);
+        avaliacaoPendente.setComentario(feedback.getComentario());
+        avaliacaoPendente.setRespondida(true);
+        avaliacaoPendente.setFeedback(feedbackSalvo);
+        feedback360AvaliacaoRepository.save(avaliacaoPendente);
+
+        return FeedbackResponseDTO.fromModel(feedbackSalvo);
     }
 
     @Transactional
@@ -367,86 +438,131 @@ public class FeedbackService {
         feedbackRepository.save(feedback);
     }
 
-    private Feedback360PendenteDTO montarPendente360(
-            ProjetoTelaModel projeto,
-            PessoaProjetoTelaModel destinatario
-    ) {
-        LocalDate prazoLimite = prazoLimite360(projeto);
-        LocalDate hoje = LocalDate.now();
-        boolean vencido = hoje.isAfter(prazoLimite);
-        long diasRestantes = Math.max(ChronoUnit.DAYS.between(hoje, prazoLimite), 0);
+    private Feedback360PendenteDTO montarPendente360(Feedback360AvaliacaoModel avaliacao) {
+        ProjetoTelaModel projeto = avaliacao.getProjeto();
+        UsuarioEmpresaModel avaliado = avaliacao.getAvaliado();
+        String nomeAvaliado = nomeDoUsuarioEmpresa(avaliado);
 
         return new Feedback360PendenteDTO(
-                projeto.getIdProjeto(),
-                projeto.getNome(),
-                obterUsuarioEmpresaId(destinatario),
-                destinatario.getNome(),
-                iniciaisDoDestinatario(destinatario),
-                projeto.getConcluidoEm(),
-                prazoLimite,
-                diasRestantes,
-                vencido
+                avaliacao.getIdAvaliacao(),
+                avaliacao.getRodada() != null ? avaliacao.getRodada().getIdRodada() : null,
+                projeto != null ? projeto.getIdProjeto() : null,
+                projeto != null ? projeto.getNome() : "Projeto",
+                avaliado != null ? avaliado.getIdUsuarioEmpresa() : null,
+                nomeAvaliado,
+                gerarIniciais(nomeAvaliado),
+                projeto != null ? projeto.getConcluidoEm() : null,
+                null,
+                null,
+                false
         );
     }
 
-    private LocalDate prazoLimite360(ProjetoTelaModel projeto) {
-        return projeto.getConcluidoEm().plusDays(PRAZO_AVALIACAO_360_DIAS);
+    private Feedback360RodadaModel criarRodada360(ProjetoTelaModel projeto) {
+        Feedback360RodadaModel rodada = new Feedback360RodadaModel();
+        rodada.setEmpresa(projeto.getEmpresa());
+        rodada.setProjeto(projeto);
+        rodada.setAtiva(true);
+        return feedback360RodadaRepository.save(rodada);
     }
 
-    private boolean avaliacao360JaRespondida(
-            Long empresaId,
-            Long projetoId,
-            Long autorUsuarioEmpresaId,
-            Long destinatarioUsuarioEmpresaId
+    private Map<Long, UsuarioEmpresaModel> obterParticipantesAtivos(ProjetoTelaModel projeto) {
+        Map<Long, UsuarioEmpresaModel> participantes = new LinkedHashMap<>();
+
+        adicionarParticipante(participantes, projeto.getLider(), projeto.getEmpresa().getIdEmpresa());
+
+        if (projeto.getMembros() != null) {
+            projeto.getMembros().forEach(membro -> adicionarParticipante(
+                    participantes,
+                    membro,
+                    projeto.getEmpresa().getIdEmpresa()
+            ));
+        }
+
+        return participantes;
+    }
+
+    private void adicionarParticipante(
+            Map<Long, UsuarioEmpresaModel> participantes,
+            PessoaProjetoTelaModel pessoa,
+            Long empresaId
     ) {
-        return feedbackRepository
-                .existsByIdEmpresa_IdEmpresaAndIdProjeto_IdProjetoAndIdAutorUsuarioEmpresa_IdUsuarioEmpresaAndIdDestinatarioUsuarioEmpresa_IdUsuarioEmpresaAndAvaliacao360TrueAndExcluidoIsNull(
-                        empresaId,
-                        projetoId,
-                        autorUsuarioEmpresaId,
-                        destinatarioUsuarioEmpresaId
-                );
+        if (pessoa == null || !Boolean.TRUE.equals(pessoa.getAtivo())) {
+            return;
+        }
+
+        UsuarioEmpresaModel usuarioEmpresa = pessoa.getUsuarioEmpresa();
+
+        if (usuarioEmpresa == null
+                || usuarioEmpresa.getIdUsuarioEmpresa() == null
+                || usuarioEmpresa.getIdEmpresa() == null
+                || !empresaId.equals(usuarioEmpresa.getIdEmpresa().getIdEmpresa())
+                || !Boolean.TRUE.equals(usuarioEmpresa.getAtivo())
+                || usuarioEmpresa.getExcluido() != null) {
+            return;
+        }
+
+        participantes.put(usuarioEmpresa.getIdUsuarioEmpresa(), usuarioEmpresa);
     }
 
-    private boolean usuarioParticipaDoProjeto(ProjetoTelaModel projeto, Long usuarioEmpresaId) {
-        if (usuarioEmpresaId == null || projeto == null) {
-            return false;
-        }
+    private void notificarAberturaRodada360(
+            ProjetoTelaModel projeto,
+            Map<Long, UsuarioEmpresaModel> participantes
+    ) {
+        participantes.values().forEach(usuarioEmpresa -> {
+            NotificacaoModel notificacao = new NotificacaoModel();
+            notificacao.setIdEmpresa(projeto.getEmpresa());
+            notificacao.setIdUsuarioEmpresa(usuarioEmpresa);
+            notificacao.setTipo(TipoNotificacao.feedback);
+            notificacao.setTitulo("Avaliação 360° disponível");
+            notificacao.setMensagem(
+                    "O projeto \"" + projeto.getNome()
+                            + "\" foi concluído. Avalie os colegas com quem você trabalhou."
+            );
+            notificacao.setLida(false);
 
-        Long liderId = obterUsuarioEmpresaId(projeto.getLider());
-
-        if (usuarioEmpresaId.equals(liderId)) {
-            return true;
-        }
-
-        if (projeto.getMembros() == null) {
-            return false;
-        }
-
-        return projeto.getMembros().stream()
-                .map(this::obterUsuarioEmpresaId)
-                .anyMatch(usuarioEmpresaId::equals);
+            notificacaoService.criarNotificacao(notificacao);
+        });
     }
 
-    private Long obterUsuarioEmpresaId(PessoaProjetoTelaModel pessoa) {
-        if (pessoa == null) {
-            return null;
+    private Feedback360AvaliacaoModel buscarAvaliacaoPendente(Feedback360RequestDTO dto) {
+        if (dto.getAvaliacaoId() != null) {
+            return feedback360AvaliacaoRepository
+                    .buscarPendentePorId(
+                            dto.getAvaliacaoId(),
+                            dto.getEmpresaId(),
+                            dto.getAutorUsuarioEmpresaId()
+                    )
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "Avaliação 360° pendente não encontrada para este usuário."
+                    ));
         }
 
-        if (pessoa.getUsuarioEmpresa() != null
-                && pessoa.getUsuarioEmpresa().getIdUsuarioEmpresa() != null) {
-            return pessoa.getUsuarioEmpresa().getIdUsuarioEmpresa();
+        if (feedback360AvaliacaoRepository
+                .existsByEmpresa_IdEmpresaAndProjeto_IdProjetoAndAvaliador_IdUsuarioEmpresaAndAvaliado_IdUsuarioEmpresaAndRespondidaTrue(
+                        dto.getEmpresaId(),
+                        dto.getProjetoId(),
+                        dto.getAutorUsuarioEmpresaId(),
+                        dto.getDestinatarioUsuarioEmpresaId()
+                )) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Você já realizou esta avaliação 360°."
+            );
         }
 
-        return null;
-    }
-
-    private String iniciaisDoDestinatario(PessoaProjetoTelaModel pessoa) {
-        if (pessoa.getIniciais() != null && !pessoa.getIniciais().isBlank()) {
-            return pessoa.getIniciais();
-        }
-
-        return gerarIniciais(pessoa.getNome());
+        return feedback360AvaliacaoRepository
+                .buscarPendentePorPar(
+                        dto.getEmpresaId(),
+                        dto.getProjetoId(),
+                        dto.getAutorUsuarioEmpresaId(),
+                        dto.getDestinatarioUsuarioEmpresaId()
+                )
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Avaliação 360° pendente não encontrada para este par."
+                ));
     }
 
     private EmpresaModel buscarEmpresa(Long empresaId) {
@@ -572,28 +688,47 @@ public class FeedbackService {
         validarEmpresaId(dto.getEmpresaId());
 
         if (dto.getAutorUsuarioEmpresaId() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Autor é obrigatório.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Avaliador é obrigatório.");
         }
 
-        if (dto.getDestinatarioUsuarioEmpresaId() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Destinatário é obrigatório.");
+        if (dto.getAvaliacaoId() == null) {
+            if (dto.getProjetoId() == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Projeto é obrigatório para avaliação 360°.");
+            }
+
+            if (dto.getDestinatarioUsuarioEmpresaId() == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuário avaliado é obrigatório.");
+            }
         }
 
-        if (dto.getProjetoId() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Projeto é obrigatório para avaliação 360°.");
-        }
-
-        validarNota360(dto.getComprometimento(), "Comprometimento");
-        validarNota360(dto.getNivelEntregas(), "Nível de entregas");
-        validarNota360(dto.getColaboracao(), "Colaboração");
-        validarNota360(dto.getComunicacao(), "Comunicação");
+        validarNota360(obterNota360(dto));
     }
 
-    private void validarNota360(Integer nota, String criterio) {
+    private Integer obterNota360(Feedback360RequestDTO dto) {
+        if (dto.getNota() != null) {
+            return dto.getNota();
+        }
+
+        if (dto.getComprometimento() != null
+                && dto.getNivelEntregas() != null
+                && dto.getColaboracao() != null
+                && dto.getComunicacao() != null) {
+            return (int) Math.round((
+                    dto.getComprometimento()
+                            + dto.getNivelEntregas()
+                            + dto.getColaboracao()
+                            + dto.getComunicacao()
+            ) / 4.0);
+        }
+
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nota é obrigatória.");
+    }
+
+    private void validarNota360(Integer nota) {
         if (nota == null || nota < 1 || nota > 5) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    criterio + " deve ser avaliado de 1 a 5."
+                    "Nota deve ser um valor de 1 a 5."
             );
         }
     }
@@ -615,25 +750,30 @@ public class FeedbackService {
         };
     }
 
-    private double calcularMedia360(Feedback360RequestDTO dto) {
-        return (
-                dto.getComprometimento()
-                        + dto.getNivelEntregas()
-                        + dto.getColaboracao()
-                        + dto.getComunicacao()
-        ) / 4.0;
-    }
-
-    private FeedbackClassificacao classificacaoPorMedia(double media) {
-        if (media >= 4.0) {
+    private FeedbackClassificacao classificacaoPorNota(Integer nota) {
+        if (nota >= 4) {
             return FeedbackClassificacao.POSITIVO;
         }
 
-        if (media >= 3.0) {
+        if (nota >= 3) {
             return FeedbackClassificacao.MEDIANO;
         }
 
         return FeedbackClassificacao.NEGATIVO;
+    }
+
+    private String nomeDoUsuarioEmpresa(UsuarioEmpresaModel usuarioEmpresa) {
+        if (usuarioEmpresa == null) {
+            return "Usuário";
+        }
+
+        UsuarioModel usuario = usuarioEmpresa.getIdUsuario();
+
+        if (usuario == null || usuario.getNome() == null || usuario.getNome().isBlank()) {
+            return "Usuário " + usuarioEmpresa.getIdUsuarioEmpresa();
+        }
+
+        return usuario.getNome();
     }
 
     private String gerarIniciais(String nome) {

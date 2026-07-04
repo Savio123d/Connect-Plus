@@ -40,6 +40,22 @@ public class FeedbackController {
         );
     }
 
+
+    @GetMapping("/empresa/{empresaId}/destinatario/{destinatarioUsuarioEmpresaId}")
+    public ResponseEntity<List<FeedbackResponseDTO>> listarPorDestinatario(
+            @PathVariable Long empresaId,
+            @PathVariable Long destinatarioUsuarioEmpresaId,
+            @RequestParam(defaultValue = "todos") String filtro
+    ) {
+        return ResponseEntity.ok(
+                feedbackService.listarPorDestinatario(
+                        empresaId,
+                        destinatarioUsuarioEmpresaId,
+                        filtro
+                )
+        );
+    }
+
     @GetMapping("/empresa/{empresaId}/360/pendentes")
     public ResponseEntity<List<Feedback360PendenteDTO>> listarPendentes360(
             @PathVariable Long empresaId,
