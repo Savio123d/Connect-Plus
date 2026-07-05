@@ -84,6 +84,24 @@ public class Feedback360AvaliacaoModel {
     @Column(name = "respondida_em")
     private LocalDateTime respondidaEm;
 
+    @Column(name = "ordem", nullable = false)
+    private Integer ordem;
+
+    @Column(name = "assiduidade")
+    private Integer assiduidade;
+
+    @Column(name = "nivel_entregas")
+    private Integer nivelEntregas;
+
+    @Column(name = "comunicacao")
+    private Integer comunicacao;
+
+    @Column(name = "colaboracao")
+    private Integer colaboracao;
+
+    @Column(name = "comprometimento")
+    private Integer comprometimento;
+
     @PrePersist
     public void prePersist() {
         if (respondida == null) {
@@ -93,6 +111,11 @@ public class Feedback360AvaliacaoModel {
         if (criadaEm == null) {
             criadaEm = LocalDateTime.now();
         }
+
+        if (ordem == null) {
+            ordem = 0;
+        }
+
     }
 
     @PreUpdate

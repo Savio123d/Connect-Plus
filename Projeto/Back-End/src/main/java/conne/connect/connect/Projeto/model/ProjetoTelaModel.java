@@ -69,6 +69,18 @@ public class ProjetoTelaModel {
     @Column(name = "horas_estimadas", nullable = false)
     private Integer horasEstimadas = 240;
 
+    @Column(name = "avaliacao_360_obrigatoria", nullable = false)
+    private Boolean avaliacao360Obrigatoria = false;
+
+    public Boolean getAvaliacao360Obrigatoria() {
+        return avaliacao360Obrigatoria;
+    }
+
+    public void setAvaliacao360Obrigatoria(Boolean avaliacao360Obrigatoria) {
+        this.avaliacao360Obrigatoria = avaliacao360Obrigatoria;
+    }
+
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "empresa_id")
     private EmpresaModel empresa;

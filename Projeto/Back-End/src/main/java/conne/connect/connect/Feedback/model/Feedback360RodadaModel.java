@@ -55,14 +55,28 @@ public class Feedback360RodadaModel {
     @Column(name = "ativa", nullable = false)
     private Boolean ativa;
 
+    @Column(name = "obrigatoria", nullable = false)
+    private Boolean obrigatoria;
+
+    @Column(name = "concluida", nullable = false)
+    private Boolean concluida;
+
+    @Column(name = "concluida_em")
+    private LocalDateTime concluidaEm;
+
     @PrePersist
     public void prePersist() {
         if (abertaEm == null) {
             abertaEm = LocalDateTime.now();
         }
-
         if (ativa == null) {
             ativa = true;
+        }
+        if (obrigatoria == null) {
+            obrigatoria = false;
+        }
+        if (concluida == null) {
+            concluida = false;
         }
     }
 }
