@@ -13,10 +13,10 @@ public class Feedback360RequestDTO {
     private Long destinatarioUsuarioEmpresaId;
     private Long projetoId;
     private Integer nota;
-    private Integer comprometimento;
-    private Integer nivelEntregas;
-    private Integer colaboracao;
-    private Integer comunicacao;
     private String comentario;
+    private Integer assiduidade;
+    private Integer nivelEntregas;
+    private Integer comunicacao;
+    private Integer colaboracao;
+    private Integer comprometimento;
 }
-
