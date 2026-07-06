@@ -1,7 +1,7 @@
 package conne.connect.connect.Assinatura.model;
 
 import conne.connect.connect.Assinatura.enums.StatusAssinatura;
-import conne.connect.connect.Empresa.model.EmpresaModel;
+import conne.connect.connect.Recompensa.Empresa.model.EmpresaModel;
 import conne.connect.connect.Plano.model.PlanoModel;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -52,6 +52,21 @@ public class AssinaturaModel {
 
     @Column(name = "fim_em")
     private LocalDateTime fimEm;
+
+    @Column(name = "mp_preapproval_id", unique = true, length = 80)
+    private String mercadoPagoPreapprovalId;
+
+    @Column(name = "mp_external_reference", unique = true, length = 120)
+    private String mercadoPagoExternalReference;
+
+    @Column(name = "mp_status", length = 40)
+    private String mercadoPagoStatus;
+
+    @Column(name = "mp_init_point", length = 500)
+    private String mercadoPagoInitPoint;
+
+    @Column(name = "mp_sandbox_init_point", length = 500)
+    private String mercadoPagoSandboxInitPoint;
 
     @Column(name = "incluido", columnDefinition = "DATE")
     private LocalDate incluido;

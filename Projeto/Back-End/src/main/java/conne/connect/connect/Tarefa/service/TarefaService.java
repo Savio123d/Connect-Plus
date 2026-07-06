@@ -1,7 +1,7 @@
 package conne.connect.connect.Tarefa.service;
 
-import conne.connect.connect.Empresa.model.EmpresaModel;
-import conne.connect.connect.Empresa.repository.EmpresaRepository;
+import conne.connect.connect.Recompensa.Empresa.model.EmpresaModel;
+import conne.connect.connect.Recompensa.Empresa.repository.EmpresaRepository;
 import conne.connect.connect.Projeto.enums.MarcoStatusProjetoTela;
 import conne.connect.connect.Projeto.model.ProjetoTelaModel;
 import conne.connect.connect.Projeto.repository.ProjetoTelaRepository;

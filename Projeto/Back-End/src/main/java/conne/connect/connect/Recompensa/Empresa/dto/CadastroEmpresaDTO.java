@@ -1,4 +1,4 @@
-package conne.connect.connect.Empresa.dto;
+package conne.connect.connect.Recompensa.Empresa.dto;
 
 import conne.connect.connect.Plano.enums.TipoPlano;
 import jakarta.validation.constraints.Email;

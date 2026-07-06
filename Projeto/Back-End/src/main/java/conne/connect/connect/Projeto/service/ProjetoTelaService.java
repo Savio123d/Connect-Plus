@@ -1,7 +1,7 @@
 package conne.connect.connect.Projeto.service;
 
-import conne.connect.connect.Empresa.model.EmpresaModel;
-import conne.connect.connect.Empresa.repository.EmpresaRepository;
+import conne.connect.connect.Recompensa.Empresa.model.EmpresaModel;
+import conne.connect.connect.Recompensa.Empresa.repository.EmpresaRepository;
 import conne.connect.connect.Notificacao.enums.TipoNotificacao;
 import conne.connect.connect.Notificacao.model.NotificacaoModel;
 import conne.connect.connect.Notificacao.service.NotificacaoService;

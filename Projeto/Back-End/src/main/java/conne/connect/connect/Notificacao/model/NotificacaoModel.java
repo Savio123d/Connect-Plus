@@ -1,6 +1,6 @@
 package conne.connect.connect.Notificacao.model;
 
-import conne.connect.connect.Empresa.model.EmpresaModel;
+import conne.connect.connect.Recompensa.Empresa.model.EmpresaModel;
 import conne.connect.connect.Notificacao.enums.TipoNotificacao;
 import conne.connect.connect.Usuario.model.UsuarioEmpresaModel;
 import jakarta.persistence.Column;

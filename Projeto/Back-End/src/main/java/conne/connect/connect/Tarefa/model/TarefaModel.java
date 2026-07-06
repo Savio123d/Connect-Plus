@@ -1,6 +1,6 @@
 package conne.connect.connect.Tarefa.model;
 
-import conne.connect.connect.Empresa.model.EmpresaModel;
+import conne.connect.connect.Recompensa.Empresa.model.EmpresaModel;
 import conne.connect.connect.Projeto.model.ProjetoTelaModel;
 import conne.connect.connect.Tarefa.enums.DificuldadeTarefa;
 import conne.connect.connect.Tarefa.enums.PrioridadeTarefa;

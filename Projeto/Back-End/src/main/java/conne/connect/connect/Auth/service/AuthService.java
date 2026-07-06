@@ -2,8 +2,8 @@ package conne.connect.connect.Auth.service;
 
 import conne.connect.connect.Auth.dto.LoginRequestDTO;
 import conne.connect.connect.Auth.dto.LoginResponseDTO;
-import conne.connect.connect.Empresa.enums.StatusEmpresa;
-import conne.connect.connect.Empresa.model.EmpresaModel;
+import conne.connect.connect.Recompensa.Empresa.enums.StatusEmpresa;
+import conne.connect.connect.Recompensa.Empresa.model.EmpresaModel;
 import conne.connect.connect.Usuario.enums.StatusUsuario;
 import conne.connect.connect.Usuario.model.UsuarioEmpresaModel;
 import conne.connect.connect.Usuario.model.UsuarioModel;

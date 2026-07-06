@@ -1,6 +1,6 @@
 package conne.connect.connect.Usuario.model;
 
-import conne.connect.connect.Empresa.model.EmpresaModel;
+import conne.connect.connect.Recompensa.Empresa.model.EmpresaModel;
 import conne.connect.connect.Setor.model.SetorModel;
 import conne.connect.connect.Usuario.enums.PapelEmpresa;
 import jakarta.persistence.Column;

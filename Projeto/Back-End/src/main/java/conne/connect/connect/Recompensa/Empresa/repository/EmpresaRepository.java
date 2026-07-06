@@ -1,6 +1,6 @@
-package conne.connect.connect.Empresa.repository;
+package conne.connect.connect.Recompensa.Empresa.repository;
 
-import conne.connect.connect.Empresa.model.EmpresaModel;
+import conne.connect.connect.Recompensa.Empresa.model.EmpresaModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface EmpresaRepository extends JpaRepository<EmpresaModel, Long> {

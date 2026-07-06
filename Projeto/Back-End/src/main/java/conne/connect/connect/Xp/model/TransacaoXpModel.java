@@ -1,6 +1,6 @@
 package conne.connect.connect.Xp.model;
 
-import conne.connect.connect.Empresa.model.EmpresaModel;
+import conne.connect.connect.Recompensa.Empresa.model.EmpresaModel;
 import conne.connect.connect.Recompensa.model.RecompensaModel;
 import conne.connect.connect.Tarefa.model.TarefaModel;
 import conne.connect.connect.Usuario.model.UsuarioEmpresaModel;

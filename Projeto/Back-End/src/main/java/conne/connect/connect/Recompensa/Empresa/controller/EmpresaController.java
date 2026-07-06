@@ -1,9 +1,9 @@
-package conne.connect.connect.Empresa.controller;
+package conne.connect.connect.Recompensa.Empresa.controller;
 
-import conne.connect.connect.Empresa.dto.CadastroEmpresaDTO;
-import conne.connect.connect.Empresa.dto.CadastroEmpresaResponseDTO;
-import conne.connect.connect.Empresa.model.EmpresaModel;
-import conne.connect.connect.Empresa.service.EmpresaService;
+import conne.connect.connect.Recompensa.Empresa.dto.CadastroEmpresaDTO;
+import conne.connect.connect.Recompensa.Empresa.dto.CadastroEmpresaResponseDTO;
+import conne.connect.connect.Recompensa.Empresa.model.EmpresaModel;
+import conne.connect.connect.Recompensa.Empresa.service.EmpresaService;
 import conne.connect.connect.Usuario.dto.CadastroUsuarioEmpresaDTO;
 import jakarta.validation.Valid;
 import java.util.List;
