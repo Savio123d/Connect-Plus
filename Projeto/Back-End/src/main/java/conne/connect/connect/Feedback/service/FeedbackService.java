@@ -12,7 +12,6 @@ import conne.connect.connect.Feedback.dto.Feedback360UsuarioDTO;
 import conne.connect.connect.Feedback.dto.FeedbackRequestDTO;
 import conne.connect.connect.Feedback.dto.FeedbackResponseDTO;
 import conne.connect.connect.Feedback.dto.FeedbackResumoDTO;
-import conne.connect.connect.Feedback.enums.FeedbackClassificacao;
 import conne.connect.connect.Feedback.model.Feedback360AvaliacaoModel;
 import conne.connect.connect.Feedback.model.Feedback360ObservacaoModel;
 import conne.connect.connect.Feedback.model.Feedback360RodadaModel;
@@ -84,35 +83,18 @@ public class FeedbackService {
     public List<FeedbackResponseDTO> listarPorEmpresa(Long empresaId, String filtro) {
         validarEmpresaId(empresaId);
 
-        List<FeedbackModel> feedbacks;
         String filtroNormalizado = filtro == null ? "todos" : filtro.toLowerCase();
 
-        switch (filtroNormalizado) {
-            case "avaliacao360", "360" -> feedbacks =
-                    feedbackRepository.findByIdEmpresa_IdEmpresaAndAvaliacao360TrueAndExcluidoIsNullOrderByDataCriacaoDesc(
+        List<FeedbackModel> feedbacks;
+
+        if ("avaliacao360".equals(filtroNormalizado) || "360".equals(filtroNormalizado)) {
+            feedbacks = feedbackRepository
+                    .findByIdEmpresa_IdEmpresaAndAvaliacao360TrueAndExcluidoIsNullOrderByDataCriacaoDesc(
                             empresaId
                     );
-
-            case "positivos" -> feedbacks =
-                    feedbackRepository.findByIdEmpresa_IdEmpresaAndClassificacaoAndExcluidoIsNullOrderByDataCriacaoDesc(
-                            empresaId,
-                            FeedbackClassificacao.POSITIVO
-                    );
-
-            case "medianos" -> feedbacks =
-                    feedbackRepository.findByIdEmpresa_IdEmpresaAndClassificacaoAndExcluidoIsNullOrderByDataCriacaoDesc(
-                            empresaId,
-                            FeedbackClassificacao.MEDIANO
-                    );
-
-            case "negativos" -> feedbacks =
-                    feedbackRepository.findByIdEmpresa_IdEmpresaAndClassificacaoAndExcluidoIsNullOrderByDataCriacaoDesc(
-                            empresaId,
-                            FeedbackClassificacao.NEGATIVO
-                    );
-
-            default -> feedbacks =
-                    feedbackRepository.findByIdEmpresa_IdEmpresaAndExcluidoIsNullOrderByDataCriacaoDesc(
+        } else {
+            feedbacks = feedbackRepository
+                    .findByIdEmpresa_IdEmpresaAndExcluidoIsNullOrderByDataCriacaoDesc(
                             empresaId
                     );
         }
@@ -121,6 +103,7 @@ public class FeedbackService {
                 .map(FeedbackResponseDTO::fromModel)
                 .toList();
     }
+
 
     @Transactional(readOnly = true)
     public List<FeedbackResponseDTO> listarPorDestinatario(
@@ -135,39 +118,19 @@ public class FeedbackService {
                 "Usuário avaliado não pertence à empresa informada."
         );
 
-        List<FeedbackModel> feedbacks;
         String filtroNormalizado = filtro == null ? "todos" : filtro.toLowerCase();
 
-        switch (filtroNormalizado) {
-            case "avaliacao360", "360" -> feedbacks =
-                    feedbackRepository.findByIdEmpresa_IdEmpresaAndIdDestinatarioUsuarioEmpresa_IdUsuarioEmpresaAndAvaliacao360IsTrueAndExcluidoIsNullOrderByDataCriacaoDesc(
+        List<FeedbackModel> feedbacks;
+
+        if ("avaliacao360".equals(filtroNormalizado) || "360".equals(filtroNormalizado)) {
+            feedbacks = feedbackRepository
+                    .findByIdEmpresa_IdEmpresaAndIdDestinatarioUsuarioEmpresa_IdUsuarioEmpresaAndAvaliacao360IsTrueAndExcluidoIsNullOrderByDataCriacaoDesc(
                             empresaId,
                             destinatarioUsuarioEmpresaId
                     );
-
-            case "positivos" -> feedbacks =
-                    feedbackRepository.findByIdEmpresa_IdEmpresaAndIdDestinatarioUsuarioEmpresa_IdUsuarioEmpresaAndClassificacaoAndExcluidoIsNullOrderByDataCriacaoDesc(
-                            empresaId,
-                            destinatarioUsuarioEmpresaId,
-                            FeedbackClassificacao.POSITIVO
-                    );
-
-            case "medianos" -> feedbacks =
-                    feedbackRepository.findByIdEmpresa_IdEmpresaAndIdDestinatarioUsuarioEmpresa_IdUsuarioEmpresaAndClassificacaoAndExcluidoIsNullOrderByDataCriacaoDesc(
-                            empresaId,
-                            destinatarioUsuarioEmpresaId,
-                            FeedbackClassificacao.MEDIANO
-                    );
-
-            case "negativos" -> feedbacks =
-                    feedbackRepository.findByIdEmpresa_IdEmpresaAndIdDestinatarioUsuarioEmpresa_IdUsuarioEmpresaAndClassificacaoAndExcluidoIsNullOrderByDataCriacaoDesc(
-                            empresaId,
-                            destinatarioUsuarioEmpresaId,
-                            FeedbackClassificacao.NEGATIVO
-                    );
-
-            default -> feedbacks =
-                    feedbackRepository.findByIdEmpresa_IdEmpresaAndIdDestinatarioUsuarioEmpresa_IdUsuarioEmpresaAndExcluidoIsNullOrderByDataCriacaoDesc(
+        } else {
+            feedbacks = feedbackRepository
+                    .findByIdEmpresa_IdEmpresaAndIdDestinatarioUsuarioEmpresa_IdUsuarioEmpresaAndExcluidoIsNullOrderByDataCriacaoDesc(
                             empresaId,
                             destinatarioUsuarioEmpresaId
                     );
@@ -178,27 +141,27 @@ public class FeedbackService {
                 .toList();
     }
 
+
     @Transactional(readOnly = true)
     public FeedbackResumoDTO buscarResumo(Long empresaId) {
         validarEmpresaId(empresaId);
 
-        Long positivos = feedbackRepository.countByIdEmpresa_IdEmpresaAndClassificacaoAndExcluidoIsNull(
-                empresaId,
-                FeedbackClassificacao.POSITIVO
-        );
+        List<FeedbackModel> feedbacks = feedbackRepository
+                .findByIdEmpresa_IdEmpresaAndExcluidoIsNullOrderByDataCriacaoDesc(
+                        empresaId
+                );
 
-        Long medianos = feedbackRepository.countByIdEmpresa_IdEmpresaAndClassificacaoAndExcluidoIsNull(
-                empresaId,
-                FeedbackClassificacao.MEDIANO
-        );
+        long totalFeedbacks = feedbacks.size();
 
-        Long negativos = feedbackRepository.countByIdEmpresa_IdEmpresaAndClassificacaoAndExcluidoIsNull(
-                empresaId,
-                FeedbackClassificacao.NEGATIVO
-        );
+        long avaliacoes360 = feedbacks.stream()
+                .filter(feedback -> Boolean.TRUE.equals(feedback.getAvaliacao360()))
+                .count();
 
-        return new FeedbackResumoDTO(positivos, medianos, negativos);
+        long feedbacksGerais = totalFeedbacks - avaliacoes360;
+
+        return new FeedbackResumoDTO(totalFeedbacks, avaliacoes360, feedbacksGerais);
     }
+
 
     @Transactional(readOnly = true)
     public FeedbackResponseDTO buscarPorId(Long empresaId, Long idFeedback) {
@@ -581,8 +544,8 @@ public class FeedbackService {
         feedback.setIdEmpresa(empresa);
         feedback.setIdAutorUsuarioEmpresa(autor);
         feedback.setIdDestinatarioUsuarioEmpresa(destinatario);
-        feedback.setClassificacao(dto.getClassificacao());
-        feedback.setNota(notaPorClassificacao(dto.getClassificacao()));
+        feedback.setClassificacao(null);
+        feedback.setNota(3);
         feedback.setCategoria(dto.getCategoria().trim());
         feedback.setComentario(dto.getComentario().trim());
         feedback.setAvaliacao360(false);
@@ -689,8 +652,8 @@ public class FeedbackService {
 
         feedback.setIdAutorUsuarioEmpresa(autor);
         feedback.setIdDestinatarioUsuarioEmpresa(destinatario);
-        feedback.setClassificacao(dto.getClassificacao());
-        feedback.setNota(notaPorClassificacao(dto.getClassificacao()));
+        feedback.setClassificacao(null);
+        feedback.setNota(3);
         feedback.setCategoria(dto.getCategoria().trim());
         feedback.setComentario(dto.getComentario().trim());
 
@@ -904,10 +867,6 @@ public class FeedbackService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Destinatário é obrigatório.");
         }
 
-        if (dto.getClassificacao() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Classificação é obrigatória.");
-        }
-
         if (dto.getCategoria() == null || dto.getCategoria().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Categoria é obrigatória.");
         }
@@ -1025,13 +984,7 @@ public class FeedbackService {
                 : "Usuário";
     }
 
-    private Integer notaPorClassificacao(FeedbackClassificacao classificacao) {
-        return switch (classificacao) {
-            case POSITIVO -> 5;
-            case MEDIANO -> 3;
-            case NEGATIVO -> 1;
-        };
-    }
+
 
     private String gerarIniciais(String nome) {
         if (nome == null || nome.isBlank()) {

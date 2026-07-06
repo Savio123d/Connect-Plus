@@ -1,55 +1,28 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
 import {
   AbaFeedback,
   ColaboradorFeedback,
-  Feedback360GestorItem,
   Feedback360Pendente,
   Feedback360ProjetoGestor,
-  Feedback360Status,
   Feedback360UsuarioCard,
-  FeedbackClassificacao,
-  FeedbackFiltro,
   FeedbackItem,
   FeedbackResumo,
   FeedbacksService,
   ProjetoFeedback,
 } from './feedbacks.service';
 
-type ModalFeedback = 'novo' | 'avaliacao360' | 'observacao360' | 'obrigatoriedade' | null;
-
-interface OpcaoClassificacao {
-  label: string;
-  value: FeedbackClassificacao;
-}
-
-interface FeedbackForm {
-  destinatarioUsuarioEmpresaId: number | null;
-  classificacao: FeedbackClassificacao;
-  categoria: string;
-  projetoId: number | null;
-  comentario: string;
-}
-
-interface Feedback360Form {
-  assiduidade: number;
-  nivelEntregas: number;
-  comunicacao: number;
-  colaboracao: number;
-  comprometimento: number;
-  comentario: string;
-}
-
-interface ObrigatoriedadeForm {
-  projetoId: number | null;
-  obrigatoria: boolean;
-}
+type ModalFeedback = null | 'novo' | 'avaliacao360' | 'observacao360' | 'obrigatoriedade';
+type Campo360 = 'assiduidade' | 'nivelEntregas' | 'comunicacao' | 'colaboracao' | 'comprometimento';
 
 interface Criterio360 {
-  campo: keyof Pick<Feedback360Form, 'assiduidade' | 'nivelEntregas' | 'comunicacao' | 'colaboracao' | 'comprometimento'>;
+  campo: Campo360;
   label: string;
+}
+
+interface Form360 extends Record<Campo360, number> {
+  comentario: string;
 }
 
 @Component({
@@ -60,16 +33,18 @@ interface Criterio360 {
   styleUrl: './feedbacks.css',
 })
 export class Feedbacks implements OnInit {
-  feedbacks: FeedbackItem[] = [];
-  colaboradores: ColaboradorFeedback[] = [];
-  projetos: ProjetoFeedback[] = [];
-  pendencias360: Feedback360Pendente[] = [];
-  cardsUsuario360: Feedback360UsuarioCard[] = [];
-  resumoGestor360: Feedback360ProjetoGestor[] = [];
+  abaAtiva: AbaFeedback = '360';
+  modal: ModalFeedback = null;
 
-  status360: Feedback360Status = this.status360Vazio();
-  pendenciaSelecionada: Feedback360Pendente | null = null;
-  indicePendenciaObrigatoria = 0;
+  carregando = false;
+  carregandoGestor = false;
+  salvando = false;
+
+  erro = '';
+  mensagemSucesso = '';
+
+  termoBusca = '';
+  filtroProjetoId: number | null = null;
 
   resumo: FeedbackResumo = {
     positivos: 0,
@@ -77,254 +52,204 @@ export class Feedbacks implements OnInit {
     negativos: 0,
   };
 
-  abaAtiva: AbaFeedback = 'projetos';
-  filtroAtivo: FeedbackFiltro = 'todos';
-  modal: ModalFeedback = null;
+  feedbacksProjeto: FeedbackItem[] = [];
+  pendencias360: Feedback360Pendente[] = [];
+  pendenciasObrigatorias: Feedback360Pendente[] = [];
+  cardsUsuario360: Feedback360UsuarioCard[] = [];
+  resumoGestor360: Feedback360ProjetoGestor[] = [];
 
-  carregando = false;
-  carregando360 = false;
-  carregandoGestor = false;
-  salvando = false;
-  erro = '';
-  mensagemSucesso = '';
-  termoBusca = '';
-  filtroProjetoId: number | null = null;
+  colaboradores: ColaboradorFeedback[] = [];
+  projetos: ProjetoFeedback[] = [];
+
+  usuarioEhGestor = false;
   mostrarGestor = false;
 
-  formFeedback: FeedbackForm = this.criarFormularioVazio();
-  form360: Feedback360Form = this.criarFormulario360Vazio();
-  formObrigatoriedade: ObrigatoriedadeForm = { projetoId: null, obrigatoria: true };
-  observacaoProjeto = '';
+  status360 = {
+    bloqueiaSistema: false,
+    rodadaId: null as number | null,
+    projetoId: null as number | null,
+    projetoNome: null as string | null,
+    obrigatoria: false,
+    pendentes: 0,
+  };
 
-  readonly notas360 = [1, 2, 3, 4, 5];
-  readonly criterios360: Criterio360[] = [
+  pendenciaSelecionada: Feedback360Pendente | null = null;
+  indicePendenciaObrigatoria = 0;
+  nomeProjetoObrigatorio = '';
+  observacaoProjeto = '';
+  rodadaObservacaoAtualId: number | null = null;
+
+  categorias = ['Reconhecimento', 'Melhoria', 'Comunicação', 'Entrega', 'Comportamento'];
+  notas360 = [1, 2, 3, 4, 5];
+
+  criterios360: Criterio360[] = [
     { campo: 'assiduidade', label: 'Assiduidade' },
-    { campo: 'nivelEntregas', label: 'Nível de Entregas' },
+    { campo: 'nivelEntregas', label: 'Nível de entregas' },
     { campo: 'comunicacao', label: 'Comunicação' },
-    { campo: 'colaboracao', label: 'Colaboração em Equipe' },
+    { campo: 'colaboracao', label: 'Colaboração em equipe' },
     { campo: 'comprometimento', label: 'Comprometimento' },
   ];
 
-  readonly classificacoes: OpcaoClassificacao[] = [
-    { label: 'Positivo', value: 'POSITIVO' },
-    { label: 'Mediano', value: 'MEDIANO' },
-    { label: 'Negativo', value: 'NEGATIVO' },
-  ];
+  formFeedback = {
+    destinatarioUsuarioEmpresaId: null as number | null,
+    categoria: 'Reconhecimento',
+    comentario: '',
+    projetoId: null as number | null,
+    tarefaId: null as number | null,
+  };
 
-  readonly categorias: string[] = [
-    'Trabalho em Equipe',
-    'Qualidade Técnica',
-    'Desenvolvimento',
-    'Comunicação',
-    'Liderança',
-    'Produtividade',
-    'Geral',
-  ];
+  formObrigatoriedade = {
+    projetoId: null as number | null,
+    obrigatoria: true,
+  };
 
-  constructor(
-    private feedbacksService: FeedbacksService,
-    private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef,
-  ) {}
+  form360: Form360 = this.criarForm360();
+
+  constructor(private feedbacksService: FeedbacksService) {}
 
   ngOnInit(): void {
-    this.route.queryParamMap.subscribe((params) => {
-      const aba = params.get('aba') || params.get('filtro');
-
-      if (aba === 'avaliacao360' || aba === '360') {
-        this.abaAtiva = '360';
-        this.filtroAtivo = 'avaliacao360';
-      }
-
-      this.carregarTela();
-    });
+    this.carregarUsuarioLogado();
+    this.carregarDadosIniciais();
   }
 
-  get usuarioEhGestor(): boolean {
-    const usuario = this.feedbacksService.getUsuarioLogado();
-    const cargo = `${usuario?.cargo ?? ''}`.toLowerCase();
-    return cargo.includes('gestor') || cargo.includes('admin');
-  }
-
-  get nomeProjetoObrigatorio(): string {
-    return this.status360.projetoNome || this.pendenciaSelecionada?.projetoNome || 'Projeto';
-  }
-
-  get pendenciasObrigatorias(): Feedback360Pendente[] {
-    return this.pendencias360.filter((pendencia) => Boolean(pendencia.obrigatoria));
+  get exibirBloqueioObrigatorio(): boolean {
+    return (
+      this.status360.bloqueiaSistema &&
+      this.pendenciasObrigatorias.length > 0 &&
+      this.modal !== 'observacao360'
+    );
   }
 
   get pendenciaObrigatoriaAtual(): Feedback360Pendente | null {
-    const pendencias = this.pendenciasObrigatorias;
-    return pendencias[this.indicePendenciaObrigatoria] ?? null;
+    return this.pendenciasObrigatorias[this.indicePendenciaObrigatoria] ?? null;
+  }
+
+  get etapaObrigatoriaAtual(): number {
+    return this.pendenciasObrigatorias.length ? this.indicePendenciaObrigatoria + 1 : 0;
   }
 
   get totalPendenciasObrigatorias(): number {
     return this.pendenciasObrigatorias.length;
   }
 
-  get etapaObrigatoriaAtual(): number {
-    return Math.min(this.indicePendenciaObrigatoria + 1, Math.max(this.totalPendenciasObrigatorias, 1));
+  get totalAvaliacoes360(): number {
+    return this.cardsUsuario360.length;
   }
 
-  get exibirBloqueioObrigatorio(): boolean {
-    return this.status360.bloqueiaSistema && this.totalPendenciasObrigatorias > 0 && this.modal !== 'observacao360';
+  get mediaGeral360(): string {
+    if (!this.resumoGestor360.length) {
+      return '0.0';
+    }
+
+    const soma = this.resumoGestor360.reduce((total, projeto) => total + Number(projeto.mediaGeral ?? 0), 0);
+    return (soma / this.resumoGestor360.length).toFixed(1);
   }
 
   get feedbacksFiltrados(): FeedbackItem[] {
     const termo = this.termoBusca.trim().toLowerCase();
 
-    return this.feedbacks.filter((feedback) => {
-      const eh360 = Boolean(feedback.avaliacao360);
+    return this.feedbacksProjeto.filter((feedback) => {
+      const bateProjeto = !this.filtroProjetoId || feedback.projetoId === this.filtroProjetoId;
+      const texto = `${feedback.autorNome ?? ''} ${feedback.destinatarioNome ?? ''} ${feedback.projetoNome ?? ''} ${feedback.categoria ?? ''} ${feedback.comentario ?? ''}`.toLowerCase();
+      const bateBusca = !termo || texto.includes(termo);
 
-      if (this.abaAtiva === 'projetos' && eh360) {
-        return false;
-      }
-
-      if (this.abaAtiva === '360' && !eh360) {
-        return false;
-      }
-
-      if (this.filtroProjetoId && feedback.projetoId !== this.filtroProjetoId) {
-        return false;
-      }
-
-      if (!termo) {
-        return true;
-      }
-
-      const texto = [
-        feedback.autorNome,
-        feedback.destinatarioNome,
-        feedback.categoria,
-        feedback.comentario,
-        feedback.projetoNome,
-      ]
-        .join(' ')
-        .toLowerCase();
-
-      return texto.includes(termo);
+      return bateProjeto && bateBusca;
     });
   }
 
-  get feedbacksProjeto(): FeedbackItem[] {
-    return this.feedbacks.filter((feedback) => !feedback.avaliacao360);
-  }
-
-  get feedbacks360(): FeedbackItem[] {
-    return this.feedbacks.filter((feedback) => feedback.avaliacao360);
-  }
-
-  get totalAvaliacoes360(): number {
-    return this.feedbacks360.length || this.cardsUsuario360.length;
-  }
-
-  get mediaGeral360(): string {
-    const medias = [
-      ...this.feedbacks360.map((feedback) => this.numero(feedback.media360 ?? feedback.nota)),
-      ...this.resumoGestor360.map((projeto) => this.numero(projeto.mediaGeral)),
-    ].filter((valor) => valor > 0);
-
-    if (!medias.length) {
-      return '0.0';
-    }
-
-    const media = medias.reduce((total, valor) => total + valor, 0) / medias.length;
-    return media.toFixed(1);
-  }
-
-  carregarTela(): void {
-    this.carregarProjetos();
-    this.carregarColaboradores();
+  carregarDadosIniciais(): void {
     this.carregarResumo();
     this.carregarFeedbacks();
-    this.carregarStatus360();
+    this.carregarColaboradores();
+    this.carregarProjetos();
     this.carregarPendencias360();
     this.carregarCardsUsuario360();
+    this.carregarStatus360();
 
-    if (this.usuarioEhGestor || this.mostrarGestor) {
+    if (this.usuarioEhGestor) {
       this.carregarResumoGestor360();
     }
   }
 
-  carregarFeedbacks(): void {
-    this.carregando = true;
-    this.erro = '';
+  carregarUsuarioLogado(): void {
+    const usuario = this.feedbacksService.getUsuarioLogado() as any;
+    const papel = String(usuario?.papel ?? usuario?.cargo ?? '').toLowerCase();
 
-    this.feedbacksService.listar('todos').subscribe({
-      next: (feedbacks) => {
-        this.feedbacks = feedbacks;
-        this.carregando = false;
-        this.cdr.detectChanges();
-      },
-      error: (erro) => {
-        console.error('Erro ao carregar feedbacks:', erro);
-        this.erro = 'Não foi possível carregar os feedbacks.';
-        this.carregando = false;
-        this.cdr.detectChanges();
-      },
-    });
+    this.usuarioEhGestor = papel === 'gestor';
+    this.mostrarGestor = this.usuarioEhGestor;
   }
 
   carregarResumo(): void {
     this.feedbacksService.buscarResumo().subscribe({
       next: (resumo) => {
         this.resumo = resumo;
-        this.cdr.detectChanges();
       },
-      error: (erro) => console.error('Erro ao carregar resumo dos feedbacks:', erro),
+      error: () => {
+        this.resumo = { positivos: 0, medianos: 0, negativos: 0 };
+      },
+    });
+  }
+
+  carregarFeedbacks(): void {
+    this.carregando = true;
+
+    this.feedbacksService.listar('todos').subscribe({
+      next: (feedbacks) => {
+        this.feedbacksProjeto = feedbacks ?? [];
+        this.carregando = false;
+      },
+      error: (erro) => {
+        console.error('Erro ao carregar feedbacks:', erro);
+        this.feedbacksProjeto = [];
+        this.carregando = false;
+      },
     });
   }
 
   carregarColaboradores(): void {
     this.feedbacksService.listarColaboradores().subscribe({
       next: (colaboradores) => {
-        this.colaboradores = colaboradores;
-        this.cdr.detectChanges();
+        this.colaboradores = colaboradores ?? [];
       },
-      error: (erro) => console.error('Erro ao carregar colaboradores:', erro),
+      error: (erro) => {
+        console.error('Erro ao carregar colaboradores:', erro);
+        this.colaboradores = [];
+      },
     });
   }
 
   carregarProjetos(): void {
     this.feedbacksService.listarProjetos().subscribe({
       next: (projetos) => {
-        this.projetos = projetos;
-        this.cdr.detectChanges();
+        this.projetos = projetos ?? [];
       },
-      error: (erro) => console.error('Erro ao carregar projetos:', erro),
-    });
-  }
-
-  carregarStatus360(): void {
-    this.feedbacksService.buscarStatus360().subscribe({
-      next: (status) => {
-        this.status360 = status;
-        this.cdr.detectChanges();
+      error: (erro) => {
+        console.error('Erro ao carregar projetos:', erro);
+        this.projetos = [];
       },
-      error: (erro) => console.error('Erro ao consultar status 360°:', erro),
     });
   }
 
   carregarPendencias360(): void {
-    this.carregando360 = true;
-
     this.feedbacksService.listarPendentes360().subscribe({
       next: (pendencias) => {
         this.pendencias360 = pendencias ?? [];
-        this.carregando360 = false;
+        this.pendenciasObrigatorias = this.pendencias360.filter((pendencia) => pendencia.obrigatoria);
 
-        const atual = this.pendenciaObrigatoriaAtual;
-        if (this.status360.bloqueiaSistema && atual) {
-          this.pendenciaSelecionada = atual;
+        if (this.indicePendenciaObrigatoria >= this.pendenciasObrigatorias.length) {
+          this.indicePendenciaObrigatoria = 0;
         }
 
-        this.cdr.detectChanges();
+        const atual = this.pendenciaObrigatoriaAtual;
+        if (atual) {
+          this.nomeProjetoObrigatorio = atual.projetoNome;
+          this.rodadaObservacaoAtualId = atual.rodadaId;
+        }
       },
       error: (erro) => {
-        console.error('Erro ao carregar avaliações 360° pendentes:', erro);
-        this.carregando360 = false;
-        this.cdr.detectChanges();
+        console.error('Erro ao carregar pendências 360:', erro);
+        this.pendencias360 = [];
+        this.pendenciasObrigatorias = [];
       },
     });
   }
@@ -333,91 +258,114 @@ export class Feedbacks implements OnInit {
     this.feedbacksService.listarCardsUsuario360().subscribe({
       next: (cards) => {
         this.cardsUsuario360 = cards ?? [];
-        this.cdr.detectChanges();
+        console.log('cardsUsuario360:', this.cardsUsuario360);
       },
-      error: (erro) => console.error('Erro ao carregar cards 360° do usuário:', erro),
+      error: (erro) => {
+        console.error('Erro ao carregar cards 360 do usuário:', erro);
+        this.cardsUsuario360 = [];
+      },
     });
   }
 
   carregarResumoGestor360(): void {
+    if (!this.usuarioEhGestor) {
+      this.resumoGestor360 = [];
+      return;
+    }
+
     this.carregandoGestor = true;
-    this.mostrarGestor = true;
 
     this.feedbacksService.listarResumoGestor360().subscribe({
       next: (resumo) => {
         this.resumoGestor360 = resumo ?? [];
         this.carregandoGestor = false;
-        this.cdr.detectChanges();
       },
       error: (erro) => {
-        console.error('Erro ao carregar visão do gestor:', erro);
+        console.error('Erro ao carregar resumo 360 do gestor:', erro);
+        this.resumoGestor360 = [];
         this.carregandoGestor = false;
-        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  carregarStatus360(): void {
+    this.feedbacksService.buscarStatus360().subscribe({
+      next: (status) => {
+        this.status360 = status;
+      },
+      error: (erro) => {
+        console.error('Erro ao carregar status 360:', erro);
+        this.status360 = {
+          bloqueiaSistema: false,
+          rodadaId: null,
+          projetoId: null,
+          projetoNome: null,
+          obrigatoria: false,
+          pendentes: 0,
+        };
       },
     });
   }
 
   alternarAba(aba: AbaFeedback): void {
     this.abaAtiva = aba;
-    this.filtroAtivo = aba === '360' ? 'avaliacao360' : 'todos';
+    this.erro = '';
+    this.mensagemSucesso = '';
 
     if (aba === '360') {
       this.carregarPendencias360();
       this.carregarCardsUsuario360();
+      this.carregarStatus360();
+    }
+
+    if (aba === 'projetos' && this.usuarioEhGestor) {
+      this.carregarResumoGestor360();
     }
   }
 
   abrirNovoFeedback(): void {
-    this.formFeedback = this.criarFormularioVazio();
     this.erro = '';
     this.mensagemSucesso = '';
+    this.formFeedback = {
+      destinatarioUsuarioEmpresaId: null,
+      categoria: 'Reconhecimento',
+      comentario: '',
+      projetoId: null,
+      tarefaId: null,
+    };
     this.modal = 'novo';
   }
 
   abrirModalObrigatoriedade(): void {
+    this.erro = '';
+    this.mensagemSucesso = '';
     this.formObrigatoriedade = {
-      projetoId: this.status360.projetoId ?? this.projetos[0]?.id ?? null,
+      projetoId: null,
       obrigatoria: true,
     };
-    this.erro = '';
     this.modal = 'obrigatoriedade';
   }
 
   abrirAvaliacao360(pendencia: Feedback360Pendente): void {
-    if (pendencia.vencido) {
-      this.erro = 'O prazo desta avaliação 360° já foi encerrado.';
-      return;
-    }
-
-    this.pendenciaSelecionada = pendencia;
-    this.form360 = this.criarFormulario360Vazio();
     this.erro = '';
     this.mensagemSucesso = '';
+    this.pendenciaSelecionada = pendencia;
+    this.form360 = this.criarForm360();
     this.modal = 'avaliacao360';
   }
 
   fecharModal(): void {
-    if (this.exibirBloqueioObrigatorio) {
+    if (this.exibirBloqueioObrigatorio && this.modal !== 'observacao360') {
       return;
     }
 
     this.modal = null;
-    this.pendenciaSelecionada = this.pendenciaObrigatoriaAtual;
-    this.formFeedback = this.criarFormularioVazio();
-    this.form360 = this.criarFormulario360Vazio();
-    this.observacaoProjeto = '';
     this.erro = '';
-    this.salvando = false;
   }
 
   salvarFeedback(): void {
     if (!this.formFeedback.destinatarioUsuarioEmpresaId) {
-      this.erro = 'Selecione o destinatário do feedback.';
-      return;
-    }
-
-    if (!this.formFeedback.categoria.trim()) {
-      this.erro = 'Informe a categoria do feedback.';
+      this.erro = 'Selecione para quem o feedback será enviado.';
       return;
     }
 
@@ -428,58 +376,79 @@ export class Feedbacks implements OnInit {
 
     this.salvando = true;
     this.erro = '';
-    this.mensagemSucesso = '';
 
     this.feedbacksService
       .criar({
         destinatarioUsuarioEmpresaId: this.formFeedback.destinatarioUsuarioEmpresaId,
-        classificacao: this.formFeedback.classificacao,
-        categoria: this.formFeedback.categoria.trim(),
+        classificacao: 'POSITIVO',
+        categoria: this.formFeedback.categoria,
         comentario: this.formFeedback.comentario.trim(),
         avaliacao360: false,
         projetoId: this.formFeedback.projetoId,
+        tarefaId: this.formFeedback.tarefaId,
       })
       .subscribe({
         next: () => {
-          this.mensagemSucesso = 'Feedback cadastrado com sucesso.';
-          this.modal = null;
           this.salvando = false;
-          this.carregarResumo();
+          this.modal = null;
+          this.mensagemSucesso = 'Feedback enviado com sucesso.';
           this.carregarFeedbacks();
-          this.cdr.detectChanges();
+          this.carregarResumo();
         },
         error: (erro) => {
           console.error('Erro ao salvar feedback:', erro);
-          this.erro = this.mensagemErro(erro, 'Não foi possível salvar o feedback.');
           this.salvando = false;
-          this.cdr.detectChanges();
+          this.erro = this.extrairMensagemErro(erro, 'Não foi possível enviar o feedback.');
+        },
+      });
+  }
+
+  salvarObrigatoriedade(): void {
+    if (!this.formObrigatoriedade.projetoId) {
+      this.erro = 'Selecione um projeto.';
+      return;
+    }
+
+    this.salvando = true;
+    this.erro = '';
+
+    this.feedbacksService
+      .definirObrigatoriedadeProjeto360(
+        this.formObrigatoriedade.projetoId,
+        this.formObrigatoriedade.obrigatoria,
+      )
+      .subscribe({
+        next: () => {
+          this.salvando = false;
+          this.modal = null;
+          this.mensagemSucesso = this.formObrigatoriedade.obrigatoria
+            ? 'Avaliação 360° configurada como obrigatória.'
+            : 'Avaliação 360° configurada como opcional.';
+          this.carregarStatus360();
+        },
+        error: (erro) => {
+          console.error('Erro ao salvar obrigatoriedade:', erro);
+          this.salvando = false;
+          this.erro = this.extrairMensagemErro(erro, 'Não foi possível salvar a configuração.');
         },
       });
   }
 
   salvarAvaliacao360Obrigatoria(): void {
-    const pendencia = this.pendenciaObrigatoriaAtual;
-
-    if (!pendencia) {
-      this.abrirObservacao360();
-      return;
-    }
-
-    this.pendenciaSelecionada = pendencia;
     this.salvarAvaliacao360(true);
   }
 
   salvarAvaliacao360(obrigatoria = false): void {
-    if (!this.pendenciaSelecionada) {
-      this.erro = 'Selecione uma avaliação 360° pendente.';
+    const pendencia = obrigatoria ? this.pendenciaObrigatoriaAtual : this.pendenciaSelecionada;
+
+    if (!pendencia) {
+      this.erro = 'Avaliação 360° pendente não encontrada.';
       return;
     }
 
-    for (const criterio of this.criterios360) {
-      if (!this.notaValida(this.form360[criterio.campo])) {
-        this.erro = `Avalie ${criterio.label} de 1 a 5.`;
-        return;
-      }
+    if (!this.formulario360Valido()) {
+      this.erro = 'Preencha todas as notas de 1 a 5 estrelas.';
+      return;
     }
 
     this.salvando = true;
@@ -487,59 +456,31 @@ export class Feedbacks implements OnInit {
 
     this.feedbacksService
       .criarAvaliacao360({
-        avaliacaoId: this.pendenciaSelecionada.avaliacaoId,
-        projetoId: this.pendenciaSelecionada.projetoId,
-        destinatarioUsuarioEmpresaId: this.pendenciaSelecionada.destinatarioUsuarioEmpresaId,
-        assiduidade: Number(this.form360.assiduidade),
-        nivelEntregas: Number(this.form360.nivelEntregas),
-        comunicacao: Number(this.form360.comunicacao),
-        colaboracao: Number(this.form360.colaboracao),
-        comprometimento: Number(this.form360.comprometimento),
-        comentario: this.form360.comentario.trim(),
+        avaliacaoId: pendencia.avaliacaoId,
+        projetoId: pendencia.projetoId,
+        destinatarioUsuarioEmpresaId: pendencia.destinatarioUsuarioEmpresaId,
+        assiduidade: this.form360.assiduidade,
+        nivelEntregas: this.form360.nivelEntregas,
+        comunicacao: this.form360.comunicacao,
+        colaboracao: this.form360.colaboracao,
+        comprometimento: this.form360.comprometimento,
+        comentario: this.form360.comentario?.trim() ?? '',
       })
       .subscribe({
         next: () => {
           this.salvando = false;
-          this.mensagemSucesso = 'Avaliação 360° enviada com sucesso.';
-
-          if (obrigatoria) {
-            this.indicePendenciaObrigatoria++;
-            this.form360 = this.criarFormulario360Vazio();
-
-            if (this.indicePendenciaObrigatoria >= this.totalPendenciasObrigatorias) {
-              this.abrirObservacao360();
-            } else {
-              this.pendenciaSelecionada = this.pendenciaObrigatoriaAtual;
-            }
-          } else {
-            this.modal = null;
-            this.pendenciaSelecionada = null;
-          }
-
-          this.carregarResumo();
-          this.carregarFeedbacks();
-          this.carregarPendencias360();
-          this.carregarStatus360();
-          this.cdr.detectChanges();
+          this.aposSalvarAvaliacao360(pendencia, obrigatoria);
         },
         error: (erro) => {
-          console.error('Erro ao salvar avaliação 360°:', erro);
-          this.erro = this.mensagemErro(erro, 'Não foi possível salvar a avaliação 360°.');
+          console.error('Erro ao salvar avaliação 360:', erro);
           this.salvando = false;
-          this.cdr.detectChanges();
+          this.erro = this.extrairMensagemErro(erro, 'Não foi possível salvar a avaliação 360°.');
         },
       });
   }
 
-  abrirObservacao360(): void {
-    this.modal = 'observacao360';
-    this.observacaoProjeto = '';
-    this.erro = '';
-    this.cdr.detectChanges();
-  }
-
   salvarObservacao360(): void {
-    const rodadaId = this.status360.rodadaId ?? this.pendenciasObrigatorias[0]?.rodadaId ?? this.pendenciaSelecionada?.rodadaId;
+    const rodadaId = this.rodadaObservacaoAtualId ?? this.status360.rodadaId;
 
     if (!rodadaId) {
       this.erro = 'Rodada 360° não encontrada.';
@@ -556,119 +497,71 @@ export class Feedbacks implements OnInit {
 
     this.feedbacksService.salvarObservacaoProjeto360(rodadaId, this.observacaoProjeto.trim()).subscribe({
       next: () => {
-        this.mensagemSucesso = 'Avaliação 360° concluída. Acesso liberado.';
-        this.status360 = this.status360Vazio();
-        this.indicePendenciaObrigatoria = 0;
-        this.pendenciaSelecionada = null;
-        this.modal = null;
         this.salvando = false;
+        this.modal = null;
         this.observacaoProjeto = '';
-        this.carregarTela();
-        this.cdr.detectChanges();
+        this.mensagemSucesso = 'Avaliação 360° concluída com sucesso.';
+
+        this.pendenciasObrigatorias = [];
+        this.pendencias360 = [];
+        this.status360 = {
+          bloqueiaSistema: false,
+          rodadaId: null,
+          projetoId: null,
+          projetoNome: null,
+          obrigatoria: false,
+          pendentes: 0,
+        };
+
+        this.abaAtiva = '360';
+        this.carregarPendencias360();
+        this.carregarCardsUsuario360();
+        this.carregarStatus360();
+
+        if (this.usuarioEhGestor) {
+          this.carregarResumoGestor360();
+        }
       },
       error: (erro) => {
-        console.error('Erro ao salvar observação do projeto:', erro);
-        this.erro = this.mensagemErro(erro, 'Não foi possível salvar a observação do projeto.');
+        console.error('Erro ao salvar observação 360:', erro);
         this.salvando = false;
-        this.cdr.detectChanges();
+        this.erro = this.extrairMensagemErro(erro, 'Não foi possível salvar a observação do projeto.');
       },
     });
   }
 
-  salvarObrigatoriedade(): void {
-    if (!this.formObrigatoriedade.projetoId) {
-      this.erro = 'Selecione um projeto.';
-      return;
+  selecionarNota(campo: Campo360, nota: number): void {
+    this.form360[campo] = nota;
+  }
+
+  textoNivel(nota: number): string {
+    switch (nota) {
+      case 1:
+        return 'Muito baixo';
+      case 2:
+        return 'Baixo';
+      case 3:
+        return 'Médio';
+      case 4:
+        return 'Bom';
+      case 5:
+        return 'Excelente';
+      default:
+        return 'Selecione uma nota';
     }
+  }
 
-    this.salvando = true;
-    this.erro = '';
-
-    this.feedbacksService
-      .definirObrigatoriedadeProjeto360(this.formObrigatoriedade.projetoId, this.formObrigatoriedade.obrigatoria)
-      .subscribe({
-        next: () => {
-          this.mensagemSucesso = this.formObrigatoriedade.obrigatoria
-            ? 'Avaliação 360° obrigatória ativada para o projeto.'
-            : 'Avaliação 360° obrigatória desativada para o projeto.';
-          this.salvando = false;
-          this.modal = null;
-          this.carregarProjetos();
-          this.carregarStatus360();
-          this.cdr.detectChanges();
-        },
-        error: (erro) => {
-          console.error('Erro ao definir obrigatoriedade:', erro);
-          this.erro = this.mensagemErro(erro, 'Não foi possível alterar a obrigatoriedade.');
-          this.salvando = false;
-          this.cdr.detectChanges();
-        },
-      });
+  estrelas(media: number): boolean[] {
+    const valor = Math.round(Number(media ?? 0));
+    return [1, 2, 3, 4, 5].map((estrela) => estrela <= valor);
   }
 
   alternarProjetoGestor(projeto: Feedback360ProjetoGestor): void {
     projeto.aberto = !projeto.aberto;
   }
 
-  selecionarNota(campo: Criterio360['campo'], nota: number): void {
-    this.form360[campo] = nota;
-  }
-
-  textoNivel(nota: number): string {
-    if (!nota) return 'Selecione uma nota';
-    if (nota <= 1) return 'Muito baixo';
-    if (nota === 2) return 'Baixo';
-    if (nota === 3) return 'Regular';
-    if (nota === 4) return 'Bom';
-    return 'Excelente';
-  }
-
-  textoClassificacao(classificacao: FeedbackClassificacao | null): string {
-    const textos: Record<FeedbackClassificacao, string> = {
-      POSITIVO: 'Positivo',
-      MEDIANO: 'Mediano',
-      NEGATIVO: 'Negativo',
-    };
-
-    return classificacao ? textos[classificacao] ?? classificacao : 'Avaliação';
-  }
-
-  classeClassificacao(classificacao: FeedbackClassificacao | null): string {
-    const classes: Record<FeedbackClassificacao, string> = {
-      POSITIVO: 'positivo',
-      MEDIANO: 'mediano',
-      NEGATIVO: 'negativo',
-    };
-
-    return classificacao ? classes[classificacao] ?? 'mediano' : 'mediano';
-  }
-
-  iconeClassificacao(classificacao: FeedbackClassificacao | null): string {
-    const icones: Record<FeedbackClassificacao, string> = {
-      POSITIVO: 'thumb_up',
-      MEDIANO: 'drag_handle',
-      NEGATIVO: 'thumb_down',
-    };
-
-    return classificacao ? icones[classificacao] ?? 'feedback' : 'feedback';
-  }
-
-  media360(feedback: FeedbackItem): string {
-    return this.formatarNumero(feedback.media360 ?? feedback.nota ?? 0);
-  }
-
-  estrelas(valor: number | null | undefined): number[] {
-    const nota = Math.round(Number(valor ?? 0));
-    return this.notas360.map((item) => (item <= nota ? 1 : 0));
-  }
-
-  nomeProjeto(idProjeto: number | null): string {
-    if (!idProjeto) return 'Projeto relacionado';
-    return this.projetos.find((projeto) => projeto.id === idProjeto)?.nome ?? 'Projeto relacionado';
-  }
-
   iniciais(nome?: string | null): string {
-    return this.feedbacksService.gerarIniciaisPublico(nome ?? 'Usuário');
+    return this.feedbacksService.gerarIniciaisPublico(nome || 'Usuário');
   }
 
   trackByFeedback(_: number, feedback: FeedbackItem): number {
@@ -683,25 +576,57 @@ export class Feedbacks implements OnInit {
     return projeto.projetoId;
   }
 
-  trackByAvaliado(_: number, avaliado: Feedback360GestorItem): number {
+  trackByAvaliado(_: number, avaliado: { avaliadoId: number }): number {
     return avaliado.avaliadoId;
   }
 
-  private notaValida(nota: number | null): boolean {
-    return nota !== null && Number(nota) >= 1 && Number(nota) <= 5;
+  private aposSalvarAvaliacao360(pendencia: Feedback360Pendente, obrigatoria: boolean): void {
+    this.mensagemSucesso = 'Avaliação 360° salva com sucesso.';
+
+    this.pendencias360 = this.pendencias360.filter((item) => item.avaliacaoId !== pendencia.avaliacaoId);
+    this.pendenciasObrigatorias = this.pendenciasObrigatorias.filter((item) => item.avaliacaoId !== pendencia.avaliacaoId);
+
+    this.rodadaObservacaoAtualId = pendencia.rodadaId;
+    this.nomeProjetoObrigatorio = pendencia.projetoNome;
+
+    if (obrigatoria) {
+      if (this.indicePendenciaObrigatoria >= this.pendenciasObrigatorias.length) {
+        this.indicePendenciaObrigatoria = 0;
+      }
+
+      if (this.pendenciasObrigatorias.length > 0) {
+        this.form360 = this.criarForm360();
+        return;
+      }
+
+      this.form360 = this.criarForm360();
+      this.observacaoProjeto = '';
+      this.modal = 'observacao360';
+      return;
+    }
+
+    this.modal = null;
+    this.form360 = this.criarForm360();
+    this.pendenciaSelecionada = null;
+    this.abaAtiva = '360';
+
+    this.carregarPendencias360();
+    this.carregarCardsUsuario360();
+    this.carregarStatus360();
+
+    if (this.usuarioEhGestor) {
+      this.carregarResumoGestor360();
+    }
   }
 
-  private criarFormularioVazio(): FeedbackForm {
-    return {
-      destinatarioUsuarioEmpresaId: null,
-      classificacao: 'POSITIVO',
-      categoria: 'Trabalho em Equipe',
-      projetoId: null,
-      comentario: '',
-    };
+  private formulario360Valido(): boolean {
+    return this.criterios360.every((criterio) => {
+      const nota = this.form360[criterio.campo];
+      return nota >= 1 && nota <= 5;
+    });
   }
 
-  private criarFormulario360Vazio(): Feedback360Form {
+  private criarForm360(): Form360 {
     return {
       assiduidade: 0,
       nivelEntregas: 0,
@@ -712,27 +637,7 @@ export class Feedbacks implements OnInit {
     };
   }
 
-  private status360Vazio(): Feedback360Status {
-    return {
-      bloqueiaSistema: false,
-      rodadaId: null,
-      projetoId: null,
-      projetoNome: null,
-      obrigatoria: false,
-      pendentes: 0,
-    };
-  }
-
-  private formatarNumero(valor: number): string {
-    return Number(valor || 0).toFixed(1).replace('.', '.');
-  }
-
-  private numero(valor: unknown): number {
-    const numero = Number(valor ?? 0);
-    return Number.isFinite(numero) ? numero : 0;
-  }
-
-  private mensagemErro(erro: any, fallback: string): string {
-    return erro?.error?.message || erro?.error?.erro || erro?.error?.detail || fallback;
+  private extrairMensagemErro(erro: any, padrao: string): string {
+    return erro?.error?.message || erro?.message || padrao;
   }
 }

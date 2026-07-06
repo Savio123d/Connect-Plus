@@ -153,166 +153,57 @@
   </ng-container>
 
   <ng-container *ngIf="abaAtiva === '360'">
-    <section class="painel-info" *ngIf="mostrarGestor || usuarioEhGestor">
-      <span class="material-icons">visibility</span>
-      Como gestor, você pode consultar todas as avaliações 360° realizadas. Os avaliadores permanecem anônimos.
-    </section>
-
-    <section class="pendencias-360" *ngIf="pendencias360.length > 0">
-      <div class="pendencias-topo">
-        <div>
-          <h2>Avaliações 360° pendentes</h2>
-          <p>Finalize as avaliações abertas para liberar o fluxo do projeto.</p>
-        </div>
-
-        <span class="contador-pendencias">{{ pendencias360.length }} pendência(s)</span>
+  <section class="pendencias-360" *ngIf="pendencias360.length > 0">
+    <div class="pendencias-topo">
+      <div>
+        <h2>Avaliações 360° pendentes</h2>
+        <p>Finalize suas avaliações abertas para liberar o fluxo do projeto.</p>
       </div>
 
-      <article class="pendencia-card" *ngFor="let pendencia of pendencias360; trackBy: trackByPendencia">
-        <div class="avatar-pendencia">{{ pendencia.destinatarioIniciais || iniciais(pendencia.destinatarioNome) }}</div>
+      <span class="contador-pendencias">{{ pendencias360.length }} pendência(s)</span>
+    </div>
 
-        <div class="pendencia-info">
-          <strong>{{ pendencia.destinatarioNome }}</strong>
-          <span>{{ pendencia.projetoNome }}</span>
-          <small>{{ pendencia.obrigatoria ? 'Obrigatória' : 'Opcional' }}</small>
-        </div>
+    <article class="pendencia-card" *ngFor="let pendencia of pendencias360; trackBy: trackByPendencia">
+      <div class="avatar-pendencia">
+        {{ pendencia.destinatarioIniciais || iniciais(pendencia.destinatarioNome) }}
+      </div>
 
-        <button type="button" class="btn-avaliar" (click)="abrirAvaliacao360(pendencia)">
-          Avaliar
-        </button>
-      </article>
-    </section>
+      <div class="pendencia-info">
+        <strong>{{ pendencia.destinatarioNome }}</strong>
+        <span>{{ pendencia.projetoNome }}</span>
+        <small>{{ pendencia.obrigatoria ? 'Obrigatória' : 'Opcional' }}</small>
+      </div>
 
-    <section class="gestor-360" *ngIf="mostrarGestor || usuarioEhGestor">
-      <ng-container *ngIf="carregandoGestor; else gestorConteudo">
-        <div class="estado-vazio">Carregando visão do gestor...</div>
-      </ng-container>
+      <button type="button" class="btn-avaliar" (click)="abrirAvaliacao360(pendencia)">
+        Avaliar
+      </button>
+    </article>
+  </section>
 
-      <ng-template #gestorConteudo>
-        <ng-container *ngIf="resumoGestor360.length > 0; else semResumoGestor">
-          <article class="projeto-360" *ngFor="let projeto of resumoGestor360; trackBy: trackByProjeto">
-            <button type="button" class="projeto-360-header" (click)="alternarProjetoGestor(projeto)">
-              <div class="projeto-360-titulo">
-                <div class="icone-projeto-360">
-                  <span class="material-icons">groups</span>
-                </div>
+  <section class="cards-usuario-360" *ngIf="cardsUsuario360.length > 0; else sem360">
+    <article class="card-usuario-360" *ngFor="let card of cardsUsuario360">
+      <div class="icone-projeto-360">
+        <span class="material-icons">check_circle</span>
+      </div>
 
-                <div>
-                  <h3>Avaliação 360° <span>{{ projeto.projetoNome }}</span></h3>
-                  <small>
-                    <span class="material-icons">calendar_today</span>
-                    {{ projeto.quantidadeAvaliacoes }} avaliações realizadas
-                  </small>
-                </div>
-              </div>
+      <div>
+        <h3>Avaliação do projeto concluída</h3>
+        <span>{{ card.projetoNome }}</span>
+        <small>{{ card.abertaEm | date: 'dd/MM/yyyy' }}</small>
+      </div>
 
-              <div class="media-projeto">
-                <span>Média geral</span>
-                <strong>{{ projeto.mediaGeral | number: '1.1-1' }}</strong>
-                <span class="estrelas pequenas">
-                  <span class="material-icons" *ngFor="let estrela of estrelas(projeto.mediaGeral)">
-                    {{ estrela ? 'star' : 'star_border' }}
-                  </span>
-                </span>
-                <span class="material-icons">{{ projeto.aberto ? 'expand_less' : 'expand_more' }}</span>
-              </div>
-            </button>
+      <strong>Concluída</strong>
+    </article>
+  </section>
 
-            <div class="projeto-360-detalhe" *ngIf="projeto.aberto">
-              <article class="avaliado-card" *ngFor="let avaliado of projeto.avaliados; trackBy: trackByAvaliado">
-                <div class="avaliado-topo">
-                  <div class="avatar-feedback">{{ iniciais(avaliado.avaliadoNome) }}</div>
-
-                  <div>
-                    <h4>{{ avaliado.avaliadoNome }}</h4>
-                    <small>{{ avaliado.quantidadeAvaliacoes }} avaliação(ões)</small>
-                  </div>
-
-                  <div class="media-avaliado">
-                    Média: <strong>{{ avaliado.mediaGeral | number: '1.1-1' }}</strong>
-                    <span class="estrelas pequenas">
-                      <span class="material-icons" *ngFor="let estrela of estrelas(avaliado.mediaGeral)">
-                        {{ estrela ? 'star' : 'star_border' }}
-                      </span>
-                    </span>
-                  </div>
-                </div>
-
-                <div class="barras-criterios">
-                  <div class="barra-criterio">
-                    <span>Assiduidade</span>
-                    <div><i [style.width.%]="avaliado.mediaAssiduidade * 20"></i></div>
-                    <strong>{{ avaliado.mediaAssiduidade | number: '1.0-1' }}</strong>
-                  </div>
-
-                  <div class="barra-criterio">
-                    <span>Nível de Entrega</span>
-                    <div><i [style.width.%]="avaliado.mediaNivelEntregas * 20"></i></div>
-                    <strong>{{ avaliado.mediaNivelEntregas | number: '1.0-1' }}</strong>
-                  </div>
-
-                  <div class="barra-criterio">
-                    <span>Comunicação</span>
-                    <div><i [style.width.%]="avaliado.mediaComunicacao * 20"></i></div>
-                    <strong>{{ avaliado.mediaComunicacao | number: '1.0-1' }}</strong>
-                  </div>
-
-                  <div class="barra-criterio">
-                    <span>Colaboração em Equipe</span>
-                    <div><i [style.width.%]="avaliado.mediaColaboracao * 20"></i></div>
-                    <strong>{{ avaliado.mediaColaboracao | number: '1.0-1' }}</strong>
-                  </div>
-
-                  <div class="barra-criterio">
-                    <span>Comprometimento</span>
-                    <div><i [style.width.%]="avaliado.mediaComprometimento * 20"></i></div>
-                    <strong>{{ avaliado.mediaComprometimento | number: '1.0-1' }}</strong>
-                  </div>
-                </div>
-
-                <div class="comentarios-360" *ngIf="avaliado.comentarios.length">
-                  <strong>Comentários anônimos</strong>
-                  <p *ngFor="let comentario of avaliado.comentarios">“{{ comentario }}”</p>
-                </div>
-              </article>
-
-              <div class="observacao-projeto" *ngIf="projeto.observacoesProjeto.length">
-                <strong>
-                  <span class="material-icons">assignment</span>
-                  Observação sobre o projeto
-                </strong>
-                <p *ngFor="let observacao of projeto.observacoesProjeto">{{ observacao }}</p>
-              </div>
-            </div>
-          </article>
-        </ng-container>
-      </ng-template>
-
-      <ng-template #semResumoGestor>
-        <section class="cards-usuario-360" *ngIf="cardsUsuario360.length > 0; else sem360">
-          <article class="card-usuario-360" *ngFor="let card of cardsUsuario360">
-            <div class="icone-projeto-360">
-              <span class="material-icons">groups</span>
-            </div>
-            <div>
-              <h3>Avaliação 360°</h3>
-              <span>{{ card.projetoNome }}</span>
-              <small>{{ card.abertaEm | date: 'dd/MM/yyyy' }}</small>
-            </div>
-            <strong>Média geral {{ mediaGeral360 }}</strong>
-          </article>
-        </section>
-      </ng-template>
-
-      <ng-template #sem360>
-        <div class="estado-vazio">
-          <span class="material-icons">groups</span>
-          <strong>Nenhuma avaliação 360° encontrada.</strong>
-          <p>Quando um projeto concluído gerar uma rodada, ela aparecerá aqui.</p>
-        </div>
-      </ng-template>
-    </section>
-  </ng-container>
+  <ng-template #sem360>
+    <div class="estado-vazio">
+      <span class="material-icons">groups</span>
+      <strong>Nenhuma avaliação 360° concluída.</strong>
+      <p>Quando você concluir uma avaliação 360°, ela aparecerá aqui.</p>
+    </div>
+  </ng-template>
+</ng-container>
 
   <div class="modal-backdrop" *ngIf="modal === 'novo'">
     <section class="modal-feedback modal-individual">
@@ -469,80 +360,90 @@
   </div>
 
   <ng-template #formulario360 let-obrigatoria="obrigatoria">
-    <header class="modal-gradiente">
-      <div class="icone-gradiente">
-        <span class="material-icons">star</span>
+  <header class="modal-gradiente">
+    <div class="icone-gradiente">
+      <span class="material-icons">star</span>
+    </div>
+
+    <div>
+      <strong>Avaliação 360° {{ obrigatoria ? 'Obrigatória' : '' }}</strong>
+      <h2>
+        Projeto:
+        {{ (obrigatoria ? pendenciaObrigatoriaAtual?.projetoNome : pendenciaSelecionada?.projetoNome) || nomeProjetoObrigatorio }}
+      </h2>
+
+      <p *ngIf="obrigatoria">
+        Avaliando {{ etapaObrigatoriaAtual }} de {{ totalPendenciasObrigatorias }} membros
+      </p>
+    </div>
+  </header>
+
+  <div class="modal-conteudo">
+    <div class="pessoa-avaliada">
+      <div class="avatar-grande">
+        {{
+          (obrigatoria ? pendenciaObrigatoriaAtual?.destinatarioIniciais : pendenciaSelecionada?.destinatarioIniciais)
+          || iniciais(obrigatoria ? pendenciaObrigatoriaAtual?.destinatarioNome : pendenciaSelecionada?.destinatarioNome)
+        }}
       </div>
+
       <div>
-        <strong>Avaliação 360° {{ obrigatoria ? 'Obrigatória' : '' }}</strong>
-        <h2>Projeto: {{ (obrigatoria ? pendenciaObrigatoriaAtual?.projetoNome : pendenciaSelecionada?.projetoNome) || nomeProjetoObrigatorio }}</h2>
+        <h3>
+          {{ (obrigatoria ? pendenciaObrigatoriaAtual?.destinatarioNome : pendenciaSelecionada?.destinatarioNome) || 'Colaborador' }}
+        </h3>
+        <span>{{ colaboradores[0]?.cargo || 'Membro do projeto' }}</span>
       </div>
-    </header>
 
-    <div class="progresso-360" *ngIf="obrigatoria">
-      <div class="trilhas">
-        <span
-          *ngFor="let pendencia of pendenciasObrigatorias; let i = index"
-          [class.ativo]="i <= indicePendenciaObrigatoria"
-        ></span>
-      </div>
-      <p>Avaliando {{ etapaObrigatoriaAtual }} de {{ totalPendenciasObrigatorias }} membros</p>
+      <em>Avaliador anônimo</em>
     </div>
 
-    <div class="modal-conteudo">
-      <div class="pessoa-avaliada">
-        <div class="avatar-grande">
-          {{ (obrigatoria ? pendenciaObrigatoriaAtual?.destinatarioIniciais : pendenciaSelecionada?.destinatarioIniciais) || iniciais(obrigatoria ? pendenciaObrigatoriaAtual?.destinatarioNome : pendenciaSelecionada?.destinatarioNome) }}
-        </div>
+    <div class="alerta erro" *ngIf="erro">
+      <span class="material-icons">error</span>
+      {{ erro }}
+    </div>
 
-        <div>
-          <h3>{{ (obrigatoria ? pendenciaObrigatoriaAtual?.destinatarioNome : pendenciaSelecionada?.destinatarioNome) || 'Colaborador' }}</h3>
-          <span>{{ colaboradores[0]?.cargo || 'Membro do projeto' }}</span>
-        </div>
+    <form class="form-estrelas">
+      <div class="linha-criterio" *ngFor="let criterio of criterios360">
+        <strong>{{ criterio.label }}</strong>
 
-        <em>Avaliador anônimo</em>
-      </div>
-
-      <div class="alerta erro" *ngIf="erro">
-        <span class="material-icons">error</span>
-        {{ erro }}
-      </div>
-
-      <form class="form-estrelas" (ngSubmit)="obrigatoria ? salvarAvaliacao360Obrigatoria() : salvarAvaliacao360(false)">
-        <div class="linha-criterio" *ngFor="let criterio of criterios360">
-          <strong>{{ criterio.label }}</strong>
-
-          <div class="nota-area">
-            <div class="estrelas">
-              <button
-                type="button"
-                *ngFor="let nota of notas360"
-                [class.ativa]="form360[criterio.campo] >= nota"
-                (click)="selecionarNota(criterio.campo, nota)"
-              >
-                <span class="material-icons">star</span>
-              </button>
-            </div>
-
-            <span>{{ textoNivel(form360[criterio.campo]) }}</span>
+        <div class="nota-area">
+          <div class="estrelas">
+            <button
+              type="button"
+              *ngFor="let nota of notas360"
+              [class.ativa]="form360[criterio.campo] >= nota"
+              (click)="selecionarNota(criterio.campo, nota)"
+            >
+              <span class="material-icons">star</span>
+            </button>
           </div>
+
+          <span>{{ textoNivel(form360[criterio.campo]) }}</span>
         </div>
+      </div>
 
-        <label class="comentario-360">
-          Comentário adicional
-          <textarea
-            [(ngModel)]="form360.comentario"
-            name="comentario360"
-            rows="4"
-            placeholder="Escreva um comentário opcional sobre a participação da pessoa no projeto..."
-          ></textarea>
-        </label>
+      <label class="comentario-360">
+        Comentário adicional
+        <textarea
+          [(ngModel)]="form360.comentario"
+          name="comentario360"
+          rows="4"
+          placeholder="Escreva um comentário opcional sobre a participação da pessoa no projeto..."
+        ></textarea>
+      </label>
+    </form>
+  </div>
 
-        <button type="submit" class="btn-salvar full" [disabled]="salvando">
-          {{ obrigatoria ? (etapaObrigatoriaAtual === totalPendenciasObrigatorias ? 'Finalizar avaliações' : 'Próximo membro') : 'Enviar avaliação' }}
-          <span class="material-icons">chevron_right</span>
-        </button>
-      </form>
-    </div>
-  </ng-template>
+  <div class="modal-acoes-360">
+    <button
+      type="button"
+      class="btn-salvar"
+      [disabled]="salvando"
+      (click)="obrigatoria ? salvarAvaliacao360Obrigatoria() : salvarAvaliacao360(false)"
+    >
+      {{ obrigatoria ? (etapaObrigatoriaAtual === totalPendenciasObrigatorias ? 'Finalizar avaliações' : 'Próximo membro') : 'Enviar avaliação' }}
+      <span class="material-icons">chevron_right</span>
+    </button>
+  </div>
+</ng-template>
 </main>
