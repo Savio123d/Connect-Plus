@@ -88,6 +88,37 @@
 
     <section class="cadastro-card">
       <div class="card-header-custom">
+        <span class="section-icon section-icon-green">i</span>
+        <h2 class="section-title">Plano</h2>
+      </div>
+
+      <div class="plan-options">
+        <label
+          class="plan-option"
+          [class.plan-option-selected]="cadastroForm.controls.tipoPlano.value === 'gratuito'"
+        >
+          <input type="radio" formControlName="tipoPlano" value="gratuito" />
+          <span class="plan-copy">
+            <strong>Gratuito</strong>
+            <small>Comece agora sem pagamento</small>
+          </span>
+        </label>
+
+        <label
+          class="plan-option plan-option-premium"
+          [class.plan-option-selected]="cadastroForm.controls.tipoPlano.value === 'premium'"
+        >
+          <input type="radio" formControlName="tipoPlano" value="premium" />
+          <span class="plan-copy">
+            <strong>Premium</strong>
+            <small>Assinatura pelo Mercado Pago apos o cadastro</small>
+          </span>
+        </label>
+      </div>
+    </section>
+
+    <section class="cadastro-card">
+      <div class="card-header-custom">
         <span class="section-icon section-icon-blue">i</span>
         <h2 class="section-title">Primeiro Acesso - Credenciais Temporarias</h2>
       </div>
@@ -156,7 +187,7 @@
         </button>
 
         <button type="submit" class="btn btn-primary-custom" [disabled]="enviando">
-          {{ enviando ? 'Cadastrando...' : 'Cadastrar Empresa' }}
+          {{ enviando ? 'Cadastrando...' : cadastroForm.controls.tipoPlano.value === 'premium' ? 'Cadastrar e Assinar' : 'Cadastrar Empresa' }}
         </button>
       </div>
     </section>
