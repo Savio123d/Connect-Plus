@@ -29,14 +29,17 @@ interface UsuarioLogado {
   avatar?: string | null;
 }
 
-interface NotificacaoSidebar extends NotificacaoDTO {
+type NotificacaoSidebar = Omit<
+  NotificacaoDTO,
+  'titulo' | 'mensagem' | 'lida' | 'dataCriacao' | 'criadaEm'
+> & {
   titulo: string;
   mensagem: string;
   lida: boolean;
-  dataCriacao?: string;
-  criadaEm?: string;
+  dataCriacao: string;
+  criadaEm: string;
   dataLeitura?: string | null;
-}
+};
 
 @Component({
   selector: 'app-sidebar',
@@ -211,7 +214,7 @@ export class Sidebar implements OnInit, OnDestroy {
 
     return {
       ...notificacao,
-      titulo: notificacao.titulo || 'Notificacao',
+      titulo: notificacao.titulo || 'Notificação',
       mensagem: notificacao.mensagem || '',
       lida: Boolean(notificacao.lida),
       criadaEm: dataCriacao,
