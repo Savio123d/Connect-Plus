@@ -7,7 +7,6 @@ import { Subject, takeUntil } from 'rxjs';
 import { AuthSessionService } from '../../core/auth-session.service';
 import { NotificacaoDTO } from '../../pages/notificacoes/notificacoes.service';
 import { NotificacoesRealtimeService } from '../../pages/notificacoes/notificacoes-realtime.service';
-import { environment } from '../../../environments/environment.prod';
 
 interface MenuItem {
   label: string;
@@ -31,7 +30,11 @@ interface UsuarioLogado {
 }
 
 interface NotificacaoSidebar extends NotificacaoDTO {
+  titulo: string;
+  mensagem: string;
+  lida: boolean;
   dataCriacao?: string;
+  criadaEm?: string;
   dataLeitura?: string | null;
 }
 
@@ -61,7 +64,6 @@ export class Sidebar implements OnInit, OnDestroy {
   toastNotificacao: NotificacaoSidebar | null = null;
 
   private intervaloNotificacoes?: ReturnType<typeof setInterval>;
-  private readonly apiNotificacoes = `${environment.apiBase}/api/notificacoes`;
   menuItems: MenuItem[] = [
     { label: 'Início', icon: 'home', route: '/dashboard' },
     { label: 'Quadro de Tarefas', icon: 'check_box', route: '/tarefas' },
@@ -122,16 +124,15 @@ export class Sidebar implements OnInit, OnDestroy {
   iniciarNotificacoesTempoReal(): void {
     this.notificacoesRealtimeService.iniciar();
 
-    this.notificacoesRealtimeService.naoLidas$.pipe(takeUntil(this.destroy$)).subscribe((total) => {
-      this.quantidadeNaoLidas = total;
+    this.notificacoesRealtimeService.naoLidas$.pipe(takeUntil(this.destroy$)).subscribe((total: number) => {
       this.quantidadeNaoLidas = total;
       this.cdr.detectChanges();
     });
 
     this.notificacoesRealtimeService.ultimas$
       .pipe(takeUntil(this.destroy$))
-      .subscribe((notificacoes) => {
-        this.notificacoes = notificacoes.map((notificacao) =>
+      .subscribe((notificacoes: NotificacaoDTO[]) => {
+        this.notificacoes = notificacoes.map((notificacao: NotificacaoDTO) =>
           this.normalizarNotificacao(notificacao),
         );
 
@@ -140,7 +141,7 @@ export class Sidebar implements OnInit, OnDestroy {
 
     this.notificacoesRealtimeService.toast$
       .pipe(takeUntil(this.destroy$))
-      .subscribe((notificacao) => {
+      .subscribe((notificacao: NotificacaoDTO) => {
         this.toastNotificacao = this.normalizarNotificacao(notificacao);
         this.cdr.detectChanges();
 
@@ -202,14 +203,19 @@ export class Sidebar implements OnInit, OnDestroy {
     return notificacao.criadaEm || notificacao.dataCriacao || '';
   }
 
-  private normalizarNotificacao(notificacao: NotificacaoDTO | any): NotificacaoSidebar {
+  private normalizarNotificacao(notificacao: NotificacaoDTO): NotificacaoSidebar {
+    const dataCriacao =
+      notificacao.dataCriacao ||
+      notificacao.criadaEm ||
+      new Date().toISOString();
+
     return {
       ...notificacao,
-      criadaEm:
-        notificacao.criadaEm ||
-        notificacao.dataCriacao ||
-        notificacao.criadoEm ||
-        new Date().toISOString(),
+      titulo: notificacao.titulo || 'Notificacao',
+      mensagem: notificacao.mensagem || '',
+      lida: Boolean(notificacao.lida),
+      criadaEm: dataCriacao,
+      dataCriacao,
     };
   }
 
