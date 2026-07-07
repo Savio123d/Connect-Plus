@@ -6,13 +6,15 @@ import { environment } from '../../../environments/environment';
 
 export interface NotificacaoDTO {
   idNotificacao: number;
-  idUsuarioEmpresa: number;
-  idEmpresa: number;
-  tipo: string;
-  titulo: string;
-  mensagem: string;
-  lida: boolean;
-  criadaEm: string;
+  idUsuarioEmpresa?: number | null;
+  idEmpresa?: number | null;
+  tipo?: string | null;
+  titulo?: string | null;
+  mensagem?: string | null;
+  lida?: boolean | null;
+  dataCriacao?: string | null;
+  dataLeitura?: string | null;
+  criadaEm?: string | null;
 }
 
 @Injectable({
