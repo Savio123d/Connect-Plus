@@ -93,17 +93,24 @@ export class CadastroEmpresa implements OnInit {
     this.enviando = true;
 
     this.empresaService.cadastrarEmpresa(dados).subscribe({
-      next: (resposta) => {
-        this.enviando = false;
-        alert(resposta.mensagem || 'Cadastro realizado com sucesso!');
+next: (resposta) => {
+  this.enviando = false;
+  const checkoutUrl = resposta.checkoutUrl?.trim();
 
-        if (resposta.checkoutUrl) {
-          window.location.href = resposta.checkoutUrl;
-          return;
-        }
+  if (dados.tipoPlano === 'premium') {
+    if (checkoutUrl) {
+      window.location.href = checkoutUrl;
+      return;
+    }
 
-        this.router.navigate(['/login']);
-      },
+    this.mensagemErro =
+      'Empresa cadastrada, mas nao foi possivel gerar o link de pagamento. Verifique a configuracao do Mercado Pago.';
+    return;
+  }
+
+  alert(resposta.mensagem || 'Cadastro realizado com sucesso!');
+  this.router.navigate(['/login']);
+},
       error: (erro: HttpErrorResponse) => {
         this.enviando = false;
         this.mensagemErro = this.extrairMensagemErro(erro);

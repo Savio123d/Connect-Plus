@@ -1,7 +1,7 @@
 package conne.connect.connect.Assinatura.model;
 
 import conne.connect.connect.Assinatura.enums.StatusAssinatura;
-import conne.connect.connect.Recompensa.Empresa.model.EmpresaModel;
+import conne.connect.connect.Empresa.model.EmpresaModel;
 import conne.connect.connect.Plano.model.PlanoModel;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -1,4 +1,4 @@
-package conne.connect.connect.Recompensa.Empresa.dto;
+package conne.connect.connect.Empresa.dto;
 
 import conne.connect.connect.Assinatura.enums.StatusAssinatura;
 import conne.connect.connect.Plano.enums.TipoPlano;

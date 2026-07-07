@@ -1,7 +1,7 @@
 package conne.connect.connect.Transmissao.model;
 
 import conne.connect.connect.Conversa.model.ConversaModel;
-import conne.connect.connect.Recompensa.Empresa.model.EmpresaModel;
+import conne.connect.connect.Empresa.model.EmpresaModel;
 import conne.connect.connect.Transmissao.enums.StatusSala;
 import conne.connect.connect.Usuario.model.UsuarioEmpresaModel;
 import jakarta.persistence.Column;

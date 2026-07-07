@@ -5,7 +5,7 @@ import conne.connect.connect.Assinatura.dto.MercadoPagoAssinaturaDTO;
 import conne.connect.connect.Assinatura.enums.StatusAssinatura;
 import conne.connect.connect.Assinatura.model.AssinaturaModel;
 import conne.connect.connect.Assinatura.repository.AssinaturaRepository;
-import conne.connect.connect.Recompensa.Empresa.model.EmpresaModel;
+import conne.connect.connect.Empresa.model.EmpresaModel;
 import conne.connect.connect.Plano.enums.TipoPlano;
 import conne.connect.connect.Plano.model.PlanoModel;
 import conne.connect.connect.Plano.repository.PlanoRepository;
@@ -32,6 +32,9 @@ public class AssinaturaService {
 
     @Value("${mercadopago.planos.gratuito.max-usuarios:5}")
     private Integer maxUsuariosGratuito;
+
+    @Value("${mercadopago.access-token:}")
+    private String mercadoPagoAccessToken;
 
     public AssinaturaService(
             AssinaturaRepository assinaturaRepository,
@@ -177,7 +180,13 @@ public class AssinaturaService {
     }
 
     private String checkoutUrl(MercadoPagoAssinaturaDTO retornoMercadoPago) {
-        if (retornoMercadoPago.getInitPoint() != null && !retornoMercadoPago.getInitPoint().isBlank()) {
+        if (mercadoPagoAccessToken != null
+                && mercadoPagoAccessToken.startsWith("TEST-")
+                && temTexto(retornoMercadoPago.getSandboxInitPoint())) {
+            return retornoMercadoPago.getSandboxInitPoint();
+        }
+
+        if (temTexto(retornoMercadoPago.getInitPoint())) {
             return retornoMercadoPago.getInitPoint();
         }
 

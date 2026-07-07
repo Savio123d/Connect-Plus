@@ -1,6 +1,6 @@
-package conne.connect.connect.Recompensa.Empresa.model;
+package conne.connect.connect.Empresa.model;
 
-import conne.connect.connect.Recompensa.Empresa.enums.StatusEmpresa;
+import conne.connect.connect.Empresa.enums.StatusEmpresa;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;

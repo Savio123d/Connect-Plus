@@ -1,12 +1,12 @@
-package conne.connect.connect.Recompensa.Empresa.service;
+package conne.connect.connect.Empresa.service;
 
 import conne.connect.connect.Assinatura.dto.AssinaturaCadastroResultadoDTO;
 import conne.connect.connect.Assinatura.service.AssinaturaService;
-import conne.connect.connect.Recompensa.Empresa.dto.CadastroEmpresaDTO;
-import conne.connect.connect.Recompensa.Empresa.dto.CadastroEmpresaResponseDTO;
-import conne.connect.connect.Recompensa.Empresa.enums.StatusEmpresa;
-import conne.connect.connect.Recompensa.Empresa.model.EmpresaModel;
-import conne.connect.connect.Recompensa.Empresa.repository.EmpresaRepository;
+import conne.connect.connect.Empresa.dto.CadastroEmpresaDTO;
+import conne.connect.connect.Empresa.dto.CadastroEmpresaResponseDTO;
+import conne.connect.connect.Empresa.enums.StatusEmpresa;
+import conne.connect.connect.Empresa.model.EmpresaModel;
+import conne.connect.connect.Empresa.repository.EmpresaRepository;
 import conne.connect.connect.Plano.enums.TipoPlano;
 import conne.connect.connect.Usuario.dto.CadastroUsuarioEmpresaDTO;
 import conne.connect.connect.Usuario.enums.PapelEmpresa;

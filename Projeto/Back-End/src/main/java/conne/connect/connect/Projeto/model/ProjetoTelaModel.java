@@ -1,6 +1,6 @@
 package conne.connect.connect.Projeto.model;
 
-import conne.connect.connect.Recompensa.Empresa.model.EmpresaModel;
+import conne.connect.connect.Empresa.model.EmpresaModel;
 import conne.connect.connect.Projeto.enums.PrioridadeProjetoTela;
 import conne.connect.connect.Projeto.enums.ProjetoStatusTela;
 import jakarta.persistence.CascadeType;

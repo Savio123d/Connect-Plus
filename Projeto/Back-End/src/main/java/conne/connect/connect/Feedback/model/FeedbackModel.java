@@ -1,6 +1,6 @@
 package conne.connect.connect.Feedback.model;
 
-import conne.connect.connect.Recompensa.Empresa.model.EmpresaModel;
+import conne.connect.connect.Empresa.model.EmpresaModel;
 import conne.connect.connect.Feedback.enums.FeedbackClassificacao;
 import conne.connect.connect.Projeto.model.ProjetoTelaModel;
 import conne.connect.connect.Tarefa.model.TarefaModel;

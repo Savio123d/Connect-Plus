@@ -1,4 +1,4 @@
-package conne.connect.connect.Recompensa.Empresa.enums;
+package conne.connect.connect.Empresa.enums;
 
 public enum StatusEmpresa {
     ativa,

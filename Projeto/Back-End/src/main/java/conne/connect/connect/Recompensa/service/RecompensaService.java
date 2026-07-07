@@ -1,7 +1,7 @@
 package conne.connect.connect.Recompensa.service;
 
-import conne.connect.connect.Recompensa.Empresa.model.EmpresaModel;
-import conne.connect.connect.Recompensa.Empresa.repository.EmpresaRepository;
+import conne.connect.connect.Empresa.model.EmpresaModel;
+import conne.connect.connect.Empresa.repository.EmpresaRepository;
 import conne.connect.connect.Recompensa.dto.LojaItemDTO;
 import conne.connect.connect.Recompensa.dto.LojaItemRequestDTO;
 import conne.connect.connect.Recompensa.dto.LojaResgateRequestDTO;
