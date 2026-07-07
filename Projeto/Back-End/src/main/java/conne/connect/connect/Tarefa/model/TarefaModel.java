@@ -27,104 +27,113 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-    @Entity
-    @Table(
-            name = "tarefa",
-            indexes = {
-                    @Index(name = "idx_tarefa_projeto", columnList = "projeto_id"),
-                    @Index(name = "idx_tarefa_resp", columnList = "resp_id")
-            }
+@Entity
+@Table(
+        name = "tarefa",
+        indexes = {
+                @Index(name = "idx_tarefa_projeto", columnList = "projeto_id"),
+                @Index(name = "idx_tarefa_resp", columnList = "resp_id")
+        }
+)
+@Getter
+@Setter
+@NoArgsConstructor
+public class TarefaModel {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long idTarefa;
+
+    @ManyToOne
+    @JoinColumn(name = "empresa_id", nullable = false)
+    private EmpresaModel idEmpresa;
+
+    @ManyToOne
+    @JoinColumn(
+            name = "projeto_id",
+            nullable = false,
+            foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT)
     )
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    public class TarefaModel {
+    private ProjetoTelaModel idProjeto;
 
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        @Column(name = "id")
-        private Long idTarefa;
+    @ManyToOne
+    @JoinColumn(name = "resp_id")
+    private UsuarioEmpresaModel idResponsavelUsuarioEmpresa;
 
-        @ManyToOne
-        @JoinColumn(name = "empresa_id", nullable = false)
-        private EmpresaModel idEmpresa;
+    @Column(name = "titulo", nullable = false, length = 130)
+    private String titulo;
 
-        @ManyToOne
-        @JoinColumn(
-                name = "projeto_id",
-                nullable = false,
-                foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT)
-        )
-        private ProjetoTelaModel idProjeto;
+    @Column(name = "descricao", columnDefinition = "TEXT")
+    private String descricao;
 
-        @ManyToOne
-        @JoinColumn(name = "resp_id")
-        private UsuarioEmpresaModel idResponsavelUsuarioEmpresa;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "prioridade", nullable = false, length = 20)
+    private PrioridadeTarefa prioridade;
 
-        @Column(name = "titulo", nullable = false, length = 130)
-        private String titulo;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "dificuldade", nullable = false, length = 20)
+    private DificuldadeTarefa dificuldade;
 
-        @Column(name = "descricao", columnDefinition = "TEXT")
-        private String descricao;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 30)
+    private StatusTarefa status;
 
-        @Enumerated(EnumType.STRING)
-        @Column(name = "prioridade", nullable = false, length = 20)
-        private PrioridadeTarefa prioridade;
+    @Column(name = "horas_estimadas")
+    private int horasEstimadas;
 
-        @Enumerated(EnumType.STRING)
-        @Column(name = "dificuldade", nullable = false, length = 20)
-        private DificuldadeTarefa dificuldade;
+    @Column(name = "criado_em", nullable = false)
+    private LocalDateTime dataCriacao;
 
-        @Enumerated(EnumType.STRING)
-        @Column(name = "status", nullable = false, length = 30)
-        private StatusTarefa status;
+    @Column(name = "prazo")
+    private LocalDateTime prazo;
 
-        @Column(name = "horas_estimadas")
-        private int horasEstimadas;
+    @Column(name = "inicio_execucao_em")
+    private LocalDateTime inicioExecucaoEm;
 
-        @Column(name = "criado_em", nullable = false)
-        private LocalDateTime dataCriacao;
+    @Column(name = "cronometro_iniciado_em")
+    private LocalDateTime cronometroIniciadoEm;
 
-        @Column(name = "prazo")
-        private LocalDateTime prazo;
+    @Column(name = "concluida_em")
+    private LocalDateTime concluidaEm;
 
-        @Column(name = "concluida_em")
-        private LocalDateTime concluidaEm;
+    @Column(name = "tempo_gasto_minutos")
+    private Long tempoGastoMinutos;
 
-        @Column(name = "atualizado_em", nullable = false)
-        private LocalDateTime dataAtualizacao;
+    @Column(name = "atualizado_em", nullable = false)
+    private LocalDateTime dataAtualizacao;
 
-        @Column(name = "incluido", columnDefinition = "DATE")
-        private LocalDate incluido;
+    @Column(name = "incluido", columnDefinition = "DATE")
+    private LocalDate incluido;
 
-        @Column(name = "excluido", columnDefinition = "DATE")
-        private LocalDate excluido;
+    @Column(name = "excluido", columnDefinition = "DATE")
+    private LocalDate excluido;
 
-        @PrePersist
-        public void prePersist() {
-            LocalDateTime agora = LocalDateTime.now();
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime agora = LocalDateTime.now();
 
-            if (status == null) {
-                status = StatusTarefa.pendente;
-            }
-
-            if (prioridade == null) {
-                prioridade = PrioridadeTarefa.media;
-            }
-
-            if (dificuldade == null) {
-                dificuldade = DificuldadeTarefa.medio;
-            }
-
-            if (dataCriacao == null) {
-                dataCriacao = agora;
-            }
-
-            dataAtualizacao = agora;
+        if (status == null) {
+            status = StatusTarefa.pendente;
         }
 
-        @PreUpdate
-        public void preUpdate() {
-            dataAtualizacao = LocalDateTime.now();
+        if (prioridade == null) {
+            prioridade = PrioridadeTarefa.media;
         }
+
+        if (dificuldade == null) {
+            dificuldade = DificuldadeTarefa.medio;
+        }
+
+        if (dataCriacao == null) {
+            dataCriacao = agora;
+        }
+
+        dataAtualizacao = agora;
     }
+
+    @PreUpdate
+    public void preUpdate() {
+        dataAtualizacao = LocalDateTime.now();
+    }
+}

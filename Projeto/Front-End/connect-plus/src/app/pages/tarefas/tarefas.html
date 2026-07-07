@@ -1,15 +1,20 @@
 <div class="layout-tarefas">
-
   <main class="conteudo-tarefas">
     <section class="p-4">
       <div *ngIf="mensagemErro" class="alert alert-danger py-2 mb-3">
         {{ mensagemErro }}
       </div>
 
+      <div *ngIf="mensagemAviso" class="alert alert-warning py-2 mb-3">
+        {{ mensagemAviso }}
+      </div>
+
       <!-- KANBAN -->
       <ng-container *ngIf="telaAtual === 'kanban'">
         <section class="cabecalho-page bg-white border rounded-4 p-4 mb-4 shadow-sm">
-          <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+          <div
+            class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3"
+          >
             <div>
               <p class="text-uppercase fw-bold text-primary small mb-1">Workspace</p>
               <h1 class="fw-bold text-dark mb-1">Quadro de Tarefas</h1>
@@ -32,7 +37,7 @@
                 class="btn btn-filtro-toggle"
                 [ngClass]="{
                   'filtros-abertos': mostrarFiltros,
-                  'filtros-fechados': !mostrarFiltros
+                  'filtros-fechados': !mostrarFiltros,
                 }"
                 (click)="alternarVisualizacaoFiltros()"
                 [attr.aria-expanded]="mostrarFiltros"
@@ -51,249 +56,230 @@
           </div>
         </section>
 
-        <div
-          id="areaFiltrosKanban"
-          class="area-filtros-kanban"
-          *ngIf="mostrarFiltros"
-        >
+        <div id="areaFiltrosKanban" class="area-filtros-kanban" *ngIf="mostrarFiltros">
           <section class="card-projeto-filtro bg-white border rounded-4 p-4 mb-3 shadow-sm">
-          <div class="row g-3 align-items-end">
-            <div class="col-12 col-lg-7">
-              <label for="filtroProjeto" class="label-filtro">
-                Projeto
-              </label>
+            <div class="row g-3 align-items-end">
+              <div class="col-12 col-lg-7">
+                <label for="filtroProjeto" class="label-filtro"> Projeto </label>
 
-              <select
-                id="filtroProjeto"
-                name="filtroProjeto"
-                class="form-select campo-padrao select-projeto"
-                [(ngModel)]="filtroProjetoId"
-                (ngModelChange)="aoSelecionarProjeto()"
-              >
-                <option [ngValue]="null">Todos os projetos</option>
+                <select
+                  id="filtroProjeto"
+                  name="filtroProjeto"
+                  class="form-select campo-padrao select-projeto"
+                  [(ngModel)]="filtroProjetoId"
+                  (ngModelChange)="aoSelecionarProjeto()"
+                >
+                  <option [ngValue]="null">Todos os projetos</option>
 
-                <option
-  *ngFor="let projeto of projetos"
-  [ngValue]="projeto.id"
->
-  {{ projeto.nome }}
-</option>
-              </select>
-            </div>
+                  <option *ngFor="let projeto of projetos" [ngValue]="projeto.id">
+                    {{ projeto.nome }}
+                  </option>
+                </select>
+              </div>
 
-            <div class="col-12 col-lg-5">
-              <div class="resumo-filtros">
-                <span class="material-icons">filter_alt</span>
-                <div>
-                  <strong>{{ totalTarefasFiltradas() }}</strong>
-                  <small>
-                    {{ totalTarefasFiltradas() === 1 ? 'tarefa encontrada' : 'tarefas encontradas' }}
-                  </small>
+              <div class="col-12 col-lg-5">
+                <div class="resumo-filtros">
+                  <span class="material-icons">filter_alt</span>
+                  <div>
+                    <strong>{{ totalTarefasFiltradas() }}</strong>
+                    <small>
+                      {{
+                        totalTarefasFiltradas() === 1 ? 'tarefa encontrada' : 'tarefas encontradas'
+                      }}
+                    </small>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section class="card-filtros bg-white border rounded-4 p-3 p-md-4 mb-4 shadow-sm">
-          <div class="d-flex flex-column gap-3">
-            <div class="d-flex flex-column flex-xl-row justify-content-between gap-3">
-              <div class="grupo-usuarios-filtro">
-                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
-                  <label class="label-filtro mb-0">Responsáveis do projeto</label>
+          <section class="card-filtros bg-white border rounded-4 p-3 p-md-4 mb-4 shadow-sm">
+            <div class="d-flex flex-column gap-3">
+              <div class="d-flex flex-column flex-xl-row justify-content-between gap-3">
+                <div class="grupo-usuarios-filtro">
+                  <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                    <label class="label-filtro mb-0">Responsáveis do projeto</label>
 
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-link text-decoration-none px-0"
-                    *ngIf="filtroResponsavelId"
-                    (click)="filtroResponsavelId = null"
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-link text-decoration-none px-0"
+                      *ngIf="filtroResponsavelId"
+                      (click)="filtroResponsavelId = null"
+                    >
+                      limpar usuário
+                    </button>
+                  </div>
+
+                  <div
+                    *ngIf="responsaveisDoProjetoSelecionado.length > 0; else semResponsaveis"
+                    class="usuarios-filtro"
                   >
-                    limpar usuário
-                  </button>
+                    <button
+                      type="button"
+                      class="avatar-filtro avatar-todos"
+                      [ngClass]="{ ativo: filtroResponsavelId === null }"
+                      (click)="filtroResponsavelId = null"
+                      title="Todos os responsáveis"
+                    >
+                      Todos
+                    </button>
+
+                    <button
+                      type="button"
+                      *ngFor="let responsavel of responsaveisDoProjetoSelecionado"
+                      class="avatar-filtro"
+                      [ngClass]="{ ativo: filtroResponsavelId === responsavel.id }"
+                      (click)="alternarFiltroResponsavel(responsavel.id)"
+                      [title]="responsavel.nome"
+                    >
+                      <span>{{ iniciaisUsuario(responsavel.nome) }}</span>
+                      <small>{{ quantidadeTarefasPorUsuario(responsavel.id) }}</small>
+                    </button>
+                  </div>
+
+                  <ng-template #semResponsaveis>
+                    <div class="sem-responsaveis">
+                      Nenhum responsável encontrado para este projeto.
+                    </div>
+                  </ng-template>
+                </div>
+
+                <div class="campo-filtro-busca">
+                  <label for="filtroPesquisa" class="label-filtro">Pesquisar tarefa</label>
+
+                  <div class="input-filtro-busca">
+                    <span class="material-icons">search</span>
+                    <input
+                      id="filtroPesquisa"
+                      name="filtroPesquisa"
+                      type="text"
+                      [(ngModel)]="filtroPesquisa"
+                      placeholder="Digite título ou descrição..."
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="row g-3 align-items-end">
+                <div class="col-12 col-md-6 col-xl-3">
+                  <label for="filtroStatus" class="label-filtro">Status</label>
+
+                  <select
+                    id="filtroStatus"
+                    name="filtroStatus"
+                    class="form-select campo-padrao"
+                    [(ngModel)]="filtroStatus"
+                  >
+                    <option value="">Todos os status</option>
+
+                    <option *ngFor="let status of statusFiltros" [value]="status.valor">
+                      {{ status.titulo }}
+                    </option>
+                  </select>
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-3">
+                  <label for="filtroDificuldade" class="label-filtro">Dificuldade</label>
+
+                  <select
+                    id="filtroDificuldade"
+                    name="filtroDificuldade"
+                    class="form-select campo-padrao"
+                    [(ngModel)]="filtroDificuldade"
+                  >
+                    <option value="">Todas as dificuldades</option>
+
+                    <option *ngFor="let dificuldade of dificuldades" [value]="dificuldade.valor">
+                      {{ dificuldade.titulo }}
+                    </option>
+                  </select>
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-3">
+                  <label for="filtroPrioridade" class="label-filtro">Prioridade</label>
+
+                  <select
+                    id="filtroPrioridade"
+                    name="filtroPrioridade"
+                    class="form-select campo-padrao"
+                    [(ngModel)]="filtroPrioridade"
+                  >
+                    <option value="">Todas as prioridades</option>
+
+                    <option *ngFor="let prioridade of prioridades" [value]="prioridade.valor">
+                      {{ prioridade.titulo }}
+                    </option>
+                  </select>
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-3">
+                  <label for="filtroConclusao" class="label-filtro">Tarefas concluídas</label>
+
+                  <select
+                    id="filtroConclusao"
+                    name="filtroConclusao"
+                    class="form-select campo-padrao"
+                    [(ngModel)]="filtroConclusao"
+                  >
+                    <option value="todas">Mostrar todas</option>
+                    <option value="somente-concluidas">Somente concluídas</option>
+                    <option value="ocultar-concluidas">Ocultar concluídas</option>
+                  </select>
                 </div>
 
                 <div
-                  *ngIf="responsaveisDoProjetoSelecionado.length > 0; else semResponsaveis"
-                  class="usuarios-filtro"
+                  class="col-12 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2"
                 >
-                  <button
-                    type="button"
-                    class="avatar-filtro avatar-todos"
-                    [ngClass]="{ ativo: filtroResponsavelId === null }"
-                    (click)="filtroResponsavelId = null"
-                    title="Todos os responsáveis"
-                  >
-                    Todos
-                  </button>
+                  <div class="chips-filtros-ativos">
+                    <span *ngIf="filtroProjetoId">
+                      Projeto: {{ buscarNomeProjeto(filtroProjetoId) }}
+                    </span>
 
-                  <button
-                    type="button"
-                    *ngFor="let responsavel of responsaveisDoProjetoSelecionado"
-                    class="avatar-filtro"
-                    [ngClass]="{ ativo: filtroResponsavelId === responsavel.id }"
-                    (click)="alternarFiltroResponsavel(responsavel.id)"
-                    [title]="responsavel.nome"
-                  >
-                    <span>{{ iniciaisUsuario(responsavel.nome) }}</span>
-                    <small>{{ quantidadeTarefasPorUsuario(responsavel.id) }}</small>
-                  </button>
-                </div>
+                    <span *ngIf="filtroResponsavelId">
+                      Responsável: {{ buscarNomeResponsavel(filtroResponsavelId) }}
+                    </span>
 
-                <ng-template #semResponsaveis>
-                  <div class="sem-responsaveis">
-                    Nenhum responsável encontrado para este projeto.
+                    <span *ngIf="filtroPesquisa.trim()"> Busca: "{{ filtroPesquisa }}" </span>
+
+                    <span *ngIf="filtroStatus"> Status: {{ labelStatus(filtroStatus) }} </span>
+
+                    <span *ngIf="filtroDificuldade">
+                      Dificuldade: {{ labelDificuldade(filtroDificuldade) }}
+                    </span>
+
+                    <span *ngIf="filtroPrioridade">
+                      Prioridade: {{ labelPrioridade(filtroPrioridade) }}
+                    </span>
+
+                    <span *ngIf="filtroConclusao !== 'todas'">
+                      {{
+                        filtroConclusao === 'somente-concluidas'
+                          ? 'Somente concluídas'
+                          : 'Concluídas ocultas'
+                      }}
+                    </span>
                   </div>
-                </ng-template>
-              </div>
 
-              <div class="campo-filtro-busca">
-                <label for="filtroPesquisa" class="label-filtro">Pesquisar tarefa</label>
-
-                <div class="input-filtro-busca">
-                  <span class="material-icons">search</span>
-                  <input
-                    id="filtroPesquisa"
-                    name="filtroPesquisa"
-                    type="text"
-                    [(ngModel)]="filtroPesquisa"
-                    placeholder="Digite título ou descrição..."
-                  />
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-limpar-filtros"
+                    [disabled]="!possuiFiltrosAtivos"
+                    (click)="limparFiltros()"
+                  >
+                    Limpar filtros
+                  </button>
                 </div>
               </div>
             </div>
-
-            <div class="row g-3 align-items-end">
-              <div class="col-12 col-md-6 col-xl-3">
-                <label for="filtroStatus" class="label-filtro">Status</label>
-
-                <select
-                  id="filtroStatus"
-                  name="filtroStatus"
-                  class="form-select campo-padrao"
-                  [(ngModel)]="filtroStatus"
-                >
-                  <option value="">Todos os status</option>
-
-                  <option
-                    *ngFor="let status of statusFiltros"
-                    [value]="status.valor"
-                  >
-                    {{ status.titulo }}
-                  </option>
-                </select>
-              </div>
-
-              <div class="col-12 col-md-6 col-xl-3">
-                <label for="filtroDificuldade" class="label-filtro">Dificuldade</label>
-
-                <select
-                  id="filtroDificuldade"
-                  name="filtroDificuldade"
-                  class="form-select campo-padrao"
-                  [(ngModel)]="filtroDificuldade"
-                >
-                  <option value="">Todas as dificuldades</option>
-
-                  <option
-                    *ngFor="let dificuldade of dificuldades"
-                    [value]="dificuldade.valor"
-                  >
-                    {{ dificuldade.titulo }}
-                  </option>
-                </select>
-              </div>
-
-              <div class="col-12 col-md-6 col-xl-3">
-                <label for="filtroPrioridade" class="label-filtro">Prioridade</label>
-
-                <select
-                  id="filtroPrioridade"
-                  name="filtroPrioridade"
-                  class="form-select campo-padrao"
-                  [(ngModel)]="filtroPrioridade"
-                >
-                  <option value="">Todas as prioridades</option>
-
-                  <option
-                    *ngFor="let prioridade of prioridades"
-                    [value]="prioridade.valor"
-                  >
-                    {{ prioridade.titulo }}
-                  </option>
-                </select>
-              </div>
-
-              <div class="col-12 col-md-6 col-xl-3">
-                <label for="filtroConclusao" class="label-filtro">Tarefas concluídas</label>
-
-                <select
-                  id="filtroConclusao"
-                  name="filtroConclusao"
-                  class="form-select campo-padrao"
-                  [(ngModel)]="filtroConclusao"
-                >
-                  <option value="todas">Mostrar todas</option>
-                  <option value="somente-concluidas">Somente concluídas</option>
-                  <option value="ocultar-concluidas">Ocultar concluídas</option>
-                </select>
-              </div>
-
-              <div class="col-12 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
-                <div class="chips-filtros-ativos">
-                  <span *ngIf="filtroProjetoId">
-                    Projeto: {{ buscarNomeProjeto(filtroProjetoId) }}
-                  </span>
-
-                  <span *ngIf="filtroResponsavelId">
-                    Responsável: {{ buscarNomeResponsavel(filtroResponsavelId) }}
-                  </span>
-
-                  <span *ngIf="filtroPesquisa.trim()">
-                    Busca: "{{ filtroPesquisa }}"
-                  </span>
-
-                  <span *ngIf="filtroStatus">
-                    Status: {{ labelStatus(filtroStatus) }}
-                  </span>
-
-                  <span *ngIf="filtroDificuldade">
-                    Dificuldade: {{ labelDificuldade(filtroDificuldade) }}
-                  </span>
-
-                  <span *ngIf="filtroPrioridade">
-                    Prioridade: {{ labelPrioridade(filtroPrioridade) }}
-                  </span>
-
-                  <span *ngIf="filtroConclusao !== 'todas'">
-                    {{ filtroConclusao === 'somente-concluidas' ? 'Somente concluídas' : 'Concluídas ocultas' }}
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  class="btn btn-outline-secondary btn-limpar-filtros"
-                  [disabled]="!possuiFiltrosAtivos"
-                  (click)="limparFiltros()"
-                >
-                  Limpar filtros
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
+          </section>
         </div>
 
-        <div *ngIf="carregando" class="text-center text-secondary py-5">
-          Carregando tarefas...
-        </div>
+        <div *ngIf="carregando" class="text-center text-secondary py-5">Carregando tarefas...</div>
 
         <section *ngIf="!carregando" class="row g-4">
           <div *ngFor="let coluna of colunas" class="col-12 col-md-6 col-xl-3">
             <div class="kanban-coluna h-100">
-              <div
-                class="kanban-header text-white rounded-4 p-3 mb-3"
-                [ngClass]="coluna.classe"
-              >
+              <div class="kanban-header text-white rounded-4 p-3 mb-3" [ngClass]="coluna.classe">
                 <div class="d-flex justify-content-between align-items-start gap-2">
                   <div>
                     <h2 class="fs-6 fw-bold mb-1">{{ coluna.titulo }}</h2>
@@ -317,8 +303,16 @@
                 <article
                   *ngFor="let tarefa of tarefasPorStatus(coluna.status)"
                   class="card-tarefa bg-white border rounded-4 p-3"
+                  [ngClass]="{ 'card-tarefa-bloqueada': tarefaConcluida(tarefa) }"
                   cdkDrag
+                  [cdkDragDisabled]="tarefaConcluida(tarefa)"
                   [cdkDragData]="tarefa"
+                  (cdkDragStarted)="aoIniciarArraste(tarefa)"
+                  [attr.title]="
+                    tarefaConcluida(tarefa)
+                      ? 'Tarefa concluída bloqueada para movimentação'
+                      : 'Arraste para alterar o status'
+                  "
                   (click)="abrirDetalhes(tarefa)"
                 >
                   <div class="d-flex justify-content-between align-items-start gap-2">
@@ -353,14 +347,41 @@
                       <span class="material-icons fs-6">calendar_month</span>
                       <span>{{ formatarData(tarefa.prazo) }}</span>
                     </div>
+
+                    <div
+                      *ngIf="cronometroAtivo(tarefa)"
+                      class="d-flex align-items-center gap-2 text-primary fw-semibold"
+                    >
+                      <span class="material-icons fs-6">timer</span>
+                      <span>{{ formatarTempoGasto(tempoTotalAtualMinutos(tarefa)) }} em contagem</span>
+                    </div>
+
+                    <div
+                      *ngIf="tarefaConcluida(tarefa)"
+                      class="d-flex align-items-center gap-2 text-success fw-semibold"
+                    >
+                      <span class="material-icons fs-6">lock</span>
+                      <span>Concluída e bloqueada</span>
+                    </div>
                   </div>
 
-                  <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                  <div
+                    class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top"
+                  >
                     <span class="small text-secondary">
-                      {{ tarefa.horasEstimadas || 0 }}h estimadas
+                      <ng-container *ngIf="tarefaConcluida(tarefa) || tarefa.inicioExecucaoEm; else horasEstimadasCard">
+                        {{ formatarTempoGasto(tempoTotalAtualMinutos(tarefa)) }} gastos
+                      </ng-container>
+
+                      <ng-template #horasEstimadasCard>
+                        {{ tarefa.horasEstimadas || 0 }}h estimadas
+                      </ng-template>
                     </span>
 
-                    <span class="xp-pill">
+                    <span
+                      class="xp-pill"
+                      [ngClass]="{ 'xp-pill-concluida': tarefaConcluida(tarefa) }"
+                    >
                       +{{ tarefa.xpRecompensa || 0 }} XP
                     </span>
                   </div>
@@ -370,7 +391,11 @@
                   *ngIf="tarefasPorStatus(coluna.status).length === 0"
                   class="estado-vazio text-center text-secondary small p-4"
                 >
-                  {{ possuiFiltrosAtivos ? 'Nenhuma tarefa encontrada com os filtros atuais.' : 'Nenhuma tarefa nesta coluna.' }}
+                  {{
+                    possuiFiltrosAtivos
+                      ? 'Nenhuma tarefa encontrada com os filtros atuais.'
+                      : 'Nenhuma tarefa nesta coluna.'
+                  }}
                 </div>
               </div>
             </div>
@@ -394,9 +419,11 @@
           </h1>
 
           <p class="text-secondary mb-0">
-            {{ modoFormulario === 'criar'
-              ? 'Adicione uma nova tarefa ao projeto'
-              : 'Atualize as informações da tarefa' }}
+            {{
+              modoFormulario === 'criar'
+                ? 'Adicione uma nova tarefa ao projeto'
+                : 'Atualize as informações da tarefa'
+            }}
           </p>
         </div>
 
@@ -408,9 +435,7 @@
 
           <form (ngSubmit)="salvarTarefa()">
             <div class="mb-3">
-              <label for="titulo" class="form-label fw-semibold text-dark">
-                Nome da Tarefa
-              </label>
+              <label for="titulo" class="form-label fw-semibold text-dark"> Nome da Tarefa </label>
 
               <input
                 id="titulo"
@@ -423,9 +448,7 @@
             </div>
 
             <div class="mb-3">
-              <label for="descricao" class="form-label fw-semibold text-dark">
-                Descrição
-              </label>
+              <label for="descricao" class="form-label fw-semibold text-dark"> Descrição </label>
 
               <textarea
                 id="descricao"
@@ -451,19 +474,14 @@
                 >
                   <option [ngValue]="null">Não atribuído</option>
 
-                  <option
-                    *ngFor="let responsavel of responsaveis"
-                    [ngValue]="responsavel.id"
-                  >
+                  <option *ngFor="let responsavel of responsaveis" [ngValue]="responsavel.id">
                     {{ responsavel.nome }}
                   </option>
                 </select>
               </div>
 
               <div class="col-12 col-md-6">
-                <label for="projeto" class="form-label fw-semibold text-dark">
-                  Projeto
-                </label>
+                <label for="projeto" class="form-label fw-semibold text-dark"> Projeto </label>
 
                 <select
                   id="projeto"
@@ -471,10 +489,7 @@
                   class="form-select campo-padrao"
                   [(ngModel)]="formTarefa.idProjeto"
                 >
-                  <option
-                    *ngFor="let projeto of projetos"
-                    [ngValue]="projeto.id"
-                  >
+                  <option *ngFor="let projeto of projetos" [ngValue]="projeto.id">
                     {{ projeto.nome }}
                   </option>
                 </select>
@@ -497,9 +512,7 @@
               </div>
 
               <div class="col-12 col-md-6">
-                <label for="prazo" class="form-label fw-semibold text-dark">
-                  Prazo
-                </label>
+                <label for="prazo" class="form-label fw-semibold text-dark"> Prazo </label>
 
                 <input
                   id="prazo"
@@ -518,17 +531,17 @@
               <p class="fw-semibold text-dark mb-2">Prioridade</p>
 
               <div class="row g-3">
-                <div
-                  *ngFor="let prioridade of prioridades"
-                  class="col-12 col-md-4"
-                >
+                <div *ngFor="let prioridade of prioridades" class="col-12 col-md-4">
                   <button
                     type="button"
                     class="opcao-card w-100 text-start"
                     [ngClass]="{
-                      'selecionada-prioridade-baixa': formTarefa.prioridade === 'baixa' && prioridade.valor === 'baixa',
-                      'selecionada-prioridade-media': formTarefa.prioridade === 'media' && prioridade.valor === 'media',
-                      'selecionada-prioridade-alta': formTarefa.prioridade === 'alta' && prioridade.valor === 'alta'
+                      'selecionada-prioridade-baixa':
+                        formTarefa.prioridade === 'baixa' && prioridade.valor === 'baixa',
+                      'selecionada-prioridade-media':
+                        formTarefa.prioridade === 'media' && prioridade.valor === 'media',
+                      'selecionada-prioridade-alta':
+                        formTarefa.prioridade === 'alta' && prioridade.valor === 'alta',
                     }"
                     (click)="selecionarPrioridade(prioridade.valor)"
                   >
@@ -544,15 +557,12 @@
               <p class="fw-semibold text-dark mb-2">Dificuldade</p>
 
               <div class="row g-3">
-                <div
-                  *ngFor="let dificuldade of dificuldades"
-                  class="col-12 col-md-4"
-                >
+                <div *ngFor="let dificuldade of dificuldades" class="col-12 col-md-4">
                   <button
                     type="button"
                     class="opcao-card w-100 text-start"
                     [ngClass]="{
-                      'selecionada-dificuldade': formTarefa.dificuldade === dificuldade.valor
+                      'selecionada-dificuldade': formTarefa.dificuldade === dificuldade.valor,
                     }"
                     (click)="selecionarDificuldade(dificuldade.valor)"
                   >
@@ -572,8 +582,8 @@
               <div>
                 <h3 class="fs-6 fw-semibold mb-1">Sistema de XP</h3>
                 <p class="small text-secondary mb-0">
-                  Ao concluir tarefas, os responsáveis ganham XP baseado na dificuldade,
-                  ajudando no crescimento e gamificação.
+                  Ao concluir tarefas, os responsáveis ganham XP baseado na dificuldade, ajudando no
+                  crescimento e gamificação.
                 </p>
               </div>
             </div>
@@ -597,16 +607,14 @@
                   Cancelar
                 </button>
 
-                <button
-                  type="submit"
-                  class="btn btn-gradiente px-4"
-                  [disabled]="salvando"
-                >
-                  {{ salvando
-                    ? 'Salvando...'
-                    : modoFormulario === 'criar'
-                      ? 'Criar Tarefa'
-                      : 'Salvar Alterações' }}
+                <button type="submit" class="btn btn-gradiente px-4" [disabled]="salvando">
+                  {{
+                    salvando
+                      ? 'Salvando...'
+                      : modoFormulario === 'criar'
+                        ? 'Criar Tarefa'
+                        : 'Salvar Alterações'
+                  }}
                 </button>
               </div>
             </div>
@@ -644,31 +652,100 @@
             </section>
 
             <section class="bg-white border rounded-4 p-4 shadow-sm">
-              <h2 class="fs-5 fw-semibold text-dark mb-3">Contador de Tempo</h2>
+              <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-3">
+                <div>
+                  <h2 class="fs-5 fw-semibold text-dark mb-1">Contador de Tempo</h2>
+                  <p class="small text-secondary mb-0">
+                    Inicie quando começar a trabalhar, pause quando parar e conclua ao finalizar.
+                  </p>
+                </div>
 
-              <div class="contador-tempo text-center rounded-4 p-4 mb-3">
-                <strong class="display-5 fw-bold">00:00:00</strong>
-                <p class="small text-secondary mb-0">Sessão atual</p>
+                <span
+                  class="badge-cronometro"
+                  [ngClass]="{ 'badge-cronometro-ativo': cronometroAtivo(tarefaSelecionada) }"
+                >
+                  <span class="material-icons fs-6">{{ cronometroAtivo(tarefaSelecionada) ? 'timer' : 'timer_off' }}</span>
+                  {{ cronometroAtivo(tarefaSelecionada) ? 'Em contagem' : 'Pausado' }}
+                </span>
               </div>
 
-              <div class="text-center">
-                <button class="btn btn-success px-4">
-                  Iniciar
+              <div
+                class="contador-tempo text-center rounded-4 p-4 mb-3"
+                [ngClass]="{ 'contador-tempo-ativo': cronometroAtivo(tarefaSelecionada) }"
+              >
+                <strong class="display-5 fw-bold">
+                  {{ formatarTempoGasto(tempoTotalAtualMinutos(tarefaSelecionada)) }}
+                </strong>
+                <p class="small text-secondary mb-0">
+                  {{ cronometroAtivo(tarefaSelecionada) ? 'Tempo rodando agora' : 'Tempo gasto total registrado' }}
+                </p>
+              </div>
+
+              <div class="acoes-cronometro mb-3" *ngIf="!tarefaConcluida(tarefaSelecionada)">
+                <button
+                  type="button"
+                  class="btn btn-gradiente"
+                  [disabled]="salvando || cronometroAtivo(tarefaSelecionada)"
+                  (click)="iniciarCronometro(tarefaSelecionada, $event)"
+                >
+                  <span class="material-icons fs-6">play_arrow</span>
+                  {{ textoBotaoIniciar(tarefaSelecionada) }}
+                </button>
+
+                <button
+                  type="button"
+                  class="btn btn-outline-primary"
+                  [disabled]="salvando || !cronometroAtivo(tarefaSelecionada)"
+                  (click)="pausarCronometro(tarefaSelecionada, $event)"
+                >
+                  <span class="material-icons fs-6">pause</span>
+                  Pausar timer
+                </button>
+
+                <button
+                  type="button"
+                  class="btn btn-success"
+                  [disabled]="salvando"
+                  (click)="concluirTarefa(tarefaSelecionada, $event)"
+                >
+                  <span class="material-icons fs-6">check_circle</span>
+                  Concluir tarefa
                 </button>
               </div>
 
-              <hr />
-
-              <div class="d-flex justify-content-between text-secondary small">
-                <span>Estimativa</span>
-                <strong>{{ tarefaSelecionada.horasEstimadas || 0 }}h</strong>
+              <div class="alert alert-info small mb-3">
+                Use o botão de iniciar/pausar para contabilizar apenas o período realmente trabalhado.
+                Ao concluir, o sistema soma a sessão aberta, registra a conclusão, bloqueia a tarefa
+                e gera o XP do responsável uma única vez.
               </div>
 
-              <div class="progress mt-2">
+              <div class="d-flex flex-column gap-2 text-secondary small">
+                <div class="d-flex justify-content-between gap-3">
+                  <span>Início da execução</span>
+                  <strong>{{ formatarDataHora(tarefaSelecionada.inicioExecucaoEm) }}</strong>
+                </div>
+
+                <div class="d-flex justify-content-between gap-3">
+                  <span>Sessão atual</span>
+                  <strong>{{ formatarDataHora(tarefaSelecionada.cronometroIniciadoEm) }}</strong>
+                </div>
+
+                <div class="d-flex justify-content-between gap-3">
+                  <span>Conclusão</span>
+                  <strong>{{ formatarDataHora(tarefaSelecionada.concluidaEm) }}</strong>
+                </div>
+
+                <div class="d-flex justify-content-between gap-3">
+                  <span>Estimativa</span>
+                  <strong>{{ tarefaSelecionada.horasEstimadas || 0 }}h</strong>
+                </div>
+              </div>
+
+              <div class="progress mt-3">
                 <div
                   class="progress-bar"
                   role="progressbar"
-                  style="width: 0%"
+                  [style.width.%]="percentualTempoGasto(tarefaSelecionada)"
                 ></div>
               </div>
             </section>
@@ -683,8 +760,16 @@
               </span>
 
               <p class="small text-secondary mt-3 mb-0">
-                O status desta tarefa é alterado somente pelo quadro Kanban.
+                O status pode ser alterado pelo Kanban ou pelo botão Concluir tarefa.
               </p>
+
+              <div
+                *ngIf="tarefaConcluida(tarefaSelecionada)"
+                class="alert alert-success small mt-3 mb-0"
+              >
+                <span class="material-icons fs-6 align-middle me-1">lock</span>
+                Tarefa concluída: movimentação e edição bloqueadas.
+              </div>
             </section>
 
             <section class="bg-white border rounded-4 p-4 mb-4 shadow-sm">
@@ -695,7 +780,9 @@
                   <span class="material-icons">person</span>
                   <div>
                     <small>Responsável</small>
-                    <strong>{{ buscarNomeResponsavel(tarefaSelecionada.idResponsavelUsuarioEmpresa) }}</strong>
+                    <strong>{{
+                      buscarNomeResponsavel(tarefaSelecionada.idResponsavelUsuarioEmpresa)
+                    }}</strong>
                   </div>
                 </div>
 
@@ -730,6 +817,14 @@
                     <strong>+{{ tarefaSelecionada.xpRecompensa || 0 }} XP</strong>
                   </div>
                 </div>
+
+                <div class="info-item">
+                  <span class="material-icons">timer</span>
+                  <div>
+                    <small>Tempo gasto</small>
+                    <strong>{{ formatarTempoGasto(tempoTotalAtualMinutos(tarefaSelecionada)) }}</strong>
+                  </div>
+                </div>
               </div>
             </section>
 
@@ -740,9 +835,10 @@
                 <button
                   type="button"
                   class="btn btn-outline-dark"
+                  [disabled]="tarefaConcluida(tarefaSelecionada)"
                   (click)="abrirEdicao(tarefaSelecionada)"
                 >
-                  Editar Tarefa
+                  {{ tarefaConcluida(tarefaSelecionada) ? 'Edição bloqueada' : 'Editar Tarefa' }}
                 </button>
 
                 <button
