@@ -12,6 +12,6 @@ import lombok.Setter;
 public class HistoricoDesempenhoDTO {
 
     private String mes;
-    private Integer tarefasConcluidas;
-    private Integer xpGanho;
+    private int tarefasConcluidas;
+    private int xpGanho;
 }

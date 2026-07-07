@@ -78,7 +78,7 @@
                 </span>
 
                 <small>
-                  {{ notificacao.dataCriacao | date: 'dd/MM HH:mm' }}
+                  {{ dataDaNotificacao(notificacao) | date: 'dd/MM/yyyy HH:mm' }}
                 </small>
               </button>
             </ng-container>
@@ -112,6 +112,11 @@
         </div>
       </div>
     </header>
+
+    <div class="toast-notificacao" *ngIf="toastNotificacao">
+      <strong>{{ toastNotificacao.titulo || 'Notificação' }}</strong>
+      <p>{{ toastNotificacao.mensagem }}</p>
+    </div>
 
     <main class="conteudo">
       <router-outlet></router-outlet>

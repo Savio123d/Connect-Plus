@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -33,7 +33,12 @@ interface TarefaResponseDTO {
   xpRecompensa: number;
   dataCriacao: string;
   prazo: string | null;
+  inicioExecucaoEm: string | null;
+  cronometroIniciadoEm: string | null;
+  cronometroAtivo: boolean;
   concluidaEm: string | null;
+  tempoGastoMinutos: number | null;
+  bloqueada: boolean;
   dataAtualizacao: string;
 }
 
@@ -68,7 +73,7 @@ interface ResponsavelOption {
   templateUrl: './tarefas.html',
   styleUrl: './tarefas.css',
 })
-export class Tarefas implements OnInit {
+export class Tarefas implements OnInit, OnDestroy {
   private readonly apiTarefas = `${environment.apiBase}/api/tarefas`;
   private readonly apiProjetos = `${environment.apiBase}/api/projetos`;
 
@@ -80,8 +85,10 @@ export class Tarefas implements OnInit {
   carregando = false;
   salvando = false;
   mensagemErro = '';
+  mensagemAviso = '';
+  agora = Date.now();
 
-
+  private intervaloCronometro?: ReturnType<typeof setInterval>;
 
   tarefas: TarefaResponseDTO[] = [];
   tarefaSelecionada: TarefaResponseDTO | null = null;
@@ -103,7 +110,9 @@ export class Tarefas implements OnInit {
   filtroPrioridade: PrioridadeTarefa | '' = '';
   filtroStatus: StatusTarefa | '' = '';
   filtroConclusao: FiltroConclusao = 'todas';
-  mostrarFiltros = true;
+  mostrarFiltros = false;
+  filtrosCarregados = false;
+  carregandoFiltros = false;
 
   formTarefa: TarefaForm = this.novoFormulario();
 
@@ -218,109 +227,166 @@ export class Tarefas implements OnInit {
     const empresaId = this.authSessionService.obterIdEmpresa();
 
     if (!empresaId) {
-      this.mensagemErro = 'Não foi possível identificar a empresa do usuário logado. Faça login novamente.';
+      this.mensagemErro =
+        'Não foi possível identificar a empresa do usuário logado. Faça login novamente.';
       return;
     }
 
     this.empresaPadraoId = empresaId;
     this.projetoPadrao.idEmpresa = empresaId;
 
+    this.iniciarRelogioCronometro();
     this.carregarDadosIniciais();
   }
 
+  ngOnDestroy(): void {
+    if (this.intervaloCronometro) {
+      clearInterval(this.intervaloCronometro);
+    }
+  }
+
+  private iniciarRelogioCronometro(): void {
+    this.intervaloCronometro = setInterval(() => {
+      this.agora = Date.now();
+    }, 1000);
+  }
+
   carregarDadosIniciais(): void {
+    this.mostrarFiltros = false;
     this.carregarTarefas();
-    this.carregarProjetos();
-    this.carregarResponsaveis();
+  }
+
+  carregarDadosDosFiltros(): void {
+    if (this.filtrosCarregados || this.carregandoFiltros) {
+      return;
+    }
+
+    this.carregandoFiltros = true;
+
+    let carregamentosPendentes = 2;
+
+    const finalizarCarregamento = () => {
+      carregamentosPendentes--;
+
+      if (carregamentosPendentes <= 0) {
+        this.filtrosCarregados = true;
+        this.carregandoFiltros = false;
+      }
+    };
+
+    this.carregarProjetos(finalizarCarregamento);
+    this.carregarResponsaveis(finalizarCarregamento);
+  }
+
+  private garantirDadosComplementaresCarregados(): void {
+    if (!this.filtrosCarregados && !this.carregandoFiltros) {
+      this.carregarDadosDosFiltros();
+    }
   }
 
   carregarTarefas(): void {
     this.carregando = true;
     this.mensagemErro = '';
 
-    this.http.get<TarefaResponseDTO[]>(`${this.apiTarefas}/empresa/${this.empresaPadraoId}`).subscribe({
-      next: (tarefas) => {
-        this.tarefas = tarefas;
-        this.carregando = false;
-      },
-      error: (erro) => {
-        console.error('Erro ao carregar tarefas:', erro);
-        this.mensagemErro = 'Não foi possível carregar as tarefas.';
-        this.carregando = false;
-      },
-    });
+    this.http
+      .get<TarefaResponseDTO[]>(`${this.apiTarefas}/empresa/${this.empresaPadraoId}`)
+      .subscribe({
+        next: (tarefas) => {
+          this.tarefas = tarefas;
+          this.carregando = false;
+        },
+        error: (erro) => {
+          console.error('Erro ao carregar tarefas:', erro);
+          this.mensagemErro = 'Não foi possível carregar as tarefas.';
+          this.carregando = false;
+        },
+      });
   }
 
-  carregarProjetos(): void {
+  carregarProjetos(aoFinalizar?: () => void): void {
     this.http
       .get<any[]>(`${this.apiProjetos}?empresaId=${this.empresaPadraoId}`)
       .pipe(catchError(() => of([])))
-      .subscribe((projetos) => {
-        const projetosMapeados: ProjetoOption[] = projetos
-          .map((projeto) => {
-            const idProjeto = this.extrairId(projeto.idProjeto ?? projeto.id, ['idProjeto', 'id']);
+      .subscribe({
+        next: (projetos) => {
+          const projetosMapeados: ProjetoOption[] = projetos
+            .map((projeto) => {
+              const idProjeto = this.extrairId(projeto.idProjeto ?? projeto.id, [
+                'idProjeto',
+                'id',
+              ]);
 
-            const idEmpresa = this.extrairId(
-              projeto.idEmpresa ?? projeto.empresa ?? projeto.empresaId,
-              ['idEmpresa', 'id'],
+              const idEmpresa = this.extrairId(
+                projeto.idEmpresa ?? projeto.empresa ?? projeto.empresaId,
+                ['idEmpresa', 'id'],
+              );
+
+              return {
+                id: idProjeto,
+                nome: projeto.nome ?? projeto.titulo ?? `Projeto #${idProjeto}`,
+                idEmpresa: idEmpresa ?? this.empresaPadraoId,
+              };
+            })
+            .filter((projeto) => projeto.id !== null) as ProjetoOption[];
+
+          if (projetosMapeados.length > 0) {
+            this.projetos = projetosMapeados;
+
+            const projetoAtualExiste = this.projetos.some(
+              (projeto) => projeto.id === this.formTarefa.idProjeto,
             );
 
-            return {
-              id: idProjeto,
-              nome: projeto.nome ?? projeto.titulo ?? `Projeto #${idProjeto}`,
-              idEmpresa: idEmpresa ?? this.empresaPadraoId,
-            };
-          })
-          .filter((projeto) => projeto.id !== null) as ProjetoOption[];
+            if (!projetoAtualExiste) {
+              this.formTarefa.idProjeto = this.projetos[0].id;
+            }
 
-        if (projetosMapeados.length > 0) {
-          this.projetos = projetosMapeados;
+            const filtroProjetoExiste =
+              this.filtroProjetoId === null ||
+              this.projetos.some((projeto) => projeto.id === this.filtroProjetoId);
 
-          const projetoAtualExiste = this.projetos.some(
-            (projeto) => projeto.id === this.formTarefa.idProjeto,
-          );
+            if (!filtroProjetoExiste) {
+              this.filtroProjetoId = null;
+            }
 
-          if (!projetoAtualExiste) {
-            this.formTarefa.idProjeto = this.projetos[0].id;
+            return;
           }
 
-          const filtroProjetoExiste =
-            this.filtroProjetoId === null ||
-            this.projetos.some((projeto) => projeto.id === this.filtroProjetoId);
-
-          if (!filtroProjetoExiste) {
-            this.filtroProjetoId = null;
-          }
-
-          return;
-        }
-
-        this.projetos = [this.projetoPadrao];
-        this.formTarefa.idProjeto = this.projetoPadrao.id;
+          this.projetos = [this.projetoPadrao];
+          this.formTarefa.idProjeto = this.projetoPadrao.id;
+        },
+        complete: () => {
+          aoFinalizar?.();
+        },
       });
   }
-  carregarResponsaveis(): void {
+
+  carregarResponsaveis(aoFinalizar?: () => void): void {
     this.http
       .get<any[]>(`${this.apiUsuarios}/empresa/${this.empresaPadraoId}`)
       .pipe(catchError(() => of([])))
-      .subscribe((responsaveis) => {
-        this.responsaveis = responsaveis
-          .map((responsavel) => {
-            const id =
-              responsavel.idUsuarioEmpresa ??
-              responsavel.idResponsavelUsuarioEmpresa ??
-              responsavel.usuarioEmpresa?.idUsuarioEmpresa ??
-              responsavel.id;
+      .subscribe({
+        next: (responsaveis) => {
+          this.responsaveis = responsaveis
+            .map((responsavel) => {
+              const id =
+                responsavel.idUsuarioEmpresa ??
+                responsavel.idResponsavelUsuarioEmpresa ??
+                responsavel.usuarioEmpresa?.idUsuarioEmpresa ??
+                responsavel.id;
 
-            const nome =
-              responsavel.nome ??
-              responsavel.nomeUsuario ??
-              responsavel.usuario?.nome ??
-              `Responsável #${id}`;
+              const nome =
+                responsavel.nome ??
+                responsavel.nomeUsuario ??
+                responsavel.usuario?.nome ??
+                `Responsável #${id}`;
 
-            return { id, nome, idProjetos: [] };
-          })
-          .filter((responsavel) => responsavel.id !== undefined && responsavel.id !== null);
+              return { id, nome, idProjetos: [] };
+            })
+            .filter((responsavel) => responsavel.id !== undefined && responsavel.id !== null);
+        },
+        complete: () => {
+          aoFinalizar?.();
+        },
       });
   }
 
@@ -384,6 +450,10 @@ export class Tarefas implements OnInit {
 
   alternarVisualizacaoFiltros(): void {
     this.mostrarFiltros = !this.mostrarFiltros;
+
+    if (this.mostrarFiltros) {
+      this.carregarDadosDosFiltros();
+    }
   }
 
   limparFiltros(): void {
@@ -444,14 +514,24 @@ export class Tarefas implements OnInit {
   }
 
   abrirCriacao(): void {
+    this.garantirDadosComplementaresCarregados();
+
     this.modoFormulario = 'criar';
     this.formTarefa = this.novoFormulario();
     this.tarefaSelecionada = null;
     this.mensagemErro = '';
+    this.mensagemAviso = '';
     this.telaAtual = 'formulario';
   }
 
   abrirEdicao(tarefa: TarefaResponseDTO): void {
+    if (this.tarefaConcluida(tarefa)) {
+      this.informarTarefaBloqueada();
+      return;
+    }
+
+    this.garantirDadosComplementaresCarregados();
+
     this.modoFormulario = 'editar';
     this.tarefaSelecionada = tarefa;
 
@@ -468,10 +548,13 @@ export class Tarefas implements OnInit {
     };
 
     this.mensagemErro = '';
+    this.mensagemAviso = '';
     this.telaAtual = 'formulario';
   }
 
   abrirDetalhes(tarefa: TarefaResponseDTO): void {
+    this.garantirDadosComplementaresCarregados();
+
     this.http.get<TarefaResponseDTO>(`${this.apiTarefas}/${tarefa.idTarefa}`).subscribe({
       next: (tarefaAtualizada) => {
         this.tarefaSelecionada = tarefaAtualizada;
@@ -488,6 +571,7 @@ export class Tarefas implements OnInit {
     this.telaAtual = 'kanban';
     this.tarefaSelecionada = null;
     this.mensagemErro = '';
+    this.mensagemAviso = '';
   }
 
   salvarTarefa(): void {
@@ -497,6 +581,7 @@ export class Tarefas implements OnInit {
 
     this.salvando = true;
     this.mensagemErro = '';
+    this.mensagemAviso = '';
 
     const payload = this.montarPayload();
 
@@ -556,16 +641,133 @@ export class Tarefas implements OnInit {
     });
   }
 
+  iniciarCronometro(tarefa: TarefaResponseDTO | null, event?: Event): void {
+    event?.stopPropagation();
+
+    if (!tarefa) {
+      return;
+    }
+
+    if (this.tarefaConcluida(tarefa)) {
+      this.informarTarefaBloqueada(true);
+      return;
+    }
+
+    this.salvando = true;
+    this.mensagemErro = '';
+    this.mensagemAviso = '';
+
+    this.http
+      .patch<TarefaResponseDTO>(`${this.apiTarefas}/${tarefa.idTarefa}/cronometro/iniciar`, {})
+      .subscribe({
+        next: (tarefaAtualizada) => {
+          this.atualizarTarefaLocal(tarefaAtualizada);
+          this.salvando = false;
+        },
+        error: (erro) => {
+          console.error('Erro ao iniciar cronômetro:', erro);
+          this.mensagemErro =
+            erro?.error?.message || erro?.message || 'Não foi possível iniciar o cronômetro.';
+          this.salvando = false;
+        },
+      });
+  }
+
+  pausarCronometro(tarefa: TarefaResponseDTO | null, event?: Event): void {
+    event?.stopPropagation();
+
+    if (!tarefa) {
+      return;
+    }
+
+    if (this.tarefaConcluida(tarefa)) {
+      return;
+    }
+
+    this.salvando = true;
+    this.mensagemErro = '';
+    this.mensagemAviso = '';
+
+    this.http
+      .patch<TarefaResponseDTO>(`${this.apiTarefas}/${tarefa.idTarefa}/cronometro/pausar`, {})
+      .subscribe({
+        next: (tarefaAtualizada) => {
+          this.atualizarTarefaLocal(tarefaAtualizada);
+          this.salvando = false;
+        },
+        error: (erro) => {
+          console.error('Erro ao pausar cronômetro:', erro);
+          this.mensagemErro =
+            erro?.error?.message || erro?.message || 'Não foi possível pausar o cronômetro.';
+          this.salvando = false;
+        },
+      });
+  }
+
+  concluirTarefa(tarefa: TarefaResponseDTO | null, event?: Event): void {
+    event?.stopPropagation();
+
+    if (!tarefa) {
+      return;
+    }
+
+    if (this.tarefaConcluida(tarefa)) {
+      this.informarTarefaBloqueada(true);
+      return;
+    }
+
+    const confirmar = confirm(
+      'Deseja concluir esta tarefa? O tempo em andamento será somado, a tarefa ficará bloqueada e o XP será gerado uma única vez.',
+    );
+
+    if (!confirmar) {
+      return;
+    }
+
+    this.salvando = true;
+    this.mensagemErro = '';
+    this.mensagemAviso = '';
+
+    this.http
+      .patch<TarefaResponseDTO>(`${this.apiTarefas}/${tarefa.idTarefa}/status`, {
+        status: 'concluida',
+      })
+      .subscribe({
+        next: (tarefaAtualizada) => {
+          this.atualizarTarefaLocal(tarefaAtualizada);
+          this.salvando = false;
+        },
+        error: (erro) => {
+          console.error('Erro ao concluir tarefa:', erro);
+          this.mensagemErro =
+            erro?.error?.message || erro?.message || 'Não foi possível concluir a tarefa.';
+          this.salvando = false;
+        },
+      });
+  }
+
   moverTarefa(event: CdkDragDrop<TarefaResponseDTO[]>, novoStatus: StatusTarefa): void {
     const tarefa = event.item.data as TarefaResponseDTO;
 
-    if (!tarefa || tarefa.status === novoStatus) {
+    if (!tarefa) {
+      return;
+    }
+
+    if (this.tarefaConcluida(tarefa)) {
+      this.informarTarefaBloqueada(true);
+      return;
+    }
+
+    if (tarefa.status === novoStatus) {
       return;
     }
 
     const statusAnterior = tarefa.status;
+    const tarefasAntesDaAlteracao = [...this.tarefas];
 
     tarefa.status = novoStatus;
+    this.mensagemErro = '';
+    this.mensagemAviso = '';
 
     this.http
       .patch<TarefaResponseDTO>(`${this.apiTarefas}/${tarefa.idTarefa}/status`, {
@@ -580,9 +782,54 @@ export class Tarefas implements OnInit {
         error: (erro) => {
           console.error('Erro ao atualizar status:', erro);
           tarefa.status = statusAnterior;
-          this.mensagemErro = 'Não foi possível atualizar o status da tarefa.';
+          this.tarefas = tarefasAntesDaAlteracao;
+          this.mensagemErro =
+            erro?.error?.message ||
+            erro?.message ||
+            'Não foi possível atualizar o status da tarefa.';
         },
       });
+  }
+
+  aoIniciarArraste(tarefa: TarefaResponseDTO): void {
+    if (this.tarefaConcluida(tarefa)) {
+      this.informarTarefaBloqueada();
+    }
+  }
+
+  cronometroAtivo(tarefa: TarefaResponseDTO | null): boolean {
+    return !!tarefa && !this.tarefaConcluida(tarefa) && !!tarefa.cronometroIniciadoEm;
+  }
+
+  textoBotaoIniciar(tarefa: TarefaResponseDTO | null): string {
+    return tarefa?.inicioExecucaoEm ? 'Retomar timer' : 'Iniciar timer';
+  }
+
+  tempoTotalAtualMinutos(tarefa: TarefaResponseDTO | null): number {
+    if (!tarefa) {
+      return 0;
+    }
+
+    const tempoRegistrado = Math.max(0, Number(tarefa.tempoGastoMinutos ?? 0));
+
+    if (!this.cronometroAtivo(tarefa) || !tarefa.cronometroIniciadoEm) {
+      return tempoRegistrado;
+    }
+
+    const inicio = new Date(tarefa.cronometroIniciadoEm).getTime();
+
+    if (Number.isNaN(inicio) || this.agora <= inicio) {
+      return tempoRegistrado;
+    }
+
+    const segundosSessaoAtual = Math.floor((this.agora - inicio) / 1000);
+    const minutosSessaoAtual = Math.max(1, Math.ceil(segundosSessaoAtual / 60));
+
+    return tempoRegistrado + minutosSessaoAtual;
+  }
+
+  tarefaConcluida(tarefa: TarefaResponseDTO | null): boolean {
+    return !!tarefa && (tarefa.status === 'concluida' || tarefa.bloqueada === true);
   }
 
   deletarTarefa(tarefa: TarefaResponseDTO | null = this.tarefaSelecionada): void {
@@ -600,6 +847,7 @@ export class Tarefas implements OnInit {
     this.telaAtual = 'kanban';
     this.tarefaSelecionada = null;
     this.mensagemErro = '';
+    this.mensagemAviso = '';
 
     const tarefasAntesDeExcluir = [...this.tarefas];
 
@@ -724,6 +972,46 @@ export class Tarefas implements OnInit {
     return `${dia}/${mes}/${ano}`;
   }
 
+  formatarDataHora(data: string | null): string {
+    if (!data) {
+      return 'Não registrado';
+    }
+
+    const [somenteData, horarioCompleto = ''] = data.split('T');
+    const [ano, mes, dia] = somenteData.split('-');
+
+    if (!ano || !mes || !dia) {
+      return data;
+    }
+
+    const [hora = '00', minuto = '00'] = horarioCompleto.split(':');
+    return `${dia}/${mes}/${ano} às ${hora}:${minuto}`;
+  }
+
+  formatarTempoGasto(minutos: number | null | undefined): string {
+    const totalMinutos = Math.max(0, Math.floor(Number(minutos ?? 0)));
+    const horas = Math.floor(totalMinutos / 60);
+    const minutosRestantes = totalMinutos % 60;
+
+    if (horas === 0) {
+      return `${minutosRestantes}min`;
+    }
+
+    return `${horas}h ${minutosRestantes.toString().padStart(2, '0')}min`;
+  }
+
+  percentualTempoGasto(tarefa: TarefaResponseDTO): number {
+    const horasEstimadas = Number(tarefa.horasEstimadas ?? 0);
+    const minutosEstimados = horasEstimadas * 60;
+
+    if (minutosEstimados <= 0) {
+      return 0;
+    }
+
+    const percentual = (this.tempoTotalAtualMinutos(tarefa) / minutosEstimados) * 100;
+    return Math.min(100, Math.max(0, Math.round(percentual)));
+  }
+
   formatarPrazoDigitado(event: Event): void {
     const input = event.target as HTMLInputElement;
     const numeros = input.value.replace(/\D/g, '').slice(0, 8);
@@ -748,6 +1036,28 @@ export class Tarefas implements OnInit {
       media: 'badge-media',
       alta: 'badge-alta',
     }[prioridade];
+  }
+
+  private atualizarTarefaLocal(tarefaAtualizada: TarefaResponseDTO): void {
+    this.tarefas = this.tarefas.map((tarefa) =>
+      tarefa.idTarefa === tarefaAtualizada.idTarefa ? tarefaAtualizada : tarefa,
+    );
+
+    if (this.tarefaSelecionada?.idTarefa === tarefaAtualizada.idTarefa) {
+      this.tarefaSelecionada = tarefaAtualizada;
+    }
+
+    this.filtroProjetoId = tarefaAtualizada.idProjeto ?? this.filtroProjetoId;
+  }
+
+  private informarTarefaBloqueada(exibirAlerta = false): void {
+    const mensagem =
+      'Tarefas concluídas ficam bloqueadas e não podem ser reabertas ou movidas para outro status.';
+    this.mensagemAviso = mensagem;
+
+    if (exibirAlerta) {
+      window.alert(mensagem);
+    }
   }
 
   private novoFormulario(): TarefaForm {

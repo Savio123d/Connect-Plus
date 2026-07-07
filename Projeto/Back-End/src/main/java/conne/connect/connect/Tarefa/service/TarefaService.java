@@ -6,11 +6,18 @@ import conne.connect.connect.Projeto.enums.MarcoStatusProjetoTela;
 import conne.connect.connect.Projeto.model.ProjetoTelaModel;
 import conne.connect.connect.Projeto.repository.ProjetoTelaRepository;
 import conne.connect.connect.Tarefa.dto.TarefaRequestDTO;
+import conne.connect.connect.Tarefa.enums.DificuldadeTarefa;
 import conne.connect.connect.Tarefa.enums.StatusTarefa;
 import conne.connect.connect.Tarefa.model.TarefaModel;
 import conne.connect.connect.Tarefa.repository.TarefaRepository;
 import conne.connect.connect.Usuario.model.UsuarioEmpresaModel;
 import conne.connect.connect.Usuario.repository.UsuarioEmpresaRepository;
+import conne.connect.connect.Xp.enums.TipoTransacaoXp;
+import conne.connect.connect.Xp.model.SaldoXpModel;
+import conne.connect.connect.Xp.model.TransacaoXpModel;
+import conne.connect.connect.Xp.repository.SaldoXpRepository;
+import conne.connect.connect.Xp.repository.TransacaoXpRepository;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +44,12 @@ public class TarefaService {
 
     @Autowired
     private UsuarioEmpresaRepository usuarioEmpresaRepository;
+
+    @Autowired
+    private SaldoXpRepository saldoXpRepository;
+
+    @Autowired
+    private TransacaoXpRepository transacaoXpRepository;
 
     @Transactional(readOnly = true)
     public List<TarefaModel> findAll() {
@@ -65,7 +78,17 @@ public class TarefaService {
         TarefaModel tarefa = new TarefaModel();
         preencherTarefaComDto(tarefa, dto);
         tarefa.setStatus(dto.getStatus() != null ? dto.getStatus() : StatusTarefa.pendente);
+
+        if (tarefa.getStatus() == StatusTarefa.concluida) {
+            registrarDadosConclusao(tarefa);
+        }
+
         TarefaModel tarefaSalva = tarefaRepository.save(tarefa);
+
+        if (tarefaSalva.getStatus() == StatusTarefa.concluida) {
+            concederXpConclusao(tarefaSalva);
+        }
+
         recalcularProgressoProjeto(tarefaSalva.getIdProjeto());
         return tarefaSalva;
     }
@@ -77,6 +100,14 @@ public class TarefaService {
     })
     public TarefaModel atualizarTarefa(Long idTarefa, TarefaRequestDTO dto) {
         TarefaModel tarefa = buscarPorId(idTarefa);
+
+        if (tarefa.getStatus() == StatusTarefa.concluida) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Tarefa concluida nao pode ser alterada"
+            );
+        }
+
         preencherTarefaComDto(tarefa, dto);
         TarefaModel tarefaSalva = tarefaRepository.save(tarefa);
         recalcularProgressoProjeto(tarefaSalva.getIdProjeto());
@@ -89,18 +120,97 @@ public class TarefaService {
             @CacheEvict(value = "projetosPorEmpresa", allEntries = true)
     })
     public TarefaModel atualizarStatus(Long idTarefa, StatusTarefa novoStatus) {
+        if (novoStatus == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status da tarefa e obrigatorio");
+        }
+
         TarefaModel tarefa = buscarPorId(idTarefa);
+        StatusTarefa statusAnterior = tarefa.getStatus();
+
+        if (statusAnterior == StatusTarefa.concluida) {
+            if (novoStatus == StatusTarefa.concluida) {
+                return tarefa;
+            }
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Tarefa concluida nao pode ser reaberta ou movida para outro status"
+            );
+        }
+
+        if (statusAnterior == novoStatus) {
+            return tarefa;
+        }
+
+        LocalDateTime agora = LocalDateTime.now();
+
+        if (!statusMantemCronometroRodando(novoStatus)) {
+            pausarCronometroAberto(tarefa, agora);
+        }
+
         tarefa.setStatus(novoStatus);
 
         if (novoStatus == StatusTarefa.concluida) {
-            tarefa.setConcluidaEm(LocalDateTime.now());
-        } else {
-            tarefa.setConcluidaEm(null);
+            registrarDadosConclusao(tarefa, agora);
+            concederXpConclusao(tarefa);
         }
 
         TarefaModel tarefaSalva = tarefaRepository.save(tarefa);
         recalcularProgressoProjeto(tarefaSalva.getIdProjeto());
         return tarefaSalva;
+    }
+
+    @Caching(evict = {
+            @CacheEvict(value = "tarefaPorId", key = "#idTarefa"),
+            @CacheEvict(value = "tarefasPorEmpresa", allEntries = true),
+            @CacheEvict(value = "projetosPorEmpresa", allEntries = true)
+    })
+    public TarefaModel iniciarCronometro(Long idTarefa) {
+        TarefaModel tarefa = buscarPorId(idTarefa);
+
+        if (tarefa.getStatus() == StatusTarefa.concluida) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Tarefa concluida nao pode ter o cronometro iniciado"
+            );
+        }
+
+        LocalDateTime agora = LocalDateTime.now();
+
+        if (tarefa.getInicioExecucaoEm() == null) {
+            tarefa.setInicioExecucaoEm(agora);
+        }
+
+        if (tarefa.getTempoGastoMinutos() == null) {
+            tarefa.setTempoGastoMinutos(0L);
+        }
+
+        if (tarefa.getCronometroIniciadoEm() == null) {
+            tarefa.setCronometroIniciadoEm(agora);
+        }
+
+        if (!statusMantemCronometroRodando(tarefa.getStatus())) {
+            tarefa.setStatus(StatusTarefa.em_andamento);
+        }
+
+        TarefaModel tarefaSalva = tarefaRepository.save(tarefa);
+        recalcularProgressoProjeto(tarefaSalva.getIdProjeto());
+        return tarefaSalva;
+    }
+
+    @Caching(evict = {
+            @CacheEvict(value = "tarefaPorId", key = "#idTarefa"),
+            @CacheEvict(value = "tarefasPorEmpresa", allEntries = true)
+    })
+    public TarefaModel pausarCronometro(Long idTarefa) {
+        TarefaModel tarefa = buscarPorId(idTarefa);
+
+        if (tarefa.getStatus() == StatusTarefa.concluida) {
+            return tarefa;
+        }
+
+        pausarCronometroAberto(tarefa, LocalDateTime.now());
+        return tarefaRepository.save(tarefa);
     }
 
     @Caching(evict = {
@@ -130,6 +240,120 @@ public class TarefaService {
         tarefa.setDificuldade(dto.getDificuldade());
         tarefa.setHorasEstimadas(dto.getHorasEstimadas() != null ? dto.getHorasEstimadas() : 0);
         tarefa.setPrazo(dto.getPrazo());
+    }
+
+    private void registrarDadosConclusao(TarefaModel tarefa) {
+        registrarDadosConclusao(tarefa, LocalDateTime.now());
+    }
+
+    private void registrarDadosConclusao(TarefaModel tarefa, LocalDateTime agora) {
+        if (tarefa.getInicioExecucaoEm() == null) {
+            tarefa.setInicioExecucaoEm(agora);
+        }
+
+        pausarCronometroAberto(tarefa, agora);
+
+        if (tarefa.getConcluidaEm() == null) {
+            tarefa.setConcluidaEm(agora);
+        }
+
+        if (tarefa.getTempoGastoMinutos() == null) {
+            tarefa.setTempoGastoMinutos(0L);
+        }
+    }
+
+    private void pausarCronometroAberto(TarefaModel tarefa, LocalDateTime agora) {
+        if (tarefa.getCronometroIniciadoEm() == null) {
+            if (tarefa.getTempoGastoMinutos() == null) {
+                tarefa.setTempoGastoMinutos(0L);
+            }
+            return;
+        }
+
+        Long tempoAtual = tarefa.getTempoGastoMinutos() != null ? tarefa.getTempoGastoMinutos() : 0L;
+        Long tempoSessao = calcularTempoSessaoMinutos(tarefa.getCronometroIniciadoEm(), agora);
+
+        tarefa.setTempoGastoMinutos(tempoAtual + tempoSessao);
+        tarefa.setCronometroIniciadoEm(null);
+    }
+
+    private Long calcularTempoSessaoMinutos(LocalDateTime inicioSessao, LocalDateTime fimSessao) {
+        if (inicioSessao == null || fimSessao == null || fimSessao.isBefore(inicioSessao)) {
+            return 0L;
+        }
+
+        long segundos = Duration.between(inicioSessao, fimSessao).getSeconds();
+
+        if (segundos <= 0) {
+            return 0L;
+        }
+
+        return Math.max(1L, (segundos + 59L) / 60L);
+    }
+
+    private void concederXpConclusao(TarefaModel tarefa) {
+        UsuarioEmpresaModel responsavel = tarefa.getIdResponsavelUsuarioEmpresa();
+
+        if (responsavel == null || responsavel.getIdUsuarioEmpresa() == null) {
+            return;
+        }
+
+        if (tarefa.getIdTarefa() != null
+                && transacaoXpRepository.existsByIdTarefa_IdTarefaAndTipoAndExcluidoIsNull(
+                tarefa.getIdTarefa(),
+                TipoTransacaoXp.ganho
+        )) {
+            return;
+        }
+
+        Integer xp = calcularXp(tarefa.getDificuldade());
+
+        if (xp <= 0) {
+            return;
+        }
+
+        SaldoXpModel saldo = saldoXpRepository
+                .findByIdUsuarioEmpresa_IdUsuarioEmpresaAndIdEmpresa_IdEmpresa(
+                        responsavel.getIdUsuarioEmpresa(),
+                        tarefa.getIdEmpresa().getIdEmpresa()
+                )
+                .orElseGet(() -> criarSaldoXp(tarefa.getIdEmpresa(), responsavel));
+
+        saldo.setXpTotal((saldo.getXpTotal() != null ? saldo.getXpTotal() : 0) + xp);
+        saldoXpRepository.save(saldo);
+
+        TransacaoXpModel transacao = new TransacaoXpModel();
+        transacao.setIdEmpresa(tarefa.getIdEmpresa());
+        transacao.setIdUsuarioEmpresa(responsavel);
+        transacao.setIdTarefa(tarefa);
+        transacao.setTipo(TipoTransacaoXp.ganho);
+        transacao.setValor(xp);
+        transacao.setObservacao("XP concedido pela conclusao da tarefa: " + tarefa.getTitulo());
+        transacaoXpRepository.save(transacao);
+    }
+
+    private SaldoXpModel criarSaldoXp(EmpresaModel empresa, UsuarioEmpresaModel responsavel) {
+        SaldoXpModel saldo = new SaldoXpModel();
+        saldo.setIdEmpresa(empresa);
+        saldo.setIdUsuarioEmpresa(responsavel);
+        saldo.setXpTotal(0);
+        return saldo;
+    }
+
+    private Integer calcularXp(DificuldadeTarefa dificuldade) {
+        if (dificuldade == null) {
+            return 0;
+        }
+
+        return switch (dificuldade) {
+            case facil -> 10;
+            case medio -> 20;
+            case dificil -> 50;
+        };
+    }
+
+    private boolean statusMantemCronometroRodando(StatusTarefa status) {
+        return status == StatusTarefa.em_andamento || status == StatusTarefa.em_revisao;
     }
 
     private EmpresaModel buscarEmpresa(Long idEmpresa) {

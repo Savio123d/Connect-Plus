@@ -84,6 +84,18 @@ public class TarefaController {
         return ResponseEntity.ok(new TarefaResponseDTO(tarefa));
     }
 
+    @PatchMapping("/{id}/cronometro/iniciar")
+    public ResponseEntity<TarefaResponseDTO> iniciarCronometro(@PathVariable("id") Long idTarefa) {
+        TarefaModel tarefa = tarefaService.iniciarCronometro(idTarefa);
+        return ResponseEntity.ok(new TarefaResponseDTO(tarefa));
+    }
+
+    @PatchMapping("/{id}/cronometro/pausar")
+    public ResponseEntity<TarefaResponseDTO> pausarCronometro(@PathVariable("id") Long idTarefa) {
+        TarefaModel tarefa = tarefaService.pausarCronometro(idTarefa);
+        return ResponseEntity.ok(new TarefaResponseDTO(tarefa));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable("id") Long idTarefa) {
         tarefaService.excluirTarefa(idTarefa);
