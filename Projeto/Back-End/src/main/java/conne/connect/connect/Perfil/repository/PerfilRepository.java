@@ -132,9 +132,9 @@ public class PerfilRepository {
             return jdbcTemplate.query(sql, (rs, rowNum) ->
                     new HistoricoDesempenhoDTO(
                             rs.getString("mes"),
-                            rs.getLong("tarefas_concluidas"),
-                            rs.getLong("xp_ganho")
-                    ), idUsuarioEmpresa
+                            Math.toIntExact(rs.getLong("tarefas_concluidas")),
+                            Math.toIntExact(rs.getLong("xp_ganho"))
+                    )
             );
         } catch (Exception erro) {
             return List.of();
