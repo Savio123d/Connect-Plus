@@ -3,8 +3,6 @@ package conne.connect.connect.Notificacao.service;
 import conne.connect.connect.Notificacao.dto.NotificacaoResponseDTO;
 import conne.connect.connect.Notificacao.model.NotificacaoModel;
 import conne.connect.connect.Notificacao.repository.NotificacaoRepository;
-import conne.connect.connect.NotificacoesSistem.dto.NotificacaoPushDTO;
-import conne.connect.connect.NotificacoesSistem.service.NotificacaoRealtimeService;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -23,9 +21,6 @@ public class NotificacaoService {
     @Autowired
     private NotificacaoRepository notificacaoRepository;
 
-    @Autowired
-    private NotificacaoRealtimeService notificacaoRealtimeService;
-
     @Transactional(readOnly = true)
     public List<NotificacaoModel> findAll() {
         return notificacaoRepository.findAll();
@@ -36,14 +31,7 @@ public class NotificacaoService {
             @CacheEvict(value = "notificacoesUltimas", allEntries = true)
     })
     public NotificacaoModel criarNotificacao(NotificacaoModel notificacaoModel) {
-        NotificacaoModel notificacaoSalva = notificacaoRepository.save(notificacaoModel);
-
-        notificacaoRealtimeService.enviarParaUsuario(
-                notificacaoSalva.getIdUsuarioEmpresa().getIdUsuarioEmpresa(),
-                paraPushDTO(notificacaoSalva, "NOVA_NOTIFICACAO")
-        );
-
-        return notificacaoSalva;
+        return notificacaoRepository.save(notificacaoModel);
     }
 
     @Transactional(readOnly = true)
@@ -137,25 +125,6 @@ public class NotificacaoService {
 
         NotificacaoModel notificacaoSalva = notificacaoRepository.save(notificacao);
 
-        notificacaoRealtimeService.enviarParaUsuario(
-                notificacaoSalva.getIdUsuarioEmpresa().getIdUsuarioEmpresa(),
-                paraPushDTO(notificacaoSalva, "NOTIFICACAO_LIDA")
-        );
-
         return NotificacaoResponseDTO.fromModel(notificacaoSalva);
-    }
-
-    private NotificacaoPushDTO paraPushDTO(NotificacaoModel notificacao, String evento) {
-        return new NotificacaoPushDTO(
-                evento,
-                notificacao.getIdNotificacao(),
-                notificacao.getIdUsuarioEmpresa().getIdUsuarioEmpresa(),
-                notificacao.getIdEmpresa().getIdEmpresa(),
-                notificacao.getTipo().name(),
-                notificacao.getTitulo(),
-                notificacao.getMensagem(),
-                notificacao.getLida(),
-                notificacao.getDataCriacao()
-        );
     }
 }

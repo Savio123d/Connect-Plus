@@ -40,17 +40,7 @@ public class TarefaResponseDTO {
 
     private LocalDateTime prazo;
 
-    private LocalDateTime inicioExecucaoEm;
-
-    private LocalDateTime cronometroIniciadoEm;
-
-    private Boolean cronometroAtivo;
-
     private LocalDateTime concluidaEm;
-
-    private Long tempoGastoMinutos;
-
-    private Boolean bloqueada;
 
     private LocalDateTime dataAtualizacao;
 
@@ -78,13 +68,7 @@ public class TarefaResponseDTO {
         this.xpRecompensa = calcularXp(tarefa.getDificuldade());
         this.dataCriacao = tarefa.getDataCriacao();
         this.prazo = tarefa.getPrazo();
-        this.inicioExecucaoEm = tarefa.getInicioExecucaoEm();
-        this.cronometroIniciadoEm = tarefa.getCronometroIniciadoEm();
-        this.cronometroAtivo = tarefa.getCronometroIniciadoEm() != null
-                && tarefa.getStatus() != StatusTarefa.concluida;
         this.concluidaEm = tarefa.getConcluidaEm();
-        this.tempoGastoMinutos = tarefa.getTempoGastoMinutos();
-        this.bloqueada = tarefa.getStatus() == StatusTarefa.concluida;
         this.dataAtualizacao = tarefa.getDataAtualizacao();
     }
 

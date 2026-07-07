@@ -20,8 +20,6 @@ import {
   TipoConversa,
   UsuarioChat,
 } from './chat.model';
-import {SinalizacaoService} from './transmissao/sinalizacao.service';
-import {TransmissaoService} from './transmissao/transmissao.service';
 
 @Component({
   selector: 'app-chat',
@@ -67,10 +65,8 @@ export class Chat implements OnInit, OnDestroy, AfterViewChecked {
 
   constructor(
     private chatService: ChatService,
-    private transmissaoService: TransmissaoService,
     private ngZone: NgZone,
     private cdr: ChangeDetectorRef,
-    private sinalizacaoService: SinalizacaoService,
   ) {}
 
   ngOnInit(): void {
@@ -82,7 +78,6 @@ export class Chat implements OnInit, OnDestroy, AfterViewChecked {
         'Não foi possível identificar o usuário logado. Verifique se o usuarioEmpresaId está salvo no localStorage.';
       return;
     }
-    this.sinalizacaoService.conectar(this.usuarioEmpresaId);
 
     this.carregarConversas();
     this.carregarUsuariosEmpresa();
@@ -93,15 +88,14 @@ export class Chat implements OnInit, OnDestroy, AfterViewChecked {
       this.rolarParaFinal();
       this.precisaRolarFinal = false;
     }
-    this.transmissaoService.videoLocal = this.videoLocal;
   }
 
   ngOnDestroy(): void {
     if (this.socket) {
       this.socket.close();
     }
+
     this.liberarPreviewImagem();
-    this.sinalizacaoService.desconectar();
   }
 
   get conversasFiltradas(): ConversaResumo[] {
@@ -409,34 +403,32 @@ export class Chat implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   private enviarMensagemComAnexo(idConversa: number, texto: string, anexo?: MensagemAnexo): void {
-    this.chatService
-      .enviarMensagem(this.usuarioEmpresaId, idConversa, texto, anexo, anexo ? 'imagem' : 'texto')
-      .subscribe({
-        next: (mensagem) => {
-          this.ngZone.run(() => {
-            this.novaMensagem = '';
-            this.limparImagemSelecionada();
-            this.enviandoMensagem = false;
+    this.chatService.enviarMensagem(this.usuarioEmpresaId, idConversa, texto, anexo, anexo ? 'imagem' : 'texto').subscribe({
+      next: (mensagem) => {
+        this.ngZone.run(() => {
+          this.novaMensagem = '';
+          this.limparImagemSelecionada();
+          this.enviandoMensagem = false;
 
-            if (this.conversaSelecionada?.id === idConversa) {
-              this.adicionarMensagemSemDuplicar(mensagem);
-            }
+          if (this.conversaSelecionada?.id === idConversa) {
+            this.adicionarMensagemSemDuplicar(mensagem);
+          }
 
-            this.atualizarUltimaMensagemDaConversa(idConversa, mensagem);
-            this.carregarConversas(true);
-            this.precisaRolarFinal = true;
-            this.atualizarTela();
-          });
-        },
-        error: (erro) => {
-          this.ngZone.run(() => {
-            console.error('Erro ao enviar mensagem:', erro);
-            this.mensagemErro = 'Não foi possível enviar a mensagem.';
-            this.enviandoMensagem = false;
-            this.atualizarTela();
-          });
-        },
-      });
+          this.atualizarUltimaMensagemDaConversa(idConversa, mensagem);
+          this.carregarConversas(true);
+          this.precisaRolarFinal = true;
+          this.atualizarTela();
+        });
+      },
+      error: (erro) => {
+        this.ngZone.run(() => {
+          console.error('Erro ao enviar mensagem:', erro);
+          this.mensagemErro = 'Não foi possível enviar a mensagem.';
+          this.enviandoMensagem = false;
+          this.atualizarTela();
+        });
+      },
+    });
   }
 
   selecionarImagem(event: Event): void {
@@ -696,44 +688,5 @@ export class Chat implements OnInit, OnDestroy, AfterViewChecked {
       localStorage.getItem('usuario_empresa_id');
 
     return Number(valor);
-  }
-
-  @ViewChild('videoLocal')
-  videoLocal?: ElementRef<HTMLVideoElement>;
-
-  get compartilhandoTela(): boolean {
-    return this.transmissaoService.compartilhandoTela;
-  }
-
-  get assistindo(): boolean {
-    return this.transmissaoService.assistindo;
-  }
-
-  get taxaFps(): number {
-    return this.transmissaoService.taxaFps;
-  }
-
-  set taxaFps(valor: number) {
-    this.transmissaoService.taxaFps = valor;
-  }
-
-  async iniciarCompartilhamento(): Promise<void> {
-    const outro = this.conversaSelecionada?.participantes.find(
-      (participante) => participante.idUsuarioEmpresa !== this.usuarioEmpresaId,
-    );
-
-    if (!outro) {
-      this.mensagemErro = 'Não foi possível identificar o destinatário.';
-      return;
-    }
-
-    this.transmissaoService.videoLocal = this.videoLocal;
-    await this.transmissaoService.iniciarCompartilhamento(String(outro.idUsuarioEmpresa));
-    this.atualizarTela();
-  }
-
-  pararCompartilhamento(): void {
-    this.transmissaoService.pararCompartilhamento();
-    this.atualizarTela();
   }
 }

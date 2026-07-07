@@ -75,20 +75,17 @@ public class FeedbackModel {
     @Column(name = "avaliacao_360", nullable = false)
     private Boolean avaliacao360;
 
-    @Column(name = "assiduidade")
-    private Integer assiduidade;
+    @Column(name = "comprometimento")
+    private Integer comprometimento;
 
     @Column(name = "nivel_entregas")
     private Integer nivelEntregas;
 
-    @Column(name = "comunicacao")
-    private Integer comunicacao;
-
     @Column(name = "colaboracao")
     private Integer colaboracao;
 
-    @Column(name = "comprometimento")
-    private Integer comprometimento;
+    @Column(name = "comunicacao")
+    private Integer comunicacao;
 
     @Column(name = "criado_em", nullable = false)
     private LocalDateTime dataCriacao;
@@ -113,7 +110,7 @@ public class FeedbackModel {
             avaliacao360 = false;
         }
 
-        if (!Boolean.TRUE.equals(avaliacao360) && classificacao == null) {
+        if (classificacao == null) {
             classificacao = FeedbackClassificacao.MEDIANO;
         }
 

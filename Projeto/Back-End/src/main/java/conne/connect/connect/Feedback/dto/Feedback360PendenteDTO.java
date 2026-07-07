@@ -10,12 +10,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Feedback360PendenteDTO {
 
-    private Long avaliacaoId;
-    private Long rodadaId;
     private Long projetoId;
     private String projetoNome;
-    private Boolean obrigatoria;
-    private Integer ordem;
     private Long destinatarioUsuarioEmpresaId;
     private String destinatarioNome;
     private String destinatarioIniciais;

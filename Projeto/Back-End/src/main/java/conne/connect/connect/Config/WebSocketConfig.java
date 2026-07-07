@@ -1,6 +1,5 @@
 package conne.connect.connect.Config;
 
-import conne.connect.connect.Trasmissão.handler.SinalizacaoWebSocketHandler;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -16,14 +15,12 @@ import java.util.stream.Collectors;
 public class WebSocketConfig implements WebSocketConfigurer {
 
     private final ChatWebSocketHandler chatWebSocketHandler;
-    private final SinalizacaoWebSocketHandler  sinalizacaoWebSocketHandler;
 
     // Mesmas origens do CORS HTTP (app.cors.allowed-origins).
     @Value("${app.cors.allowed-origins}")
     private String[] allowedOrigins;
 
-    public WebSocketConfig(ChatWebSocketHandler chatWebSocketHandler,  SinalizacaoWebSocketHandler sinalizacaoWebSocketHandler) {
-        this.sinalizacaoWebSocketHandler = sinalizacaoWebSocketHandler;
+    public WebSocketConfig(ChatWebSocketHandler chatWebSocketHandler) {
         this.chatWebSocketHandler = chatWebSocketHandler;
     }
 
@@ -31,10 +28,6 @@ public class WebSocketConfig implements WebSocketConfigurer {
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(chatWebSocketHandler, "/ws/chat")
                 .setAllowedOriginPatterns(limparOrigensPermitidas());
-
-        registry.addHandler(sinalizacaoWebSocketHandler, "/sinalizacao").setAllowedOriginPatterns(limparOrigensPermitidas());
-
-
     }
 
     private String[] limparOrigensPermitidas() {

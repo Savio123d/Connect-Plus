@@ -1,12 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, OnDestroy, Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
-
+import { HttpClient } from '@angular/common/http';
 import { AuthSessionService } from '../../core/auth-session.service';
-import { NotificacaoDTO } from '../../pages/notificacoes/notificacoes.service';
-import { NotificacoesRealtimeService } from '../../pages/notificacoes/notificacoes-realtime.service';
+import { environment } from '../../../environments/environment';
 
 interface MenuItem {
   label: string;
@@ -29,12 +27,15 @@ interface UsuarioLogado {
   avatar?: string | null;
 }
 
-interface NotificacaoSidebar extends NotificacaoDTO {
-  titulo: string;
+interface Notificacao {
+  idNotificacao: number;
+  idEmpresa: number;
+  idUsuarioEmpresa: number;
+  tipo: string;
+  titulo?: string;
   mensagem: string;
   lida: boolean;
-  dataCriacao?: string;
-  criadaEm?: string;
+  dataCriacao: string;
   dataLeitura?: string | null;
 }
 
@@ -47,23 +48,22 @@ interface NotificacaoSidebar extends NotificacaoDTO {
 })
 export class Sidebar implements OnInit, OnDestroy {
   private router = inject(Router);
+  private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
   private authSessionService = inject(AuthSessionService);
-  private notificacoesRealtimeService = inject(NotificacoesRealtimeService);
-
-  private destroy$ = new Subject<void>();
 
   usuarioLogado: UsuarioLogado | null = null;
 
   termoBusca = '';
-  notificacoes: NotificacaoSidebar[] = [];
+
+  notificacoes: Notificacao[] = [];
   quantidadeNaoLidas = 0;
 
   mostrarNotificacoes = false;
 
-  toastNotificacao: NotificacaoSidebar | null = null;
-
   private intervaloNotificacoes?: ReturnType<typeof setInterval>;
+  private readonly apiNotificacoes = `${environment.apiBase}/api/notificacoes`;
+
   menuItems: MenuItem[] = [
     { label: 'Início', icon: 'home', route: '/dashboard' },
     { label: 'Quadro de Tarefas', icon: 'check_box', route: '/tarefas' },
@@ -80,7 +80,8 @@ export class Sidebar implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.carregarUsuarioLogado();
-    this.iniciarNotificacoesTempoReal();
+    this.carregarNotificacoes();
+    this.iniciarAtualizacaoNotificacoes();
   }
 
   get iniciaisUsuario(): string {
@@ -102,6 +103,18 @@ export class Sidebar implements OnInit, OnDestroy {
     return `${primeiraLetra}${ultimaLetra}`.toUpperCase();
   }
 
+  ngOnDestroy(): void {
+    if (this.intervaloNotificacoes) {
+      clearInterval(this.intervaloNotificacoes);
+    }
+  }
+
+  iniciarAtualizacaoNotificacoes(): void {
+    this.intervaloNotificacoes = setInterval(() => {
+      this.carregarNotificacoes();
+    }, 10000);
+  }
+
   carregarUsuarioLogado(): void {
     const usuarioSalvo = localStorage.getItem('usuarioLogado');
 
@@ -121,51 +134,72 @@ export class Sidebar implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  iniciarNotificacoesTempoReal(): void {
-    this.notificacoesRealtimeService.iniciar();
+  carregarNotificacoes(): void {
+    const idUsuarioEmpresa = this.usuarioLogado?.idUsuarioEmpresa;
 
-    this.notificacoesRealtimeService.naoLidas$.pipe(takeUntil(this.destroy$)).subscribe((total: number) => {
-      this.quantidadeNaoLidas = total;
+    if (!idUsuarioEmpresa) {
+      this.notificacoes = [];
+      this.quantidadeNaoLidas = 0;
       this.cdr.detectChanges();
-    });
+      return;
+    }
 
-    this.notificacoesRealtimeService.ultimas$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((notificacoes: NotificacaoDTO[]) => {
-        this.notificacoes = notificacoes.map((notificacao: NotificacaoDTO) =>
-          this.normalizarNotificacao(notificacao),
-        );
-
-        this.cdr.detectChanges();
+    this.http
+      .get<Notificacao[]>(`${this.apiNotificacoes}/usuario-empresa/${idUsuarioEmpresa}/ultimas`)
+      .subscribe({
+        next: (notificacoes) => {
+          this.notificacoes = notificacoes;
+          this.cdr.detectChanges();
+        },
+        error: (erro) => {
+          console.error('Erro ao carregar notificações:', erro);
+        },
       });
 
-    this.notificacoesRealtimeService.toast$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((notificacao: NotificacaoDTO) => {
-        this.toastNotificacao = this.normalizarNotificacao(notificacao);
-        this.cdr.detectChanges();
-
-        setTimeout(() => {
-          this.toastNotificacao = null;
+    this.http
+      .get<{
+        quantidade: number;
+      }>(`${this.apiNotificacoes}/usuario-empresa/${idUsuarioEmpresa}/nao-lidas/quantidade`)
+      .subscribe({
+        next: (resposta) => {
+          this.quantidadeNaoLidas = resposta.quantidade || 0;
           this.cdr.detectChanges();
-        }, 4000);
+        },
+        error: (erro) => {
+          console.error('Erro ao carregar quantidade de notificações:', erro);
+        },
       });
   }
 
   alternarNotificacoes(): void {
+    this.carregarNotificacoes();
     this.mostrarNotificacoes = !this.mostrarNotificacoes;
-
-    if (this.mostrarNotificacoes) {
-      this.notificacoesRealtimeService.sincronizarComRest();
-    }
   }
 
-  marcarComoLida(notificacao: NotificacaoSidebar): void {
+  marcarComoLida(notificacao: Notificacao): void {
     if (notificacao.lida) {
       return;
     }
 
-    this.notificacoesRealtimeService.marcarComoLida(notificacao);
+    this.http
+      .patch<Notificacao>(
+        `${this.apiNotificacoes}/${notificacao.idNotificacao}/marcar-como-lida`,
+        {},
+      )
+      .subscribe({
+        next: () => {
+          notificacao.lida = true;
+
+          if (this.quantidadeNaoLidas > 0) {
+            this.quantidadeNaoLidas--;
+          }
+
+          this.cdr.detectChanges();
+        },
+        error: (erro) => {
+          console.error('Erro ao marcar notificação como lida:', erro);
+        },
+      });
   }
 
   pesquisarGlobal(): void {
@@ -194,33 +228,6 @@ export class Sidebar implements OnInit, OnDestroy {
     localStorage.removeItem('idEmpresa');
     localStorage.removeItem('usuarioEmpresaId');
 
-    this.notificacoesRealtimeService.parar();
-
     this.router.navigate(['/login']);
-  }
-
-  dataDaNotificacao(notificacao: NotificacaoSidebar): string {
-    return notificacao.criadaEm || notificacao.dataCriacao || '';
-  }
-
-  private normalizarNotificacao(notificacao: NotificacaoDTO): NotificacaoSidebar {
-    const dataCriacao =
-      notificacao.dataCriacao ||
-      notificacao.criadaEm ||
-      new Date().toISOString();
-
-    return {
-      ...notificacao,
-      titulo: notificacao.titulo || 'Notificacao',
-      mensagem: notificacao.mensagem || '',
-      lida: Boolean(notificacao.lida),
-      criadaEm: dataCriacao,
-      dataCriacao,
-    };
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 }
