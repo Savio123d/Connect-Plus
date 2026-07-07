@@ -3,7 +3,7 @@ import { FormGroup, FormControl, ReactiveFormsModule, Validators } from '@angula
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
-import { CadastroEmpresaCompleto, EmpresaService } from './service_empresa';
+import { CadastroEmpresaCompleto, EmpresaService, TipoPlano } from './service_empresa';
 import { environment } from '../../../environments/environment';
 
 export enum Status {
@@ -37,6 +37,10 @@ export class CadastroEmpresa implements OnInit {
     cidade: new FormControl(''),
     status: new FormControl(Status.Ativa),
     uf: new FormControl(''),
+    tipoPlano: new FormControl<TipoPlano>('gratuito', {
+      nonNullable: true,
+      validators: Validators.required,
+    }),
 
     nomeAdmin: new FormControl('', Validators.required),
     emailAdmin: new FormControl('', [Validators.required, Validators.email]),
@@ -80,6 +84,7 @@ export class CadastroEmpresa implements OnInit {
       cnpj,
       cidade: this.cadastroForm.value.cidade ?? '',
       uf: this.cadastroForm.value.uf ?? '',
+      tipoPlano: this.cadastroForm.controls.tipoPlano.value,
       nomeAdmin: this.cadastroForm.value.nomeAdmin!,
       emailAdmin: this.cadastroForm.value.emailAdmin!,
       senhaAdmin: this.cadastroForm.value.senhaAdmin!,
@@ -88,11 +93,24 @@ export class CadastroEmpresa implements OnInit {
     this.enviando = true;
 
     this.empresaService.cadastrarEmpresa(dados).subscribe({
-      next: () => {
-        this.enviando = false;
-        alert('Cadastro realizado com sucesso!');
-        this.router.navigate(['/login']);
-      },
+next: (resposta) => {
+  this.enviando = false;
+  const checkoutUrl = resposta.checkoutUrl?.trim();
+
+  if (dados.tipoPlano === 'premium') {
+    if (checkoutUrl) {
+      window.location.href = checkoutUrl;
+      return;
+    }
+
+    this.mensagemErro =
+      'Empresa cadastrada, mas nao foi possivel gerar o link de pagamento. Verifique a configuracao do Mercado Pago.';
+    return;
+  }
+
+  alert(resposta.mensagem || 'Cadastro realizado com sucesso!');
+  this.router.navigate(['/login']);
+},
       error: (erro: HttpErrorResponse) => {
         this.enviando = false;
         this.mensagemErro = this.extrairMensagemErro(erro);

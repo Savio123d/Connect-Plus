@@ -131,6 +131,10 @@ body {
   color: #2563eb;
 }
 
+.section-icon-green {
+  color: #059669;
+}
+
 .section-title {
   margin: 0;
   font-size: 20px;
@@ -183,6 +187,61 @@ body {
   cursor: pointer;
 }
 
+
+.plan-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.plan-option {
+  min-height: 96px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #f7f8fc;
+  cursor: pointer;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+}
+
+.plan-option input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--primary);
+  flex: 0 0 auto;
+}
+
+.plan-option-selected {
+  border-color: var(--primary);
+  background: #ffffff;
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
+.plan-option-premium.plan-option-selected {
+  border-color: #059669;
+  box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.16);
+}
+
+.plan-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.plan-copy strong {
+  font-size: 15px;
+  line-height: 1.3;
+  color: var(--foreground);
+}
+
+.plan-copy small {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
 .info-box {
   display: flex;
   gap: 12px;
@@ -292,6 +351,10 @@ body {
   }
 
   .actions {
+    grid-template-columns: 1fr;
+  }
+
+  .plan-options {
     grid-template-columns: 1fr;
   }
 }

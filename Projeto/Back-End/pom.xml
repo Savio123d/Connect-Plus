@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.connect</groupId>
-	<artifactId>CON</artifactId>
+	<artifactId>connect-plus-backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>Connect+</name>
 	<description>Programa foca em gestão e feedbacks</description>

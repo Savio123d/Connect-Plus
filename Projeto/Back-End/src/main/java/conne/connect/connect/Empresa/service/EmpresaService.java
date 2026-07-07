@@ -1,9 +1,13 @@
 package conne.connect.connect.Empresa.service;
 
+import conne.connect.connect.Assinatura.dto.AssinaturaCadastroResultadoDTO;
+import conne.connect.connect.Assinatura.service.AssinaturaService;
 import conne.connect.connect.Empresa.dto.CadastroEmpresaDTO;
+import conne.connect.connect.Empresa.dto.CadastroEmpresaResponseDTO;
 import conne.connect.connect.Empresa.enums.StatusEmpresa;
 import conne.connect.connect.Empresa.model.EmpresaModel;
 import conne.connect.connect.Empresa.repository.EmpresaRepository;
+import conne.connect.connect.Plano.enums.TipoPlano;
 import conne.connect.connect.Usuario.dto.CadastroUsuarioEmpresaDTO;
 import conne.connect.connect.Usuario.enums.PapelEmpresa;
 import conne.connect.connect.Usuario.enums.StatusUsuario;
@@ -36,6 +40,9 @@ public class EmpresaService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private AssinaturaService assinaturaService;
+
     @Transactional(readOnly = true)
     public List<EmpresaModel> findAll() {
         return empresaRepository.findAll();
@@ -47,7 +54,7 @@ public class EmpresaService {
     }
 
     @Transactional
-    public void cadastrarEmpresa(CadastroEmpresaDTO dto) {
+    public CadastroEmpresaResponseDTO cadastrarEmpresa(CadastroEmpresaDTO dto) {
         validarCnpjDisponivel(dto.getCnpj());
         validarEmailDisponivel(dto.getEmailAdmin());
 
@@ -59,7 +66,6 @@ public class EmpresaService {
         empresa.setUf(dto.getUf());
         empresa.setStatus(StatusEmpresa.ativa);
         EmpresaModel empresaSalva = empresaRepository.save(empresa);
-
 
         UsuarioModel usuario = new UsuarioModel();
         usuario.setNome(dto.getNomeAdmin());
@@ -74,6 +80,23 @@ public class EmpresaService {
         usuarioEmpresa.setPapel(PapelEmpresa.gestor);
         usuarioEmpresa.setAtivo(true);
         usuarioEmpresaRepository.save(usuarioEmpresa);
+
+        TipoPlano tipoPlano = dto.getTipoPlano() != null ? dto.getTipoPlano() : TipoPlano.gratuito;
+        AssinaturaCadastroResultadoDTO assinatura = assinaturaService.criarAssinaturaInicial(
+                empresaSalva,
+                tipoPlano,
+                dto.getEmailAdmin());
+
+        String mensagem = assinatura.getCheckoutUrl() != null
+                ? "Empresa cadastrada. Conclua a assinatura Premium no Mercado Pago."
+                : "Empresa e administrador cadastrados com sucesso.";
+
+        return new CadastroEmpresaResponseDTO(
+                empresaSalva.getIdEmpresa(),
+                tipoPlano,
+                assinatura.getStatusAssinatura(),
+                assinatura.getCheckoutUrl(),
+                mensagem);
     }
 
     @Transactional
