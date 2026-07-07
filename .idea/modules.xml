@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Projeto/Back-End/CON.iml" filepath="$PROJECT_DIR$/Projeto/Back-End/CON.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/Connect-Plus.iml" filepath="$PROJECT_DIR$/.idea/Connect-Plus.iml" />
     </modules>
   </component>

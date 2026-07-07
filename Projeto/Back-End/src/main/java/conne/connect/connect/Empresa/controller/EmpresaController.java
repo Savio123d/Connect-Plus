@@ -1,6 +1,7 @@
 package conne.connect.connect.Empresa.controller;
 
 import conne.connect.connect.Empresa.dto.CadastroEmpresaDTO;
+import conne.connect.connect.Empresa.dto.CadastroEmpresaResponseDTO;
 import conne.connect.connect.Empresa.model.EmpresaModel;
 import conne.connect.connect.Empresa.service.EmpresaService;
 import conne.connect.connect.Usuario.dto.CadastroUsuarioEmpresaDTO;
@@ -32,9 +33,9 @@ public class EmpresaController {
     }
 
     @PostMapping
-    public ResponseEntity<String> cadastrarEmpresa(@Valid @RequestBody CadastroEmpresaDTO dto) {
-        empresaService.cadastrarEmpresa(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Empresa e administrador cadastrados com sucesso.");
+    public ResponseEntity<CadastroEmpresaResponseDTO> cadastrarEmpresa(@Valid @RequestBody CadastroEmpresaDTO dto) {
+        CadastroEmpresaResponseDTO resposta = empresaService.cadastrarEmpresa(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
     }
 
     @PostMapping("/{idEmpresa}/usuarios")

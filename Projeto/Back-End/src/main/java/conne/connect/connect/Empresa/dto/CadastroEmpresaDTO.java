@@ -1,5 +1,6 @@
 package conne.connect.connect.Empresa.dto;
 
+import conne.connect.connect.Plano.enums.TipoPlano;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -16,6 +17,7 @@ public class CadastroEmpresaDTO {
 
     private String cidade;
     private String uf;
+    private TipoPlano tipoPlano;
 
     @NotBlank
     private String nomeAdmin;
@@ -66,6 +68,14 @@ public class CadastroEmpresaDTO {
 
     public void setUf(String uf) {
         this.uf = uf;
+    }
+
+    public TipoPlano getTipoPlano() {
+        return tipoPlano;
+    }
+
+    public void setTipoPlano(TipoPlano tipoPlano) {
+        this.tipoPlano = tipoPlano;
     }
 
     public String getNomeAdmin() {
