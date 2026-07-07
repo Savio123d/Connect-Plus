@@ -153,10 +153,30 @@
         </div>
 
         <div class="header-actions">
+          <select class="fps-select" [(ngModel)]="taxaFps" [disabled]="compartilhandoTela">
+            <option [ngValue]="5">5 fps</option>
+            <option [ngValue]="15">15 fps</option>
+            <option [ngValue]="30">30 fps</option>
+            <option [ngValue]="60">60 fps</option>
+          </select>
+
+          <button
+            type="button"
+            class="share-button"
+            [class.sharing]="compartilhandoTela"
+            (click)="compartilhandoTela ? pararCompartilhamento() : iniciarCompartilhamento()"
+          >
+            {{ compartilhandoTela ? 'Parar' : 'Compartilhar tela' }}
+          </button>
+
           <span class="status-online"></span>
           <span>Online</span>
         </div>
       </header>
+
+      <div class="screen-share-panel" [hidden]="!compartilhandoTela && !assistindo">
+        <video #videoLocal autoplay muted playsinline></video>
+      </div>
 
       <div class="error-message" *ngIf="mensagemErro">
         {{ mensagemErro }}

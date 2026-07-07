@@ -2,9 +2,7 @@ package conne.connect.connect.Projeto.service;
 
 import conne.connect.connect.Empresa.model.EmpresaModel;
 import conne.connect.connect.Empresa.repository.EmpresaRepository;
-import conne.connect.connect.Notificacao.enums.TipoNotificacao;
-import conne.connect.connect.Notificacao.model.NotificacaoModel;
-import conne.connect.connect.Notificacao.service.NotificacaoService;
+import conne.connect.connect.Feedback.service.FeedbackService;
 import conne.connect.connect.Projeto.dto.ProjetoRequestDTO;
 import conne.connect.connect.Projeto.dto.ProjetoResponseDTO;
 import conne.connect.connect.Projeto.enums.MarcoStatusProjetoTela;
@@ -29,9 +27,7 @@ import conne.connect.connect.Usuario.model.UsuarioModel;
 import conne.connect.connect.Usuario.repository.UsuarioEmpresaRepository;
 import java.time.LocalDate;
 import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.List;
 import java.util.Set;
 import org.springframework.cache.annotation.CacheEvict;
@@ -49,7 +45,7 @@ public class ProjetoTelaService {
     private final TarefaService tarefaService;
     private final TarefaRepository tarefaRepository;
     private final ProjetoTelaMapper mapper;
-    private final NotificacaoService notificacaoService;
+    private final FeedbackService feedbackService;
 
     public ProjetoTelaService(
         ProjetoTelaRepository projetoRepository,
@@ -59,7 +55,7 @@ public class ProjetoTelaService {
         TarefaService tarefaService,
         TarefaRepository tarefaRepository,
         ProjetoTelaMapper mapper,
-        NotificacaoService notificacaoService
+        FeedbackService feedbackService
     ) {
         this.projetoRepository = projetoRepository;
         this.pessoaRepository = pessoaRepository;
@@ -68,7 +64,7 @@ public class ProjetoTelaService {
         this.tarefaService = tarefaService;
         this.tarefaRepository = tarefaRepository;
         this.mapper = mapper;
-        this.notificacaoService = notificacaoService;
+        this.feedbackService = feedbackService;
     }
 
     @Transactional(readOnly = true)
@@ -162,7 +158,7 @@ public class ProjetoTelaService {
         ProjetoTelaModel projetoSalvo = projetoRepository.save(projeto);
 
         if (concluindoAgora) {
-            criarNotificacoesAvaliacao360(projetoSalvo);
+            feedbackService.abrirRodada360ParaProjetoConcluido(projetoSalvo);
         }
 
         return mapper.toResponse(projetoSalvo);
@@ -270,49 +266,6 @@ public class ProjetoTelaService {
         return mapper.toResponse(projetoRepository.save(projeto));
     }
 
-    private void criarNotificacoesAvaliacao360(ProjetoTelaModel projeto) {
-        if (projeto.getEmpresa() == null || projeto.getEmpresa().getIdEmpresa() == null) {
-            return;
-        }
-
-        Map<Long, UsuarioEmpresaModel> participantes = new LinkedHashMap<>();
-        adicionarParticipanteNotificacao(participantes, projeto.getLider());
-        projeto.getMembros().forEach(membro -> adicionarParticipanteNotificacao(participantes, membro));
-
-        participantes.values().forEach(usuarioEmpresa -> {
-            NotificacaoModel notificacao = new NotificacaoModel();
-            notificacao.setIdEmpresa(projeto.getEmpresa());
-            notificacao.setIdUsuarioEmpresa(usuarioEmpresa);
-            notificacao.setTipo(TipoNotificacao.feedback);
-            notificacao.setTitulo("Avaliação 360° disponível");
-            notificacao.setMensagem(
-                "O projeto \"" + projeto.getNome()
-                    + "\" foi concluído. Faça a avaliação 360° dos colegas em até 5 dias."
-            );
-            notificacao.setLida(false);
-
-            notificacaoService.criarNotificacao(notificacao);
-        });
-    }
-
-    private void adicionarParticipanteNotificacao(
-        Map<Long, UsuarioEmpresaModel> participantes,
-        PessoaProjetoTelaModel pessoa
-    ) {
-        if (pessoa == null
-            || pessoa.getUsuarioEmpresa() == null
-            || pessoa.getUsuarioEmpresa().getIdUsuarioEmpresa() == null) {
-            return;
-        }
-
-        UsuarioEmpresaModel usuarioEmpresa = pessoa.getUsuarioEmpresa();
-
-        if (!Boolean.TRUE.equals(usuarioEmpresa.getAtivo()) || usuarioEmpresa.getExcluido() != null) {
-            return;
-        }
-
-        participantes.put(usuarioEmpresa.getIdUsuarioEmpresa(), usuarioEmpresa);
-    }
 
     private EmpresaModel buscarEmpresa(Long empresaId) {
         return empresaRepository.findById(empresaId)
