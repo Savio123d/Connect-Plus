@@ -723,3 +723,44 @@
   background: #c7d2fe;
   cursor: not-allowed;
 }
+
+.fps-select {
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #374151;
+  cursor: pointer;
+}
+
+.share-button {
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid #c7d2fe;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #2563eb;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.share-button.sharing {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.screen-share-panel {
+  background: #111827;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.screen-share-panel video {
+  max-height: 260px;
+  max-width: 100%;
+}
