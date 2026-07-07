@@ -1,8 +1,17 @@
 package conne.connect.connect.Perfil.dto;
 
-public record HistoricoDesempenhoDTO(
-        String mes,
-        Long tarefasConcluidas,
-        Long xpGanho
-) {
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class HistoricoDesempenhoDTO {
+
+    private String mes;
+    private int tarefasConcluidas;
+    private int xpGanho;
 }

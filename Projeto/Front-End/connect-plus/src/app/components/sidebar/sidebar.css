@@ -376,4 +376,86 @@
     width: 300px;
     right: -62px;
   }
+    .botao-notificacao {
+      position: relative;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .icone-sino {
+      font-size: 22px;
+    }
+
+    .badge-notificacao {
+      position: absolute;
+      top: -6px;
+      right: -8px;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      border-radius: 999px;
+      background: #ef4444;
+      color: white;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lista-notificacoes {
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .item-notificacao {
+      padding: 12px;
+      border-bottom: 1px solid #e5e7eb;
+      cursor: pointer;
+      background: white;
+    }
+
+    .item-notificacao.nao-lida {
+      background: #eef4ff;
+    }
+
+    .item-notificacao strong {
+      display: block;
+      font-size: 14px;
+      color: #111827;
+    }
+
+    .item-notificacao p {
+      margin: 4px 0;
+      font-size: 13px;
+      color: #4b5563;
+    }
+
+    .item-notificacao small {
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .toast-notificacao {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      width: 320px;
+      padding: 14px;
+      border-radius: 14px;
+      background: #111827;
+      color: white;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+      z-index: 9999;
+    }
+
+    .toast-notificacao strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .toast-notificacao p {
+      margin: 0;
+      font-size: 13px;
+    }
 }
