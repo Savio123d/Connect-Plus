@@ -1,7 +1,7 @@
 <div class="projeto-form-page">
   <div class="mb-4">
     <h1 class="h4 fw-bold mb-1">Criar Novo Projeto</h1>
-    <p class="text-secondary mb-0">Preencha as informacoes do projeto</p>
+    <p class="text-secondary mb-0">Preencha as informações do projeto</p>
   </div>
 
   <form (ngSubmit)="criarProjeto()" class="mx-auto" style="max-width: 760px">
@@ -48,7 +48,7 @@
               [disabled]="carregandoUsuarios || projetosService.usuariosDisponiveis.length === 0"
             >
               <option [ngValue]="null">
-                {{ carregandoUsuarios ? 'Carregando usuarios...' : 'Selecione o lider' }}
+                {{ carregandoUsuarios ? 'Carregando usuários...' : 'Selecione o líder' }}
               </option>
               <option *ngFor="let usuario of projetosService.usuariosDisponiveis" [ngValue]="usuario.id">
                 {{ usuario.nome }} - {{ usuario.cargo }}
@@ -66,7 +66,7 @@
           <label class="form-label">Participantes da empresa</label>
 
           <div class="alert alert-warning small mb-3" *ngIf="!carregandoUsuarios && participantes.length === 0">
-            Nenhum usuario ativo encontrado para a empresa logada.
+            Nenhum usuário ativo encontrado para a empresa logada.
           </div>
 
           <div class="row row-cols-1 row-cols-md-2 g-2">
@@ -93,7 +93,7 @@
           <i class="material-icons fs-6">lightbulb</i>
           <div>
             <strong>Dica</strong><br />
-            A lista acima mostra apenas usuarios ativos vinculados a empresa do login atual.
+            A lista acima mostra apenas usuários ativos vinculados à empresa do login atual.
           </div>
         </div>
 

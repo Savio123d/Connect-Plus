@@ -202,7 +202,7 @@ export class ProjetoDetalhe implements OnInit {
             erro?.error?.message ||
             erro?.error ||
             erro?.message ||
-            'Nao foi possivel adicionar a tarefa.';
+            'Não foi possível adicionar a tarefa.';
 
           alert(mensagem);
         },

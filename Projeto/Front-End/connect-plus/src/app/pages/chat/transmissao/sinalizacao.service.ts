@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { MensagemSinalizacao } from './transmissao.model';
+import { AuthSessionService } from '../../../core/auth-session.service';
 
 export type SinalizacaoStatus = 'conectado' | 'conectando' | 'desconectado';
 
@@ -9,6 +10,7 @@ export type SinalizacaoStatus = 'conectado' | 'conectando' | 'desconectado';
   providedIn: 'root',
 })
 export class SinalizacaoService {
+  private readonly authSessionService = inject(AuthSessionService);
   private socket?: WebSocket;
   private readonly statusSubject = new BehaviorSubject<SinalizacaoStatus>('desconectado');
   private readonly eventosSubject = new Subject<MensagemSinalizacao>();
@@ -17,7 +19,8 @@ export class SinalizacaoService {
   readonly eventos$ = this.eventosSubject.asObservable();
 
   conectar(idUsuarioEmpresa: number): void {
-    if (!idUsuarioEmpresa) {
+    const token = this.authSessionService.obterToken();
+    if (!idUsuarioEmpresa || !token) {
       return;
     }
 
@@ -25,7 +28,7 @@ export class SinalizacaoService {
     this.statusSubject.next('conectando');
 
     try {
-      this.socket = new WebSocket(`${environment.wsBase}/sinalizacao?userId=${idUsuarioEmpresa}`);
+      this.socket = new WebSocket(`${environment.wsBase}/sinalizacao?userId=${idUsuarioEmpresa}&token=${encodeURIComponent(token)}`);
 
       this.socket.onopen = () => this.statusSubject.next('conectado');
       this.socket.onclose = () => this.statusSubject.next('desconectado');

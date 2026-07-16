@@ -48,7 +48,7 @@ export class Loja implements OnInit {
     this.formulario = this.criarFormularioVazio();
 
     if (!this.empresaId) {
-      this.mensagemErro = 'Nao foi possivel identificar a empresa do usuario logado.';
+      this.mensagemErro = 'Não foi possível identificar a empresa do usuário logado.';
       return;
     }
 
@@ -81,7 +81,7 @@ export class Loja implements OnInit {
       .pipe(finalize(() => (this.carregando = false)))
       .subscribe({
         next: (itens) => (this.itens = itens),
-        error: () => (this.mensagemErro = 'Nao foi possivel carregar as recompensas da loja.'),
+        error: () => (this.mensagemErro = 'Não foi possível carregar as recompensas da loja.'),
       });
   }
 
@@ -151,7 +151,7 @@ export class Loja implements OnInit {
         this.fecharModal();
         this.carregarLoja();
       },
-      error: () => (this.mensagemErro = 'Nao foi possivel salvar a recompensa.'),
+      error: () => (this.mensagemErro = 'Não foi possível salvar a recompensa.'),
     });
   }
 
@@ -165,7 +165,7 @@ export class Loja implements OnInit {
         this.mensagemSucesso = 'Recompensa removida da loja.';
         this.carregarLoja();
       },
-      error: () => (this.mensagemErro = 'Nao foi possivel excluir a recompensa.'),
+      error: () => (this.mensagemErro = 'Não foi possível excluir a recompensa.'),
     });
   }
 
@@ -175,7 +175,7 @@ export class Loja implements OnInit {
     }
 
     if (!this.usuarioEmpresaId) {
-      this.mensagemErro = 'Nao foi possivel identificar o usuario logado para resgate.';
+      this.mensagemErro = 'Não foi possível identificar o usuário logado para resgate.';
       return;
     }
 
@@ -192,7 +192,7 @@ export class Loja implements OnInit {
           this.carregarSaldo();
         },
         error: (erro) => {
-          this.mensagemErro = erro?.error?.message ?? 'Nao foi possivel resgatar esta recompensa.';
+          this.mensagemErro = erro?.error?.message ?? 'Não foi possível resgatar esta recompensa.';
         },
       });
   }

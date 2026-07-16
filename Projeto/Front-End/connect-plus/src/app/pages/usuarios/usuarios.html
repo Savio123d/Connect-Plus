@@ -8,7 +8,7 @@
           <p>Gerencie todos os usuários da plataforma</p>
         </div>
 
-        <button class="btn-primario" type="button" (click)="abrirCriar()">
+        <button *ngIf="podeGerenciar" class="btn-primario" type="button" (click)="abrirCriar()">
           <span>+</span>
           Novo Usuário
         </button>
@@ -20,7 +20,7 @@
 
           <input
             type="text"
-            placeholder="Buscar usuários por nome, email, função ou setor..."
+            placeholder="Buscar usuários por nome, e-mail, função ou setor..."
             [(ngModel)]="busca"
             (ngModelChange)="filtrarUsuarios()"
           />
@@ -93,7 +93,7 @@
                 </td>
 
                 <td>
-                  <div class="acoes">
+                  <div *ngIf="podeGerenciar" class="acoes">
                     <button
                       class="btn-acao editar"
                       type="button"

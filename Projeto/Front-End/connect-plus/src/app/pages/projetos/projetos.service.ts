@@ -175,7 +175,7 @@ export class ProjetosService {
     const empresaId = this.authSessionService.obterIdEmpresa();
 
     if (!empresaId) {
-      throw new Error('Empresa do usuario logado nao encontrada.');
+      throw new Error('Empresa do usuário logado não encontrada.');
     }
 
     return empresaId;

@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Usuario, UsuarioService } from './usuario.service';
+import { AuthSessionService } from '../../core/auth-session.service';
 
 type ModalUsuario = 'criar' | 'editar' | 'excluir' | null;
 
@@ -18,6 +19,9 @@ interface OpcaoSelect {
   styleUrl: './usuarios.css'
 })
 export class Usuarios implements OnInit {
+  private readonly authSessionService = inject(AuthSessionService);
+  readonly podeGerenciar = this.authSessionService.temAlgumPapel(['gestor']);
+
   usuarios: Usuario[] = [];
   usuariosFiltrados: Usuario[] = [];
 
@@ -142,7 +146,7 @@ export class Usuarios implements OnInit {
 
   salvarUsuario(): void {
   if (!this.formUsuario.nome || !this.formUsuario.email) {
-    this.erro = 'Preencha nome e email.';
+    this.erro = 'Preencha nome e e-mail.';
     return;
   }
 

@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { LoginService } from './login.service';
+import { SessionStoreService } from '../../core/session-store.service';
 
 @Component({
   selector: 'app-login',
@@ -16,6 +17,8 @@ export class Login {
 
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private sessionStore = inject(SessionStoreService);
   private loginService = inject(LoginService);
   private cdr = inject(ChangeDetectorRef);
 
@@ -68,11 +71,18 @@ export class Login {
       .subscribe({
         next: (resposta) => {
           this.loginService.salvarLogin(resposta);
+          this.sessionStore.restaurarDaSessao();
+          this.sessionStore.precarregarEssencial().subscribe();
 
           this.mensagemSucesso = 'Login realizado com sucesso!';
           this.cdr.detectChanges();
 
-          this.router.navigate(['/dashboard']);
+          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+          const destino = returnUrl?.startsWith('/') && returnUrl !== '/login'
+            ? returnUrl
+            : '/dashboard';
+
+          void this.router.navigateByUrl(destino);
         },
 
         error: (erro) => {

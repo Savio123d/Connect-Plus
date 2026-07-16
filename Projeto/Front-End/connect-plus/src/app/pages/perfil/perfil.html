@@ -10,7 +10,7 @@
   <section class="page-header">
     <div>
       <h1>Meu Perfil</h1>
-      <p>Suas informacoes e desempenho dentro do Connect+</p>
+      <p>Suas informações e desempenho dentro do Connect+</p>
     </div>
 
     <button type="button" class="btn-refresh" (click)="carregarPerfil()" [disabled]="carregando">
@@ -25,7 +25,7 @@
       </div>
 
       <span class="level-pill">
-        Nivel {{ usuario.nivel || 0 }}
+        Nível {{ usuario.nivel || 0 }}
       </span>
     </div>
 
@@ -85,7 +85,7 @@
         </div>
 
         <p>
-          Faltam {{ xpRestante() }} XP para o proximo nivel
+          Faltam {{ xpRestante() }} XP para o próximo nível
         </p>
       </div>
 
@@ -147,7 +147,7 @@
 
     <div *ngIf="historico.length === 0" class="empty-state">
       <h2>Nenhum historico encontrado</h2>
-      <p>O desempenho mensal sera exibido conforme o usuario ganhar XP.</p>
+      <p>O desempenho mensal será exibido conforme o usuário ganhar XP.</p>
     </div>
   </section>
 </div>

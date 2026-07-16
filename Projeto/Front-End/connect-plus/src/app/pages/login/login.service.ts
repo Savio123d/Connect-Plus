@@ -59,35 +59,6 @@ export class LoginService {
 
   salvarLogin(dadosUsuario: LoginResponse): void {
     const usuario = this.normalizarUsuario(dadosUsuario);
-    const dadosNormalizados = {
-      ...dadosUsuario,
-      idUsuario: usuario.idUsuario,
-      nome: usuario.nome,
-      email: usuario.email,
-      idEmpresa: usuario.idEmpresa,
-      empresaId: usuario.idEmpresa,
-      idUsuarioEmpresa: usuario.idUsuarioEmpresa,
-      usuarioEmpresaId: usuario.idUsuarioEmpresa,
-      papel: usuario.cargo ?? dadosUsuario.papel ?? '',
-      cargo: usuario.cargo,
-      status: usuario.status ?? '',
-      usuario,
-    };
-
-    localStorage.setItem('usuarioLogado', JSON.stringify(dadosNormalizados));
-
-    localStorage.setItem('idUsuario', String(usuario.idUsuario ?? ''));
-    localStorage.setItem('nome', usuario.nome);
-    localStorage.setItem('email', usuario.email);
-
-    localStorage.setItem('empresaId', String(usuario.idEmpresa ?? ''));
-    localStorage.setItem('idEmpresa', String(usuario.idEmpresa ?? ''));
-
-    localStorage.setItem('usuarioEmpresaId', String(usuario.idUsuarioEmpresa ?? ''));
-    localStorage.setItem('idUsuarioEmpresa', String(usuario.idUsuarioEmpresa ?? ''));
-
-    localStorage.setItem('papel', usuario.cargo ?? dadosUsuario.papel ?? '');
-    localStorage.setItem('status', usuario.status ?? '');
 
     this.authSessionService.salvarSessao({
       token: dadosUsuario.token,
@@ -96,38 +67,31 @@ export class LoginService {
   }
 
   getUsuarioLogado(): LoginResponse | null {
-    const usuario = localStorage.getItem('usuarioLogado');
-    return usuario ? JSON.parse(usuario) : null;
+    const usuario = this.authSessionService.obterUsuario();
+    return usuario ? { usuario } : null;
   }
 
   getEmpresaId(): number | null {
-    const empresaId = localStorage.getItem('empresaId') || localStorage.getItem('idEmpresa');
-
-    return empresaId ? Number(empresaId) : null;
+    return this.authSessionService.obterIdEmpresa() || null;
   }
 
   getUsuarioEmpresaId(): number | null {
-    const usuarioEmpresaId =
-      localStorage.getItem('usuarioEmpresaId') || localStorage.getItem('idUsuarioEmpresa');
-
-    return usuarioEmpresaId ? Number(usuarioEmpresaId) : null;
+    return this.authSessionService.obterIdUsuarioEmpresa() || null;
   }
 
   getIdUsuario(): number | null {
-    const idUsuario = localStorage.getItem('idUsuario');
-    return idUsuario ? Number(idUsuario) : null;
+    return this.authSessionService.obterUsuario()?.idUsuario ?? null;
   }
 
   getPapel(): string | null {
-    return localStorage.getItem('papel');
+    return this.authSessionService.obterPapel();
   }
 
   estaLogado(): boolean {
-    return !!localStorage.getItem('usuarioLogado');
+    return this.authSessionService.estaAutenticado();
   }
 
   logout(): void {
-    localStorage.clear();
     this.authSessionService.limparSessao();
   }
 

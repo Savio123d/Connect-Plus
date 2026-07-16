@@ -36,7 +36,7 @@ export class ProjetoForm implements OnInit {
     this.mensagemErro = '';
 
     if (!this.nome || !this.descricao || !this.prazo || !this.liderId) {
-      this.mensagemErro = 'Preencha o nome, descricao, lider e prazo final do projeto.';
+      this.mensagemErro = 'Preencha o nome, descrição, líder e prazo final do projeto.';
       return;
     }
 
@@ -87,7 +87,7 @@ export class ProjetoForm implements OnInit {
 
   private extrairMensagemErro(erro: HttpErrorResponse): string {
     if (erro.status === 0) {
-      return `Nao foi possivel conectar ao backend em ${environment.apiBase}.`;
+      return `Não foi possível conectar ao backend em ${environment.apiBase}.`;
     }
 
     if (typeof erro.error === 'object' && erro.error) {
@@ -99,6 +99,6 @@ export class ProjetoForm implements OnInit {
       }
     }
 
-    return 'Nao foi possivel carregar os usuarios da empresa ou criar o projeto.';
+    return 'Não foi possível carregar os usuários da empresa ou criar o projeto.';
   }
 }

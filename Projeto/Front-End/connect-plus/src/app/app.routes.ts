@@ -1,4 +1,6 @@
 import { Routes } from '@angular/router';
+import { authChildGuard, authGuard } from './core/auth.guard';
+import { roleGuard } from './core/role.guard';
 
 export const routes: Routes = [
   {
@@ -8,77 +10,116 @@ export const routes: Routes = [
   },
   {
     path: 'login',
-    loadComponent: () => import('./pages/login/login').then((module) => module.Login),
+    loadComponent: () =>
+      import('./pages/login/login').then((module) => module.Login),
   },
   {
     path: 'cadastro-empresa',
     loadComponent: () =>
-      import('./pages/cadastro-empresa/cadastro-empresa').then((module) => module.CadastroEmpresa),
+      import('./pages/cadastro-empresa/cadastro-empresa').then(
+        (module) => module.CadastroEmpresa,
+      ),
   },
   {
     path: 'sobre-nos',
-    loadComponent: () => import('./pages/sobre-nos/sobre-nos').then((module) => module.SobreNos),
+    loadComponent: () =>
+      import('./pages/sobre-nos/sobre-nos').then((module) => module.SobreNos),
   },
   {
     path: '',
-    loadComponent: () => import('./components/sidebar/sidebar').then((module) => module.Sidebar),
+    canActivate: [authGuard],
+    canActivateChild: [authChildGuard],
+    loadComponent: () =>
+      import('./components/sidebar/sidebar').then((module) => module.Sidebar),
     children: [
       {
         path: 'dashboard',
-        loadComponent: () => import('./pages/dashboard/dashboard').then((module) => module.Menu),
+        data: { preload: true },
+        loadComponent: () =>
+          import('./pages/dashboard/dashboard').then((module) => module.Menu),
       },
       {
         path: 'perfil',
-        loadComponent: () => import('./pages/perfil/perfil').then((module) => module.Perfil),
+        data: { preload: true },
+        loadComponent: () =>
+          import('./pages/perfil/perfil').then((module) => module.Perfil),
       },
       {
         path: 'usuarios',
-        loadComponent: () => import('./pages/usuarios/usuarios').then((module) => module.Usuarios),
+        canActivate: [roleGuard],
+        data: { papeis: ['gestor'] },
+        loadComponent: () =>
+          import('./pages/usuarios/usuarios').then((module) => module.Usuarios),
       },
       {
         path: 'tarefas',
-        loadComponent: () => import('./pages/tarefas/tarefas').then((module) => module.Tarefas),
+        canActivate: [roleGuard],
+        data: { papeis: ['gestor', 'colaborador'] },
+        loadComponent: () =>
+          import('./pages/tarefas/tarefas').then((module) => module.Tarefas),
       },
       {
         path: 'feedbacks',
-        loadComponent: () => import('./pages/feedbacks/feedbacks').then((module) => module.Feedbacks),
+        canActivate: [roleGuard],
+        data: { papeis: ['gestor', 'colaborador'] },
+        loadComponent: () =>
+          import('./pages/feedbacks/feedbacks').then(
+            (module) => module.Feedbacks,
+          ),
       },
       {
         path: 'chat',
-        loadComponent: () => import('./pages/chat/chat').then((module) => module.Chat),
-      },
-        {
-       path: 'projetos',
-       loadComponent: () =>
-        import('./pages/projetos/projetos').then((module) => module.Projetos),
+        canActivate: [roleGuard],
+        data: { papeis: ['gestor', 'colaborador'] },
+        loadComponent: () =>
+          import('./pages/chat/chat').then((module) => module.Chat),
       },
       {
-      path: 'projetos/novo',
-      loadComponent: () =>
-      import('./pages/projetos/projeto-form').then((module) => module.ProjetoForm),
-     },
-     {
-     path: 'projetos/:id',
-     loadComponent: () =>
-     import('./pages/projetos/projeto-detalhe').then((module) => module.ProjetoDetalhe),
+        path: 'projetos',
+        loadComponent: () =>
+          import('./pages/projetos/projetos').then(
+            (module) => module.Projetos,
+          ),
+      },
+      {
+        path: 'projetos/novo',
+        canActivate: [roleGuard],
+        data: { papeis: ['gestor', 'colaborador'] },
+        loadComponent: () =>
+          import('./pages/projetos/projeto-form').then(
+            (module) => module.ProjetoForm,
+          ),
+      },
+      {
+        path: 'projetos/:id',
+        loadComponent: () =>
+          import('./pages/projetos/projeto-detalhe').then(
+            (module) => module.ProjetoDetalhe,
+          ),
       },
       {
         path: 'loja',
-        loadComponent: () => import('./pages/loja/loja').then((module) => module.Loja),
+        canActivate: [roleGuard],
+        data: { papeis: ['gestor', 'colaborador'] },
+        loadComponent: () =>
+          import('./pages/loja/loja').then((module) => module.Loja),
       },
       {
         path: 'configuracoes',
+        canActivate: [roleGuard],
+        data: { papeis: ['gestor'] },
         loadComponent: () =>
-          import('./pages/configuracoes/configuracoes').then((module) => module.Configuracoes),
+          import('./pages/configuracoes/configuracoes').then(
+            (module) => module.Configuracoes,
+          ),
       },
-        {
-        path: 'sobre-nos',
-        loadComponent: () => import('./pages/sobre-nos/sobre-nos').then((module) => module.SobreNos)
-        },
-        {
+      {
         path: 'suporte-interno',
-        loadComponent: () => import('./pages/suporte-interno/suporte-interno.component').then((module) => module.SuporteInternoComponent)
-        }
+        loadComponent: () =>
+          import('./pages/suporte-interno/suporte-interno.component').then(
+            (module) => module.SuporteInternoComponent,
+          ),
+      },
     ],
   },
   {

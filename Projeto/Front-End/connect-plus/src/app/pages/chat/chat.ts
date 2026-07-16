@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AuthSessionService } from '../../core/auth-session.service';
 import { ChatService } from './chat.service';
 import {
   ChatEvento,
@@ -71,15 +72,16 @@ export class Chat implements OnInit, OnDestroy, AfterViewChecked {
     private ngZone: NgZone,
     private cdr: ChangeDetectorRef,
     private sinalizacaoService: SinalizacaoService,
+    private authSessionService: AuthSessionService,
   ) {}
 
   ngOnInit(): void {
     this.usuarioEmpresaId = this.buscarUsuarioEmpresaId();
     this.empresaId = this.buscarEmpresaId();
 
-    if (!this.usuarioEmpresaId) {
+    if (!this.usuarioEmpresaId || !this.empresaId) {
       this.mensagemErro =
-        'Não foi possível identificar o usuário logado. Verifique se o usuarioEmpresaId está salvo no localStorage.';
+        'Não foi possível identificar a sessão autenticada. Faça login novamente.';
       return;
     }
     this.sinalizacaoService.conectar(this.usuarioEmpresaId);
@@ -312,12 +314,7 @@ export class Chat implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   private buscarEmpresaId(): number {
-    const valor =
-      localStorage.getItem('idEmpresa') ||
-      localStorage.getItem('empresaId') ||
-      localStorage.getItem('usuarioEmpresaIdEmpresa');
-
-    return Number(valor) || 1;
+    return this.authSessionService.obterIdEmpresa();
   }
 
   carregarConversas(silencioso = false): void {
@@ -396,7 +393,7 @@ export class Chat implements OnInit, OnDestroy, AfterViewChecked {
           error: (erro) => {
             this.ngZone.run(() => {
               console.error('Erro ao enviar imagem:', erro);
-              this.mensagemErro = erro?.error?.message ?? 'Nao foi possivel enviar a imagem.';
+              this.mensagemErro = erro?.error?.message ?? 'Não foi possível enviar a imagem.';
               this.enviandoMensagem = false;
               this.atualizarTela();
             });
@@ -690,12 +687,7 @@ export class Chat implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   private buscarUsuarioEmpresaId(): number {
-    const valor =
-      localStorage.getItem('usuarioEmpresaId') ||
-      localStorage.getItem('idUsuarioEmpresa') ||
-      localStorage.getItem('usuario_empresa_id');
-
-    return Number(valor);
+    return this.authSessionService.obterIdUsuarioEmpresa();
   }
 
   @ViewChild('videoLocal')

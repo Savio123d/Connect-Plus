@@ -67,7 +67,7 @@ export class CadastroEmpresa implements OnInit {
     const { senhaAdmin, confirmarSenhaAdmin } = this.cadastroForm.value;
 
     if (senhaAdmin !== confirmarSenhaAdmin) {
-      this.mensagemErro = 'As senhas nao coincidem.';
+      this.mensagemErro = 'As senhas não coincidem.';
       return;
     }
 
@@ -104,7 +104,7 @@ next: (resposta) => {
     }
 
     this.mensagemErro =
-      'Empresa cadastrada, mas nao foi possivel gerar o link de pagamento. Verifique a configuracao do Mercado Pago.';
+      'Empresa cadastrada, mas não foi possível gerar o link de pagamento. Verifique a configuração do Mercado Pago.';
     return;
   }
 
@@ -130,11 +130,11 @@ next: (resposta) => {
     }
 
     if (erro.status === 409) {
-      return 'CNPJ ou email ja cadastrado. Use outros dados para concluir o cadastro.';
+      return 'CNPJ ou e-mail já cadastrado. Use outros dados para concluir o cadastro.';
     }
 
     if (erro.status === 0) {
-      return `Nao foi possivel conectar ao backend em ${environment.apiBase}.`;
+      return `Não foi possível conectar ao backend em ${environment.apiBase}.`;
     }
 
     return 'Erro ao realizar cadastro. Tente novamente.';
@@ -170,7 +170,7 @@ next: (resposta) => {
     }
 
     if (textoMinusculo.includes('email')) {
-      return 'Email ja cadastrado. Use outro email para o administrador.';
+      return 'E-mail já cadastrado. Use outro e-mail para o administrador.';
     }
 
     return texto || 'Erro ao realizar cadastro. Tente novamente.';

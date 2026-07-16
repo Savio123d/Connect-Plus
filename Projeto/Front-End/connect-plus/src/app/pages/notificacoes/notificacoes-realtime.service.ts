@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Subject, forkJoin } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { AuthSessionService } from '../../core/auth-session.service';
+import { SessionStoreService } from '../../core/session-store.service';
 import { NotificacaoDTO, NotificacoesService } from './notificacoes.service';
 
 interface NotificacaoPushDTO extends NotificacaoDTO {
@@ -23,7 +25,11 @@ export class NotificacoesRealtimeService {
   naoLidas$ = this.naoLidasSubject.asObservable();
   toast$ = this.toastSubject.asObservable();
 
-  constructor(private notificacoesService: NotificacoesService) {}
+  constructor(
+    private notificacoesService: NotificacoesService,
+    private authSessionService: AuthSessionService,
+    private sessionStore: SessionStoreService,
+  ) {}
 
   iniciar(): void {
     if (
@@ -56,11 +62,11 @@ export class NotificacoesRealtimeService {
 
     forkJoin({
       ultimas: this.notificacoesService.buscarUltimas(usuarioEmpresaId),
-      naoLidas: this.notificacoesService.contarNaoLidas(usuarioEmpresaId),
+      sessao: this.sessionStore.precarregarEssencial(),
     }).subscribe({
       next: (resposta) => {
         this.ultimasSubject.next(resposta.ultimas);
-        this.naoLidasSubject.next(resposta.naoLidas);
+        this.naoLidasSubject.next(resposta.sessao.notificacoesNaoLidas);
       },
       error: (erro) => {
         console.error('Erro ao sincronizar notificações', erro);
@@ -87,6 +93,10 @@ export class NotificacoesRealtimeService {
     }
 
     const url = this.montarUrlWebSocket(usuarioEmpresaId);
+    if (!url) {
+      return;
+    }
+
 
     this.socket = new WebSocket(url);
 
@@ -174,38 +184,18 @@ export class NotificacoesRealtimeService {
   }
 
   private montarUrlWebSocket(usuarioEmpresaId: number): string {
+    const token = this.authSessionService.obterToken();
+    if (!token) {
+      return '';
+    }
+
     const base = environment.apiBase.replace(/^http/, 'ws').replace(/\/api$/, '');
 
-    return `${base}/ws/notificacoes?usuarioEmpresaId=${usuarioEmpresaId}`;
+    return `${base}/ws/notificacoes?usuarioEmpresaId=${usuarioEmpresaId}&token=${encodeURIComponent(token)}`;
   }
 
   private getUsuarioEmpresaId(): number | null {
-    const direto = localStorage.getItem('usuarioEmpresaId');
-
-    if (direto) {
-      return Number(direto);
-    }
-
-    const possiveisChaves = ['usuarioLogado', 'usuario', 'auth', 'login'];
-
-    for (const chave of possiveisChaves) {
-      const valor = localStorage.getItem(chave);
-
-      if (!valor) {
-        continue;
-      }
-
-      try {
-        const objeto = JSON.parse(valor);
-
-        if (objeto?.usuarioEmpresaId) {
-          return Number(objeto.usuarioEmpresaId);
-        }
-      } catch {
-        continue;
-      }
-    }
-
-    return null;
+    const idUsuarioEmpresa = this.authSessionService.obterIdUsuarioEmpresa();
+    return idUsuarioEmpresa > 0 ? idUsuarioEmpresa : null;
   }
 }

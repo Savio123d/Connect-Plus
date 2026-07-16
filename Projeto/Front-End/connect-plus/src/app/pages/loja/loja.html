@@ -28,7 +28,7 @@
       <div>
         <span>Seu Saldo XP</span>
         <strong>{{ saldoXp | number: '1.0-0' }} XP</strong>
-        <small>Proximo nivel: {{ proximoNivel | number: '1.0-0' }} XP</small>
+        <small>Próximo nível: {{ proximoNivel | number: '1.0-0' }} XP</small>
 
         <div class="progresso" aria-hidden="true">
           <span [style.width.%]="progressoNivel"></span>
@@ -73,7 +73,7 @@
       <span class="badge-esgotado" *ngIf="estaEsgotado(item)">Esgotada</span>
 
       <h3>{{ item.nome }}</h3>
-      <p>{{ item.descricao || 'Recompensa disponivel para resgate.' }}</p>
+      <p>{{ item.descricao || 'Recompensa disponível para resgate.' }}</p>
 
       <div class="estoque">
         <span>Quantidade disponivel</span>

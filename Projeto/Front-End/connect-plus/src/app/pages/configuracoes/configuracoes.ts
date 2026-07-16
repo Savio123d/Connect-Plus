@@ -42,7 +42,7 @@ export class Configuracoes implements OnInit {
   notificacoes: PreferenciaNotificacao[] = [
     {
       titulo: 'Notificações por Email',
-      descricao: 'Receber atualizações importantes por email',
+      descricao: 'Receber atualizações importantes por e-mail',
       ativa: true,
     },
     {
@@ -216,7 +216,7 @@ export class Configuracoes implements OnInit {
 
   private preencherEmailUsuario(): void {
     const usuario = this.authSessionService.obterUsuario();
-    this.empresa.email = usuario?.email || localStorage.getItem('email') || '';
+    this.empresa.email = usuario?.email ?? '';
   }
 
   private pegarIdEmpresa(): number {
@@ -224,14 +224,7 @@ export class Configuracoes implements OnInit {
   }
 
   private pegarIdUsuario(): number {
-    const usuario = this.authSessionService.obterUsuario();
-
-    if (usuario?.idUsuario) {
-      return usuario.idUsuario;
-    }
-
-    const idLocalStorage = Number(localStorage.getItem('idUsuario'));
-    return Number.isFinite(idLocalStorage) ? idLocalStorage : 0;
+    return this.authSessionService.obterUsuario()?.idUsuario ?? 0;
   }
 
   private limparMensagens(): void {

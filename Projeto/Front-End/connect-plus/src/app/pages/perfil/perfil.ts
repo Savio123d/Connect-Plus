@@ -38,7 +38,7 @@ export class Perfil implements OnInit {
     const idUsuarioEmpresa = this.pegarIdUsuarioEmpresa();
 
     if (!idUsuarioEmpresa) {
-      this.mensagemErro = 'Nao foi possivel identificar o usuario logado. Faca login novamente.';
+      this.mensagemErro = 'Não foi possível identificar o usuário logado. Faça login novamente.';
       return;
     }
 
@@ -56,7 +56,7 @@ export class Perfil implements OnInit {
         console.error('Erro ao buscar perfil:', erro);
 
         this.limparPerfil();
-        this.mensagemErro = 'Nao foi possivel carregar os dados do perfil pela API.';
+        this.mensagemErro = 'Não foi possível carregar os dados do perfil pela API.';
         this.carregando = false;
       },
     });
@@ -108,7 +108,7 @@ export class Perfil implements OnInit {
 
   valorOuPlaceholder(valor: string | number | undefined | null): string {
     if (valor === undefined || valor === null || valor === '') {
-      return 'Nao informado';
+      return 'Não informado';
     }
 
     return String(valor);

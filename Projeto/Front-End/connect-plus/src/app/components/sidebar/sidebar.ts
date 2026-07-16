@@ -4,7 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 
-import { AuthSessionService } from '../../core/auth-session.service';
+import { AuthSessionService, PapelEmpresa } from '../../core/auth-session.service';
+import { SessionStoreService } from '../../core/session-store.service';
 import { NotificacaoDTO } from '../../pages/notificacoes/notificacoes.service';
 import { NotificacoesRealtimeService } from '../../pages/notificacoes/notificacoes-realtime.service';
 
@@ -12,6 +13,7 @@ interface MenuItem {
   label: string;
   icon: string;
   route: string;
+  papeis?: readonly PapelEmpresa[];
 }
 
 interface UsuarioLogado {
@@ -53,6 +55,7 @@ export class Sidebar implements OnInit, OnDestroy {
   private cdr = inject(ChangeDetectorRef);
   private authSessionService = inject(AuthSessionService);
   private notificacoesRealtimeService = inject(NotificacoesRealtimeService);
+  private sessionStore = inject(SessionStoreService);
 
   private destroy$ = new Subject<void>();
 
@@ -67,22 +70,54 @@ export class Sidebar implements OnInit, OnDestroy {
   toastNotificacao: NotificacaoSidebar | null = null;
 
   private intervaloNotificacoes?: ReturnType<typeof setInterval>;
-  menuItems: MenuItem[] = [
+  private readonly todosMenuItems: MenuItem[] = [
     { label: 'Início', icon: 'home', route: '/dashboard' },
-    { label: 'Quadro de Tarefas', icon: 'check_box', route: '/tarefas' },
-    { label: 'Chat', icon: 'chat_bubble_outline', route: '/chat' },
-    { label: 'Feedbacks', icon: 'mode_comment', route: '/feedbacks' },
-    { label: 'Loja', icon: 'storefront', route: '/loja' },
+    {
+      label: 'Quadro de Tarefas',
+      icon: 'check_box',
+      route: '/tarefas',
+      papeis: ['gestor', 'colaborador'],
+    },
+    {
+      label: 'Chat',
+      icon: 'chat_bubble_outline',
+      route: '/chat',
+      papeis: ['gestor', 'colaborador'],
+    },
+    {
+      label: 'Feedbacks',
+      icon: 'mode_comment',
+      route: '/feedbacks',
+      papeis: ['gestor', 'colaborador'],
+    },
+    {
+      label: 'Loja',
+      icon: 'storefront',
+      route: '/loja',
+      papeis: ['gestor', 'colaborador'],
+    },
     { label: 'Projetos', icon: 'business_center', route: '/projetos' },
     { label: 'Perfil', icon: 'person_outline', route: '/perfil' },
-    { label: 'Usuários', icon: 'groups', route: '/usuarios' },
-    { label: 'Configurações', icon: 'settings', route: '/configuracoes' },
+    {
+      label: 'Usuários',
+      icon: 'groups',
+      route: '/usuarios',
+      papeis: ['gestor'],
+    },
+    {
+      label: 'Configurações',
+      icon: 'settings',
+      route: '/configuracoes',
+      papeis: ['gestor'],
+    },
     { label: 'Suporte', icon: 'headphones', route: '/suporte-interno' },
     { label: 'Sair', icon: 'logout', route: '/login' },
   ];
+  menuItems: MenuItem[] = [];
 
   ngOnInit(): void {
     this.carregarUsuarioLogado();
+    this.sessionStore.precarregarEssencial().subscribe();
     this.iniciarNotificacoesTempoReal();
   }
 
@@ -106,21 +141,11 @@ export class Sidebar implements OnInit, OnDestroy {
   }
 
   carregarUsuarioLogado(): void {
-    const usuarioSalvo = localStorage.getItem('usuarioLogado');
-
-    if (!usuarioSalvo) {
-      this.usuarioLogado = null;
-      this.cdr.detectChanges();
-      return;
-    }
-
-    try {
-      this.usuarioLogado = JSON.parse(usuarioSalvo);
-    } catch (erro) {
-      console.error('Erro ao carregar usuário logado:', erro);
-      this.usuarioLogado = null;
-    }
-
+    this.usuarioLogado = this.authSessionService.obterUsuario();
+    this.menuItems = this.todosMenuItems.filter(
+      (item) =>
+        !item.papeis || this.authSessionService.temAlgumPapel(item.papeis),
+    );
     this.cdr.detectChanges();
   }
 
@@ -189,13 +214,8 @@ export class Sidebar implements OnInit, OnDestroy {
   }
 
   sair(): void {
+    this.sessionStore.invalidar();
     this.authSessionService.limparSessao();
-
-    localStorage.removeItem('usuarioLogado');
-    localStorage.removeItem('idUsuario');
-    localStorage.removeItem('idUsuarioEmpresa');
-    localStorage.removeItem('idEmpresa');
-    localStorage.removeItem('usuarioEmpresaId');
 
     this.notificacoesRealtimeService.parar();
 
