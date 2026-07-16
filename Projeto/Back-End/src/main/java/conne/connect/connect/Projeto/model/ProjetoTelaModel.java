@@ -96,11 +96,11 @@ public class ProjetoTelaModel {
     @JoinColumn(name = "empresa_id")
     private EmpresaModel empresa;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_lider", nullable = false)
     private PessoaProjetoTelaModel lider;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "projeto_tela_membro",
         joinColumns = @JoinColumn(name = "id_projeto"),

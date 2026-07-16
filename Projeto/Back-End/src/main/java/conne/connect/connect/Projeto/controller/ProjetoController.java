@@ -2,6 +2,7 @@ package conne.connect.connect.Projeto.controller;
 
 import conne.connect.connect.Projeto.dto.ProjetoRequestDTO;
 import conne.connect.connect.Projeto.dto.ProjetoResponseDTO;
+import conne.connect.connect.Projeto.dto.ProjetoResumoDTO;
 import conne.connect.connect.Projeto.enums.ProjetoStatusTela;
 import conne.connect.connect.Projeto.service.ProjetoTelaService;
 import java.util.List;
@@ -32,6 +33,11 @@ public class ProjetoController {
     @GetMapping
     public ResponseEntity<List<ProjetoResponseDTO>> listar(@RequestParam Long empresaId) {
         return ResponseEntity.ok(projetoTelaService.listar(empresaId));
+    }
+
+    @GetMapping("/resumos")
+    public ResponseEntity<List<ProjetoResumoDTO>> listarResumos(@RequestParam Long empresaId) {
+        return ResponseEntity.ok(projetoTelaService.listarResumos(empresaId));
     }
 
     @GetMapping("/{id}")

@@ -55,7 +55,9 @@ public class ProjetoTelaMapper {
     }
 
     public List<ProjetoResponseDTO> toResponseList(List<ProjetoTelaModel> projetos) {
-        return projetos.stream().map(this::toResponse).toList();
+        return projetos.stream()
+            .map(this::toResponse)
+            .toList();
     }
 
     public ProjetoResponseDTO.PessoaDTO toPessoaResponse(PessoaProjetoTelaModel pessoa) {

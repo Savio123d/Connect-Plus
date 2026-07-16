@@ -175,7 +175,7 @@
         </div>
 
         <div class="d-flex flex-column gap-2">
-          <div class="d-flex align-items-center gap-3 p-3 rounded linha-pessoa" *ngFor="let membro of p.membros">
+          <div class="d-flex align-items-center gap-3 p-3 rounded linha-pessoa" *ngFor="let membro of p.membros; trackBy: trackById">
             <div class="avatar-pessoa">{{ membro.iniciais }}</div>
             <div class="flex-grow-1">
               <strong class="d-block">{{ membro.nome }}</strong>
@@ -203,7 +203,7 @@
         <p class="text-secondary small mb-0" *ngIf="p.tarefas.length === 0">Nenhuma tarefa cadastrada ainda.</p>
 
         <div class="d-flex flex-column gap-2">
-          <div class="d-flex align-items-center gap-3 p-3 rounded linha-pessoa" *ngFor="let tarefa of p.tarefas">
+          <div class="d-flex align-items-center gap-3 p-3 rounded linha-pessoa" *ngFor="let tarefa of p.tarefas; trackBy: trackById">
             <div class="status-circulo" [ngClass]="classeStatusTarefa(tarefa.status)">
               <i class="material-icons fs-6">check</i>
             </div>
@@ -233,7 +233,7 @@
         <p class="text-secondary small mb-0" *ngIf="p.marcos.length === 0">Nenhum marco cadastrado ainda.</p>
 
         <div class="d-flex flex-column gap-2">
-          <div class="d-flex align-items-center gap-3 p-3 rounded linha-pessoa" *ngFor="let marco of p.marcos">
+          <div class="d-flex align-items-center gap-3 p-3 rounded linha-pessoa" *ngFor="let marco of p.marcos; trackBy: trackById">
             <div class="status-circulo" [ngClass]="classeStatusMarco(marco.status)">
               <i class="material-icons fs-6">outlined_flag</i>
             </div>
@@ -290,7 +290,7 @@
       <div class="card-body">
         <h2 class="h6 fw-bold mb-3"><i class="material-icons align-middle text-primary me-1">schedule</i> Registro de Horas por Membro</h2>
         <div class="d-flex flex-column gap-2">
-          <div class="d-flex align-items-center justify-content-between gap-3 p-3 rounded linha-pessoa" *ngFor="let membro of p.membros">
+          <div class="d-flex align-items-center justify-content-between gap-3 p-3 rounded linha-pessoa" *ngFor="let membro of p.membros; trackBy: trackById">
             <div>
               <strong class="d-block">{{ membro.nome }}</strong>
               <small class="text-secondary d-block">{{ membro.cargo }}</small>
@@ -315,17 +315,19 @@
           <div class="alert alert-info py-2 small">
             Selecione um usuário já cadastrado na plataforma para vincular ao projeto.
           </div>
+          <p class="text-secondary small" *ngIf="carregandoUsuariosDisponiveis">Carregando usuarios...</p>
           <label class="form-label">Usuário cadastrado</label>
-          <select class="form-select" [(ngModel)]="usuarioSelecionadoId">
+          <select class="form-select" *ngIf="!carregandoUsuariosDisponiveis" [(ngModel)]="usuarioSelecionadoId">
             <option [ngValue]="null">Selecione um usuário</option>
-            <option *ngFor="let usuario of usuariosForaDoProjeto" [ngValue]="usuario.id">
+            <option *ngFor="let usuario of usuariosForaDoProjeto; trackBy: trackById" [ngValue]="usuario.id">
               {{ usuario.nome }} — {{ usuario.cargo }}
             </option>
           </select>
+          <p class="text-secondary small mt-2 mb-0" *ngIf="usuariosDisponiveisCarregados && usuariosForaDoProjeto.length === 0">Nenhum usuario disponivel para adicionar.</p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-light" (click)="fecharModalMembro()">Cancelar</button>
-          <button type="button" class="btn btn-purple" (click)="adicionarMembro()">Adicionar</button>
+          <button type="button" class="btn btn-purple" (click)="adicionarMembro()" [disabled]="carregandoUsuariosDisponiveis || !usuarioSelecionadoId">Adicionar</button>
         </div>
       </div>
     </div>
@@ -384,7 +386,7 @@
             <label class="form-label">Responsável</label>
             <select class="form-select" [(ngModel)]="novaTarefaResponsavelId">
               <option [ngValue]="null">Selecione um responsável</option>
-              <option *ngFor="let membro of p.membros" [ngValue]="membro.id">{{ membro.nome }}</option>
+              <option *ngFor="let membro of p.membros; trackBy: trackById" [ngValue]="membro.id">{{ membro.nome }}</option>
             </select>
           </div>
           <div class="row g-3">

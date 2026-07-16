@@ -37,6 +37,19 @@ export interface MarcoProjeto {
   status: MarcoStatus;
 }
 
+export interface ProjetoResumo {
+  id: number;
+  nome: string;
+  descricao: string;
+  status: ProjetoStatus;
+  atrasado?: boolean;
+  prazo: string;
+  progresso: number;
+  quantidadeMembros: number;
+  liderNome: string;
+  liderIniciais: string;
+}
+
 export interface Projeto {
   id: number;
   nome: string;
@@ -68,8 +81,8 @@ export class ProjetosService {
     private authSessionService: AuthSessionService,
   ) {}
 
-  listar(): Observable<Projeto[]> {
-    return this.http.get<Projeto[]>(this.apiUrl, {
+  listar(): Observable<ProjetoResumo[]> {
+    return this.http.get<ProjetoResumo[]>(`${this.apiUrl}/resumos`, {
       params: this.criarParamsEmpresa(),
     });
   }
@@ -133,8 +146,8 @@ export class ProjetosService {
   }
 
   usuariosForaDoProjeto(projeto: Projeto): Pessoa[] {
-    const idsMembros = projeto.membros.map((membro) => membro.id);
-    return this.usuariosDisponiveis.filter((usuario) => !idsMembros.includes(usuario.id));
+    const idsMembros = new Set(projeto.membros.map((membro) => membro.id));
+    return this.usuariosDisponiveis.filter((usuario) => !idsMembros.has(usuario.id));
   }
 
   formatarData(data: string): string {

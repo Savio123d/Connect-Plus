@@ -6,6 +6,7 @@ import conne.connect.connect.Tarefa.model.TarefaModel;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -17,6 +18,7 @@ public interface TarefaRepository extends JpaRepository<TarefaModel, Long> {
 
     Optional<TarefaModel> findByIdTarefaAndIdEmpresa_IdEmpresaAndExcluidoIsNull(Long idTarefa, Long idEmpresa);
 
+    @EntityGraph(attributePaths = {"idResponsavelUsuarioEmpresa.idUsuario"})
     List<TarefaModel> findByIdProjeto_IdProjetoAndExcluidoIsNullOrderByIdTarefaAsc(Long idProjeto);
 
     long countByIdProjeto_IdProjetoAndExcluidoIsNull(Long idProjeto);

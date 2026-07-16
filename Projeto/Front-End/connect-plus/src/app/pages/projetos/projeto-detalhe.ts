@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -16,6 +16,7 @@ type AbaProjeto = 'equipe' | 'tarefas' | 'marcos' | 'horas';
 
 @Component({
   selector: 'app-projeto-detalhe',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './projeto-detalhe.html',
@@ -27,6 +28,8 @@ export class ProjetoDetalhe implements OnInit {
 
   modalMembroAberto = false;
   usuarioSelecionadoId: number | null = null;
+  carregandoUsuariosDisponiveis = false;
+  usuariosDisponiveisCarregados = false;
 
   modalMarcoAberto = false;
   novoMarcoTitulo = '';
@@ -41,12 +44,12 @@ export class ProjetoDetalhe implements OnInit {
 
   constructor(
     public projetosService: ProjetosService,
+    private cdr: ChangeDetectorRef,
     private route: ActivatedRoute,
     private router: Router,
   ) {}
 
   ngOnInit(): void {
-    this.projetosService.carregarUsuariosDisponiveis().subscribe();
     this.carregarProjeto();
   }
 
@@ -54,7 +57,7 @@ export class ProjetoDetalhe implements OnInit {
     const id = Number(this.route.snapshot.paramMap.get('id'));
 
     this.projetosService.buscarPorId(id).subscribe({
-      next: (projeto) => (this.projeto = projeto),
+      next: (projeto) => this.definirProjeto(projeto),
       error: () => this.router.navigate(['/projetos']),
     });
   }
@@ -91,13 +94,17 @@ export class ProjetoDetalhe implements OnInit {
     this.abaAtiva = aba;
   }
 
+  trackById(_index: number, item: { id: number }): number {
+    return item.id;
+  }
+
   atualizarStatus(): void {
     if (!this.projeto) {
       return;
     }
 
     this.projetosService.atualizarStatus(this.projeto.id, this.projeto.status).subscribe({
-      next: (projetoAtualizado) => (this.projeto = projetoAtualizado),
+      next: (projetoAtualizado) => this.definirProjeto(projetoAtualizado),
       error: () => alert('Não foi possível atualizar o status.'),
     });
   }
@@ -105,6 +112,24 @@ export class ProjetoDetalhe implements OnInit {
   abrirModalMembro(): void {
     this.usuarioSelecionadoId = null;
     this.modalMembroAberto = true;
+
+    if (this.usuariosDisponiveisCarregados || this.carregandoUsuariosDisponiveis) {
+      return;
+    }
+
+    this.carregandoUsuariosDisponiveis = true;
+    this.projetosService.carregarUsuariosDisponiveis().subscribe({
+      next: () => {
+        this.carregandoUsuariosDisponiveis = false;
+        this.usuariosDisponiveisCarregados = true;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.carregandoUsuariosDisponiveis = false;
+        alert('Nao foi possivel carregar os usuarios disponiveis.');
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   fecharModalMembro(): void {
@@ -118,7 +143,7 @@ export class ProjetoDetalhe implements OnInit {
 
     this.projetosService.adicionarMembro(this.projeto.id, Number(this.usuarioSelecionadoId)).subscribe({
       next: (projetoAtualizado) => {
-        this.projeto = projetoAtualizado;
+        this.definirProjeto(projetoAtualizado);
         this.fecharModalMembro();
       },
       error: () => alert('Não foi possível adicionar o membro.'),
@@ -150,7 +175,7 @@ export class ProjetoDetalhe implements OnInit {
       })
       .subscribe({
         next: (projetoAtualizado) => {
-          this.projeto = projetoAtualizado;
+          this.definirProjeto(projetoAtualizado);
           this.fecharModalMarco();
         },
         error: () => alert('Não foi possível adicionar o marco.'),
@@ -191,7 +216,7 @@ export class ProjetoDetalhe implements OnInit {
       })
       .subscribe({
         next: (projetoAtualizado) => {
-          this.projeto = projetoAtualizado;
+          this.definirProjeto(projetoAtualizado);
           this.fecharModalTarefa();
         },
         error: (erro) => {
@@ -259,5 +284,10 @@ export class ProjetoDetalhe implements OnInit {
     }
 
     return 'pendente';
+  }
+
+  private definirProjeto(projeto: Projeto): void {
+    this.projeto = projeto;
+    this.cdr.markForCheck();
   }
 }

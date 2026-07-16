@@ -46,7 +46,7 @@ describe('responseCacheInterceptor', () => {
   });
 
   it('deduplicates equal GET requests while the first one is pending', () => {
-    const url = '/api/projetos?empresaId=7';
+    const url = '/api/projetos/resumos?empresaId=7';
     const responses: unknown[] = [];
 
     http.get(url).subscribe((response) => responses.push(response));

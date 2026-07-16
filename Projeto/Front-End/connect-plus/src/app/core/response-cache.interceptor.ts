@@ -14,7 +14,7 @@ const CACHE_POLICIES: readonly CachePolicy[] = [
   { matches: /\/api\/empresas\/\d+\/?$/, ttlMs: 60_000 },
   { matches: /\/api\/usuarios\/empresa\/\d+\/?$/, ttlMs: 45_000 },
   {
-    matches: /\/api\/projetos(?:\/\d+|\/usuarios-disponiveis)?\/?$/,
+    matches: /\/api\/projetos(?:\/\d+|\/(?:usuarios-disponiveis|resumos))?\/?$/,
     ttlMs: 30_000,
   },
   { matches: /\/api\/tarefas\/empresa\/\d+\/?$/, ttlMs: 15_000 },

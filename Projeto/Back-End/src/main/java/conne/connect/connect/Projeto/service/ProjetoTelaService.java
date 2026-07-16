@@ -6,6 +6,7 @@ import conne.connect.connect.Empresa.repository.EmpresaRepository;
 import conne.connect.connect.Feedback.service.FeedbackService;
 import conne.connect.connect.Projeto.dto.ProjetoRequestDTO;
 import conne.connect.connect.Projeto.dto.ProjetoResponseDTO;
+import conne.connect.connect.Projeto.dto.ProjetoResumoDTO;
 import conne.connect.connect.Projeto.enums.MarcoStatusProjetoTela;
 import conne.connect.connect.Projeto.enums.PrioridadeProjetoTela;
 import conne.connect.connect.Projeto.enums.ProjetoStatusTela;
@@ -75,10 +76,17 @@ public class ProjetoTelaService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "projetosPorEmpresa", key = "@autorizacao.empresaAtual() + ':' + #empresaId")
     public List<ProjetoResponseDTO> listar(Long empresaId) {
         validarEmpresaId(empresaId);
-        return mapper.toResponseList(projetoRepository.findByEmpresa_IdEmpresaAndExcluidoIsNullOrderByIdProjetoDesc(empresaId));
+        return mapper.toResponseList(
+            projetoRepository.findByEmpresa_IdEmpresaAndExcluidoIsNullOrderByIdProjetoDesc(empresaId));
+    }
+
+    @Transactional(readOnly = true)
+    @Cacheable(value = "projetosPorEmpresa", key = "@autorizacao.empresaAtual() + ':' + #empresaId")
+    public List<ProjetoResumoDTO> listarResumos(Long empresaId) {
+        validarEmpresaId(empresaId);
+        return projetoRepository.listarResumosPorEmpresa(empresaId);
     }
 
     @Transactional(readOnly = true)
@@ -89,15 +97,14 @@ public class ProjetoTelaService {
         return mapper.toResponse(projeto);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<ProjetoResponseDTO.PessoaDTO> listarUsuariosDisponiveis(Long empresaId) {
         validarEmpresaId(empresaId);
 
         return usuarioEmpresaRepository.findByIdEmpresa_IdEmpresaAndAtivoTrueAndExcluidoIsNull(empresaId)
             .stream()
             .sorted(Comparator.comparing(this::nomeDoUsuario, String.CASE_INSENSITIVE_ORDER))
-            .map(this::sincronizarPessoaDoProjeto)
-            .map(mapper::toPessoaResponse)
+            .map(this::toPessoaDisponivel)
             .toList();
     }
 
@@ -342,6 +349,25 @@ public class ProjetoTelaService {
         }
 
         return pessoaRepository.save(pessoa);
+    }
+
+    private ProjetoResponseDTO.PessoaDTO toPessoaDisponivel(UsuarioEmpresaModel usuarioEmpresa) {
+        UsuarioModel usuario = usuarioEmpresa.getIdUsuario();
+        String nome = usuario != null ? usuario.getNome() : "Usuario";
+        String email = usuario != null
+            ? usuario.getEmail()
+            : "usuario-" + usuarioEmpresa.getIdUsuarioEmpresa() + "@connect.local";
+
+        return new ProjetoResponseDTO.PessoaDTO(
+            usuarioEmpresa.getIdUsuarioEmpresa(),
+            nome,
+            formatarCargo(usuarioEmpresa.getPapel() != null ? usuarioEmpresa.getPapel().name() : null),
+            email,
+            gerarIniciais(nome),
+            0,
+            null,
+            Boolean.TRUE.equals(usuarioEmpresa.getAtivo()) && usuarioEmpresa.getExcluido() == null
+        );
     }
 
     private void validarCriacao(ProjetoRequestDTO request) {
