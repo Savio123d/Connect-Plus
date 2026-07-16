@@ -37,7 +37,7 @@ export class DashboardFactory {
   static criarCards(resumo: DashboardResumo): DashboardCard[] {
     return [
       {
-        titulo: 'Usuarios Ativos',
+        titulo: 'Usuários Ativos',
         valor: resumo.usuariosAtivos ?? 0,
         icone: 'people',
         iconeClasse: 'icone-usuarios',
@@ -49,7 +49,7 @@ export class DashboardFactory {
         iconeClasse: 'icone-projetos',
       },
       {
-        titulo: 'Tarefas Concluidas',
+        titulo: 'Tarefas Concluídas',
         valor: resumo.tarefasConcluidas ?? 0,
         icone: 'check_circle',
         iconeClasse: 'icone-tarefas',
@@ -83,7 +83,7 @@ export class DashboardFactory {
 
   static criarGraficoStatusTarefas(resumo: DashboardResumo): BarChartOptions {
     return new BarChartBuilder()
-      .withCategories(['Concluidas', 'Em Andamento', 'Pendentes', 'Atrasadas'])
+      .withCategories(['Concluídas', 'Em Andamento', 'Pendentes', 'Atrasadas'])
       .withSeries('Tarefas', [
         resumo.tarefasConcluidas ?? 0,
         resumo.tarefasEmAndamento ?? 0,

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -218,6 +218,8 @@ export class Tarefas implements OnInit, OnDestroy {
     },
   ];
 
+  private readonly cdr = inject(ChangeDetectorRef);
+
   constructor(
     private http: HttpClient,
     private authSessionService: AuthSessionService,
@@ -248,6 +250,8 @@ export class Tarefas implements OnInit, OnDestroy {
   private iniciarRelogioCronometro(): void {
     this.intervaloCronometro = setInterval(() => {
       this.agora = Date.now();
+      // Zoneless: timers não disparam verificação de mudanças sozinhos.
+      this.cdr.detectChanges();
     }, 1000);
   }
 

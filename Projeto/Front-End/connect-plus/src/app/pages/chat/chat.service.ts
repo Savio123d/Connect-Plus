@@ -12,6 +12,7 @@ import {
   UsuarioChat,
 } from './chat.model';
 import { environment } from '../../../environments/environment';
+import { AuthSessionService } from '../../core/auth-session.service';
 
 @Injectable({
   providedIn: 'root',
@@ -20,7 +21,10 @@ export class ChatService {
   private readonly apiUrl = `${environment.apiBase}/api`;
   private readonly wsUrl = `${environment.wsBase}/ws/chat`;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private authSessionService: AuthSessionService,
+  ) {}
 
   listarConversas(
     idUsuarioEmpresa: number,
@@ -135,7 +139,11 @@ export class ChatService {
     onEvento: (evento: ChatEvento) => void,
     onFechar?: () => void,
   ): WebSocket {
-    const socket = new WebSocket(`${this.wsUrl}?idUsuarioEmpresa=${idUsuarioEmpresa}`);
+    // O handshake do WebSocket exige o token de sessão (RBAC).
+    const token = this.authSessionService.obterToken() ?? '';
+    const socket = new WebSocket(
+      `${this.wsUrl}?idUsuarioEmpresa=${idUsuarioEmpresa}&token=${encodeURIComponent(token)}`,
+    );
 
     socket.onmessage = (message) => {
       try {

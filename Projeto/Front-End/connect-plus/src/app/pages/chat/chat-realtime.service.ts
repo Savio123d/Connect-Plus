@@ -32,7 +32,7 @@ export class ChatRealtimeService {
     this.statusSubject.next('conectando');
 
     try {
-      this.socket = new WebSocket(`${environment.wsBase}/ws/chat?usuarioEmpresaId=${idUsuarioEmpresa}&token=${encodeURIComponent(token)}`);
+      this.socket = new WebSocket(`${environment.wsBase}/ws/chat?idUsuarioEmpresa=${idUsuarioEmpresa}&token=${encodeURIComponent(token)}`);
 
       this.socket.onopen = () => this.statusSubject.next('conectado');
       this.socket.onclose = () => this.statusSubject.next('desconectado');

@@ -55,18 +55,25 @@
         </div>
       </div>
 
-
+      <div class="info-row">
+        <div class="info-item">
+          <div class="info-icon blue">ID</div>
 
           <div>
-            <span> Usuario</span>
+            <span>Usuário</span>
             <strong>{{ valorOuPlaceholder(usuario.idUsuario) }}</strong>
           </div>
         </div>
 
+        <div class="info-item">
+          <div class="info-icon purple">ID</div>
+
           <div>
-            <span> Usuario Empresa</span>
+            <span>Usuário Empresa</span>
             <strong>{{ valorOuPlaceholder(usuario.idUsuarioEmpresa) }}</strong>
           </div>
+        </div>
+      </div>
 
       <div class="xp-area">
         <div class="xp-header">
@@ -88,7 +95,7 @@
           Faltam {{ xpRestante() }} XP para o próximo nível
         </p>
       </div>
-
+    </div>
   </section>
 
   <section class="section-card">
@@ -114,13 +121,13 @@
 
     <div *ngIf="conquistas.length === 0" class="empty-state">
       <h2>Nenhuma conquista encontrada</h2>
-      <p>As conquistas serao exibidas quando houver XP suficiente.</p>
+      <p>As conquistas serão exibidas quando houver XP suficiente.</p>
     </div>
   </section>
 
   <section class="section-card">
     <header class="section-title">
-      <h2>Historico de Desempenho</h2>
+      <h2>Histórico de Desempenho</h2>
     </header>
 
     <div *ngIf="historico.length > 0" class="history-list">
@@ -135,7 +142,7 @@
 
           <div>
             <h3>{{ valorOuPlaceholder(item.mes) }}</h3>
-            <p>{{ item.tarefasConcluidas || 0 }} tarefas concluidas</p>
+            <p>{{ item.tarefasConcluidas || 0 }} tarefas concluídas</p>
           </div>
         </div>
 
@@ -146,7 +153,7 @@
     </div>
 
     <div *ngIf="historico.length === 0" class="empty-state">
-      <h2>Nenhum historico encontrado</h2>
+      <h2>Nenhum histórico encontrado</h2>
       <p>O desempenho mensal será exibido conforme o usuário ganhar XP.</p>
     </div>
   </section>

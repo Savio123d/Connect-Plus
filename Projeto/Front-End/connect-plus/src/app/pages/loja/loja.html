@@ -38,7 +38,7 @@
   </section>
 
   <div class="secao-titulo">
-    <h2>Recompensas Disponiveis</h2>
+    <h2>Recompensas Disponíveis</h2>
 
     <div class="filtros" aria-label="Filtrar recompensas">
       <button
@@ -76,7 +76,7 @@
       <p>{{ item.descricao || 'Recompensa disponível para resgate.' }}</p>
 
       <div class="estoque">
-        <span>Quantidade disponivel</span>
+        <span>Quantidade disponível</span>
         <strong [class.vazio]="estaEsgotado(item)">
           {{ estaEsgotado(item) ? 'Esgotada' : ((item.quantidadeDisponivel ?? 0) + ' un.') }}
         </strong>
@@ -117,9 +117,9 @@
       <p>Complete tarefas, alcance metas, ajude colegas e participe de projetos para acumular pontos.</p>
 
       <div class="legenda-xp">
-        <span><i class="facil"></i> Tarefas faceis: +10 XP</span>
-        <span><i class="media"></i> Tarefas medias: +20 XP</span>
-        <span><i class="dificil"></i> Tarefas dificeis: +50 XP</span>
+        <span><i class="facil"></i> Tarefas fáceis: +10 XP</span>
+        <span><i class="media"></i> Tarefas médias: +20 XP</span>
+        <span><i class="dificil"></i> Tarefas difíceis: +50 XP</span>
       </div>
     </div>
   </section>
@@ -147,13 +147,13 @@
       </label>
 
       <label>
-        Quantidade Disponivel
+        Quantidade Disponível
         <input name="quantidade" type="number" min="0" [(ngModel)]="formulario.quantidadeDisponivel" required />
       </label>
     </div>
 
     <label>
-      Descricao
+      Descrição
       <textarea name="descricao" rows="4" [(ngModel)]="formulario.descricao" placeholder="Descreva a recompensa..."></textarea>
     </label>
 

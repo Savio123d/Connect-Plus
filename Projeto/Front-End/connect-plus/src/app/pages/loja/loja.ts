@@ -203,13 +203,13 @@ export class Loja implements OnInit {
 
   labelCategoria(categoria?: string): string {
     const labels: Record<string, string> = {
-      Beneficio: 'Beneficios',
+      Beneficio: 'Benefícios',
       Desenvolvimento: 'Desenvolvimento',
       Conquista: 'Conquista',
       Todos: 'Todos',
     };
 
-    return labels[categoria ?? ''] ?? 'Beneficios';
+    return labels[categoria ?? ''] ?? 'Benefícios';
   }
 
   classeCor(cor?: string): string {

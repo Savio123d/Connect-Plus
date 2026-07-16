@@ -269,7 +269,7 @@ public class MensageriaService {
         if (!temConteudo(requestDTO.getConteudo()) && requestDTO.getAnexo() == null) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Informe o conteudo da mensagem ou um anexo."
+                    "Informe o conteúdo da mensagem ou um anexo."
             );
         }
     }

@@ -60,7 +60,7 @@ export class CadastroEmpresa implements OnInit {
 
     if (this.cadastroForm.invalid) {
       this.cadastroForm.markAllAsTouched();
-      this.mensagemErro = 'Preencha todos os campos obrigatorios corretamente.';
+      this.mensagemErro = 'Preencha todos os campos obrigatórios corretamente.';
       return;
     }
 
@@ -166,7 +166,7 @@ next: (resposta) => {
     const textoMinusculo = texto.toLowerCase();
 
     if (textoMinusculo.includes('cnpj')) {
-      return 'CNPJ ja cadastrado. Use outro CNPJ para criar uma nova empresa.';
+      return 'CNPJ já cadastrado. Use outro CNPJ para criar uma nova empresa.';
     }
 
     if (textoMinusculo.includes('email')) {
