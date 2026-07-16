@@ -9,11 +9,22 @@ import org.springframework.data.repository.query.Param;
 
 public interface UsuarioEmpresaRepository extends JpaRepository<UsuarioEmpresaModel, Long> {
 
+    List<UsuarioEmpresaModel> findByExcluidoIsNull();
+
     List<UsuarioEmpresaModel> findByIdEmpresa_IdEmpresa(Long idEmpresa);
+
+    List<UsuarioEmpresaModel> findByIdEmpresa_IdEmpresaAndExcluidoIsNull(Long idEmpresa);
 
     Optional<UsuarioEmpresaModel> findByIdUsuario_IdUsuario(Long idUsuario);
 
+    List<UsuarioEmpresaModel> findAllByIdUsuario_IdUsuarioAndExcluidoIsNull(Long idUsuario);
+
     Optional<UsuarioEmpresaModel> findByIdUsuarioEmpresaAndAtivoTrueAndExcluidoIsNull(Long idUsuarioEmpresa);
+
+    Optional<UsuarioEmpresaModel> findByIdUsuarioEmpresaAndIdEmpresa_IdEmpresaAndAtivoTrueAndExcluidoIsNull(
+            Long idUsuarioEmpresa,
+            Long idEmpresa
+    );
 
     Optional<UsuarioEmpresaModel> findFirstByIdUsuario_IdUsuarioAndAtivoTrueAndExcluidoIsNull(Long idUsuario);
 
@@ -27,4 +38,9 @@ public interface UsuarioEmpresaRepository extends JpaRepository<UsuarioEmpresaMo
               and usuarioEmpresa.excluido is null
             """)
     Long countUsuariosAtivosPorEmpresa(@Param("empresaId") Long empresaId);
+
+    boolean existsByIdUsuario_IdUsuarioAndIdEmpresa_IdEmpresaAndAtivoTrueAndExcluidoIsNull(
+            Long idUsuario,
+            Long idEmpresa
+    );
 }

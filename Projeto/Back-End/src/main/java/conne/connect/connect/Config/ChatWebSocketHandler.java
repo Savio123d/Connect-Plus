@@ -1,5 +1,6 @@
 package conne.connect.connect.Config;
 
+import conne.connect.connect.Security.TokenWebSocketHandshakeInterceptor;
 import conne.connect.connect.Conversa.service.MensageriaAcessoService;
 import conne.connect.connect.Conversa.service.MensageriaRealtimeService;
 import java.io.IOException;
@@ -30,7 +31,15 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         Long idUsuarioEmpresa = extrairIdUsuarioEmpresa(session);
         if (idUsuarioEmpresa == null) {
-            encerrarSessao(session, CloseStatus.BAD_DATA.withReason("Usuario invalido"));
+            encerrarSessao(session, CloseStatus.BAD_DATA.withReason("Usuário inválido"));
+            return;
+        }
+
+        Long idUsuarioEmpresaAutenticado = (Long) session.getAttributes().get(
+                TokenWebSocketHandshakeInterceptor.ATRIBUTO_USUARIO_EMPRESA
+        );
+        if (!idUsuarioEmpresa.equals(idUsuarioEmpresaAutenticado)) {
+            encerrarSessao(session, CloseStatus.POLICY_VIOLATION.withReason("Acesso negado"));
             return;
         }
 
@@ -39,7 +48,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             mensageriaRealtimeService.registrarSessao(idUsuarioEmpresa, session);
         } catch (ResponseStatusException erro) {
             CloseStatus status = erro.getStatusCode().value() == HttpStatus.NOT_FOUND.value()
-                    ? CloseStatus.POLICY_VIOLATION.withReason("Usuario nao encontrado")
+                    ? CloseStatus.POLICY_VIOLATION.withReason("Usuário não encontrado")
                     : CloseStatus.POLICY_VIOLATION.withReason("Acesso negado");
             encerrarSessao(session, status);
         }

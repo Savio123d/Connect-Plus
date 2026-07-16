@@ -1,5 +1,6 @@
 package conne.connect.connect.Tarefa.service;
 
+import conne.connect.connect.Security.AutorizacaoService;
 import conne.connect.connect.Empresa.model.EmpresaModel;
 import conne.connect.connect.Empresa.repository.EmpresaRepository;
 import conne.connect.connect.Projeto.enums.MarcoStatusProjetoTela;
@@ -18,9 +19,9 @@ import conne.connect.connect.Xp.model.TransacaoXpModel;
 import conne.connect.connect.Xp.repository.SaldoXpRepository;
 import conne.connect.connect.Xp.repository.TransacaoXpRepository;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -33,40 +34,52 @@ import org.springframework.web.server.ResponseStatusException;
 @Transactional
 public class TarefaService {
 
-    @Autowired
-    private TarefaRepository tarefaRepository;
+    private final TarefaRepository tarefaRepository;
+    private final EmpresaRepository empresaRepository;
+    private final ProjetoTelaRepository projetoRepository;
+    private final UsuarioEmpresaRepository usuarioEmpresaRepository;
+    private final SaldoXpRepository saldoXpRepository;
+    private final TransacaoXpRepository transacaoXpRepository;
+    private final AutorizacaoService autorizacaoService;
 
-    @Autowired
-    private EmpresaRepository empresaRepository;
-
-    @Autowired
-    private ProjetoTelaRepository projetoRepository;
-
-    @Autowired
-    private UsuarioEmpresaRepository usuarioEmpresaRepository;
-
-    @Autowired
-    private SaldoXpRepository saldoXpRepository;
-
-    @Autowired
-    private TransacaoXpRepository transacaoXpRepository;
+    public TarefaService(
+            TarefaRepository tarefaRepository,
+            EmpresaRepository empresaRepository,
+            ProjetoTelaRepository projetoRepository,
+            UsuarioEmpresaRepository usuarioEmpresaRepository,
+            SaldoXpRepository saldoXpRepository,
+            TransacaoXpRepository transacaoXpRepository,
+            AutorizacaoService autorizacaoService
+    ) {
+        this.tarefaRepository = tarefaRepository;
+        this.empresaRepository = empresaRepository;
+        this.projetoRepository = projetoRepository;
+        this.usuarioEmpresaRepository = usuarioEmpresaRepository;
+        this.saldoXpRepository = saldoXpRepository;
+        this.transacaoXpRepository = transacaoXpRepository;
+        this.autorizacaoService = autorizacaoService;
+    }
 
     @Transactional(readOnly = true)
     public List<TarefaModel> findAll() {
-        return tarefaRepository.findAll();
+        return tarefaRepository.findByIdEmpresa_IdEmpresaAndExcluidoIsNull(autorizacaoService.empresaAtual());
     }
 
-    @Cacheable(value = "tarefasPorEmpresa", key = "#empresaId")
+    @Cacheable(value = "tarefasPorEmpresa", key = "@autorizacao.empresaAtual() + ':' + #empresaId")
     @Transactional(readOnly = true)
     public List<TarefaModel> listarPorEmpresa(Long empresaId) {
+        autorizacaoService.validarEmpresaAtual(empresaId);
         return tarefaRepository.findByIdEmpresa_IdEmpresaAndExcluidoIsNull(empresaId);
     }
 
-    @Cacheable(value = "tarefaPorId", key = "#idTarefa")
+    @Cacheable(value = "tarefaPorId", key = "@autorizacao.empresaAtual() + ':' + #idTarefa")
     @Transactional(readOnly = true)
     public TarefaModel buscarPorId(Long idTarefa) {
-        return tarefaRepository.findById(idTarefa)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarefa nao encontrada"));
+        return tarefaRepository.findByIdTarefaAndIdEmpresa_IdEmpresaAndExcluidoIsNull(
+                idTarefa,
+                autorizacaoService.empresaAtual()
+        )
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarefa não encontrada"));
     }
 
     // Nova tarefa muda a listagem do quadro e o resumo/listagem dos projetos.
@@ -94,7 +107,7 @@ public class TarefaService {
     }
 
     @Caching(evict = {
-            @CacheEvict(value = "tarefaPorId", key = "#idTarefa"),
+            @CacheEvict(value = "tarefaPorId", key = "@autorizacao.empresaAtual() + ':' + #idTarefa"),
             @CacheEvict(value = "tarefasPorEmpresa", allEntries = true),
             @CacheEvict(value = "projetosPorEmpresa", allEntries = true)
     })
@@ -104,7 +117,7 @@ public class TarefaService {
         if (tarefa.getStatus() == StatusTarefa.concluida) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Tarefa concluida nao pode ser alterada"
+                    "Tarefa concluída não pode ser alterada."
             );
         }
 
@@ -115,13 +128,13 @@ public class TarefaService {
     }
 
     @Caching(evict = {
-            @CacheEvict(value = "tarefaPorId", key = "#idTarefa"),
+            @CacheEvict(value = "tarefaPorId", key = "@autorizacao.empresaAtual() + ':' + #idTarefa"),
             @CacheEvict(value = "tarefasPorEmpresa", allEntries = true),
             @CacheEvict(value = "projetosPorEmpresa", allEntries = true)
     })
     public TarefaModel atualizarStatus(Long idTarefa, StatusTarefa novoStatus) {
         if (novoStatus == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status da tarefa e obrigatorio");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status da tarefa é obrigatório");
         }
 
         TarefaModel tarefa = buscarPorId(idTarefa);
@@ -134,7 +147,7 @@ public class TarefaService {
 
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Tarefa concluida nao pode ser reaberta ou movida para outro status"
+                    "Tarefa concluída não pode ser reaberta ou movida para outro status"
             );
         }
 
@@ -161,17 +174,19 @@ public class TarefaService {
     }
 
     @Caching(evict = {
-            @CacheEvict(value = "tarefaPorId", key = "#idTarefa"),
+            @CacheEvict(value = "tarefaPorId", key = "@autorizacao.empresaAtual() + ':' + #idTarefa"),
             @CacheEvict(value = "tarefasPorEmpresa", allEntries = true),
             @CacheEvict(value = "projetosPorEmpresa", allEntries = true)
     })
     public TarefaModel iniciarCronometro(Long idTarefa) {
         TarefaModel tarefa = buscarPorId(idTarefa);
 
-        if (tarefa.getStatus() == StatusTarefa.concluida) {
+        if (tarefa.getStatus() == StatusTarefa.concluida
+                || tarefa.getStatus() == StatusTarefa.cancelada
+                || tarefa.getStatus() == StatusTarefa.arquivada) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Tarefa concluida nao pode ter o cronometro iniciado"
+                    "Tarefa finalizada não pode ter o cronômetro iniciado."
             );
         }
 
@@ -199,7 +214,7 @@ public class TarefaService {
     }
 
     @Caching(evict = {
-            @CacheEvict(value = "tarefaPorId", key = "#idTarefa"),
+            @CacheEvict(value = "tarefaPorId", key = "@autorizacao.empresaAtual() + ':' + #idTarefa"),
             @CacheEvict(value = "tarefasPorEmpresa", allEntries = true)
     })
     public TarefaModel pausarCronometro(Long idTarefa) {
@@ -214,14 +229,15 @@ public class TarefaService {
     }
 
     @Caching(evict = {
-            @CacheEvict(value = "tarefaPorId", key = "#idTarefa"),
+            @CacheEvict(value = "tarefaPorId", key = "@autorizacao.empresaAtual() + ':' + #idTarefa"),
             @CacheEvict(value = "tarefasPorEmpresa", allEntries = true),
             @CacheEvict(value = "projetosPorEmpresa", allEntries = true)
     })
     public void excluirTarefa(Long idTarefa) {
         TarefaModel tarefa = buscarPorId(idTarefa);
         ProjetoTelaModel projeto = tarefa.getIdProjeto();
-        tarefaRepository.delete(tarefa);
+        tarefa.setExcluido(LocalDate.now());
+        tarefaRepository.save(tarefa);
         recalcularProgressoProjeto(projeto);
     }
 
@@ -298,11 +314,26 @@ public class TarefaService {
             return;
         }
 
+        Long idEmpresa = tarefa.getIdEmpresa() != null ? tarefa.getIdEmpresa().getIdEmpresa() : null;
+        Long idEmpresaResponsavel = responsavel.getIdEmpresa() != null
+                ? responsavel.getIdEmpresa().getIdEmpresa()
+                : null;
+
+        if (idEmpresa == null || !idEmpresa.equals(idEmpresaResponsavel)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Responsável e tarefa devem pertencer à mesma empresa"
+            );
+        }
+
         if (tarefa.getIdTarefa() != null
-                && transacaoXpRepository.existsByIdTarefa_IdTarefaAndTipoAndExcluidoIsNull(
+                && transacaoXpRepository
+                .findFirstByIdTarefa_IdTarefaAndIdEmpresa_IdEmpresaAndIdUsuarioEmpresa_IdUsuarioEmpresaAndTipoAndExcluidoIsNull(
                 tarefa.getIdTarefa(),
+                idEmpresa,
+                responsavel.getIdUsuarioEmpresa(),
                 TipoTransacaoXp.ganho
-        )) {
+        ).isPresent()) {
             return;
         }
 
@@ -313,11 +344,12 @@ public class TarefaService {
         }
 
         SaldoXpModel saldo = saldoXpRepository
-                .findByIdUsuarioEmpresa_IdUsuarioEmpresaAndIdEmpresa_IdEmpresa(
+                .findByIdUsuarioEmpresa_IdUsuarioEmpresaAndIdEmpresa_IdEmpresaAndExcluidoIsNull(
                         responsavel.getIdUsuarioEmpresa(),
-                        tarefa.getIdEmpresa().getIdEmpresa()
+                        idEmpresa
                 )
                 .orElseGet(() -> criarSaldoXp(tarefa.getIdEmpresa(), responsavel));
+        validarSaldoDaEmpresa(saldo, idEmpresa);
 
         saldo.setXpTotal((saldo.getXpTotal() != null ? saldo.getXpTotal() : 0) + xp);
         saldoXpRepository.save(saldo);
@@ -328,7 +360,7 @@ public class TarefaService {
         transacao.setIdTarefa(tarefa);
         transacao.setTipo(TipoTransacaoXp.ganho);
         transacao.setValor(xp);
-        transacao.setObservacao("XP concedido pela conclusao da tarefa: " + tarefa.getTitulo());
+        transacao.setObservacao("XP concedido pela conclusão da tarefa: " + tarefa.getTitulo());
         transacaoXpRepository.save(transacao);
     }
 
@@ -340,16 +372,18 @@ public class TarefaService {
         return saldo;
     }
 
-    private Integer calcularXp(DificuldadeTarefa dificuldade) {
-        if (dificuldade == null) {
-            return 0;
+    private void validarSaldoDaEmpresa(SaldoXpModel saldo, Long idEmpresa) {
+        Long idEmpresaSaldo = saldo.getIdEmpresa() != null ? saldo.getIdEmpresa().getIdEmpresa() : null;
+        if (!idEmpresa.equals(idEmpresaSaldo)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Saldo de XP pertence a outra empresa"
+            );
         }
+    }
 
-        return switch (dificuldade) {
-            case facil -> 10;
-            case medio -> 20;
-            case dificil -> 50;
-        };
+    private Integer calcularXp(DificuldadeTarefa dificuldade) {
+        return dificuldade != null ? dificuldade.getXpConclusao() : 0;
     }
 
     private boolean statusMantemCronometroRodando(StatusTarefa status) {
@@ -357,21 +391,24 @@ public class TarefaService {
     }
 
     private EmpresaModel buscarEmpresa(Long idEmpresa) {
+        autorizacaoService.validarEmpresaAtual(idEmpresa);
         if (idEmpresa == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID da empresa e obrigatorio");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID da empresa é obrigatório");
         }
 
         return empresaRepository.findById(idEmpresa)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa nao encontrada"));
+                .filter(empresa -> empresa.getExcluido() == null)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa não encontrada"));
     }
 
     private ProjetoTelaModel buscarProjeto(Long idProjeto) {
         if (idProjeto == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID do projeto e obrigatorio");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID do projeto é obrigatório");
         }
 
         return projetoRepository.findById(idProjeto)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Projeto nao encontrado"));
+                .filter(projeto -> projeto.getExcluido() == null)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Projeto não encontrado"));
     }
 
     private UsuarioEmpresaModel buscarResponsavel(Long idResponsavelUsuarioEmpresa, Long idEmpresa) {
@@ -380,16 +417,16 @@ public class TarefaService {
         }
 
         UsuarioEmpresaModel responsavel = usuarioEmpresaRepository.findById(idResponsavelUsuarioEmpresa)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Responsavel nao encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Responsável não encontrado"));
 
         if (responsavel.getIdEmpresa() == null
                 || responsavel.getIdEmpresa().getIdEmpresa() == null
                 || !responsavel.getIdEmpresa().getIdEmpresa().equals(idEmpresa)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Responsavel nao pertence a empresa da tarefa");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Responsável não pertence à empresa da tarefa");
         }
 
         if (!Boolean.TRUE.equals(responsavel.getAtivo()) || responsavel.getExcluido() != null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Responsavel inativo ou excluido");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Responsável inativo ou excluído");
         }
 
         return responsavel;
@@ -399,7 +436,7 @@ public class TarefaService {
         if (projeto.getEmpresa() == null
                 || projeto.getEmpresa().getIdEmpresa() == null
                 || !projeto.getEmpresa().getIdEmpresa().equals(empresa.getIdEmpresa())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Projeto nao pertence a empresa da tarefa");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Projeto não pertence à empresa da tarefa");
         }
     }
 
@@ -408,21 +445,19 @@ public class TarefaService {
             return;
         }
 
-        List<TarefaModel> tarefas = tarefaRepository
-                .findByIdProjeto_IdProjetoAndExcluidoIsNullOrderByIdTarefaAsc(projeto.getIdProjeto());
+        // Counts no banco evitam carregar todas as tarefas do projeto so para medir progresso.
+        long totalTarefas = tarefaRepository
+                .countByIdProjeto_IdProjetoAndExcluidoIsNull(projeto.getIdProjeto());
+        long tarefasConcluidas = tarefaRepository
+                .countByIdProjeto_IdProjetoAndStatusAndExcluidoIsNull(projeto.getIdProjeto(), StatusTarefa.concluida);
 
-        int totalTarefas = tarefas.size();
-        int tarefasConcluidas = (int) tarefas.stream()
-                .filter(tarefa -> tarefa.getStatus() == StatusTarefa.concluida)
-                .count();
-
-        int totalMarcos = projeto.getMarcos().size();
-        int marcosConcluidos = (int) projeto.getMarcos().stream()
+        long totalMarcos = projeto.getMarcos().size();
+        long marcosConcluidos = projeto.getMarcos().stream()
                 .filter(marco -> marco.getStatus() == MarcoStatusProjetoTela.CONCLUIDO)
                 .count();
 
-        int totalItens = totalTarefas + totalMarcos;
-        int totalConcluidos = tarefasConcluidas + marcosConcluidos;
+        long totalItens = totalTarefas + totalMarcos;
+        long totalConcluidos = tarefasConcluidas + marcosConcluidos;
 
         projeto.setProgresso(totalItens > 0
                 ? (int) Math.round((totalConcluidos * 100.0) / totalItens)

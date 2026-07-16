@@ -1,15 +1,22 @@
 package conne.connect.connect.Usuario.service;
 
+import conne.connect.connect.Security.AutorizacaoService;
 import conne.connect.connect.Usuario.dto.AlterarSenhaRequestDTO;
 import conne.connect.connect.Usuario.dto.UsuarioDTO;
 import conne.connect.connect.Usuario.dto.UsuarioRequestDTO;
+import conne.connect.connect.Usuario.enums.StatusUsuario;
 import conne.connect.connect.Usuario.model.UsuarioEmpresaModel;
 import conne.connect.connect.Usuario.model.UsuarioModel;
 import conne.connect.connect.Usuario.repository.UsuarioEmpresaRepository;
 import conne.connect.connect.Usuario.repository.UsuarioRepository;
 import conne.connect.connect.Xp.model.SaldoXpModel;
 import conne.connect.connect.Xp.repository.SaldoXpRepository;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,36 +31,54 @@ public class UsuarioService {
     private final UsuarioEmpresaRepository usuarioEmpresaRepository;
     private final SaldoXpRepository saldoXpRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AutorizacaoService autorizacaoService;
 
     public UsuarioService(
             UsuarioRepository usuarioRepository,
             UsuarioEmpresaRepository usuarioEmpresaRepository,
             SaldoXpRepository saldoXpRepository,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            AutorizacaoService autorizacaoService
     ) {
         this.usuarioRepository = usuarioRepository;
         this.usuarioEmpresaRepository = usuarioEmpresaRepository;
         this.saldoXpRepository = saldoXpRepository;
         this.passwordEncoder = passwordEncoder;
+        this.autorizacaoService = autorizacaoService;
     }
 
     @Transactional(readOnly = true)
     public List<UsuarioDTO> findAll() {
-        return usuarioRepository.findAll()
-                .stream()
-                .map(UsuarioDTO::fromModel)
-                .toList();
+        Long idEmpresa = autorizacaoService.empresaAtual();
+        return idEmpresa == null ? List.of() : listarUsuariosDaEmpresa(idEmpresa);
     }
 
     @Cacheable(value = "usuariosPorEmpresa", key = "#idEmpresa")
     @Transactional(readOnly = true)
     public List<UsuarioDTO> listarUsuariosDaEmpresa(Long idEmpresa) {
-        return usuarioEmpresaRepository.findByIdEmpresa_IdEmpresa(idEmpresa)
+        List<UsuarioEmpresaModel> vinculos =
+                usuarioEmpresaRepository.findByIdEmpresa_IdEmpresaAndExcluidoIsNull(idEmpresa);
+
+        // Um unico SELECT de saldos da empresa evita uma consulta por usuario (N+1)
+        // e garante que o saldo exibido pertence a esta empresa.
+        Map<Long, SaldoXpModel> saldosPorVinculo = saldoXpRepository
+                .findByIdEmpresa_IdEmpresaAndExcluidoIsNull(idEmpresa)
                 .stream()
-                .map(this::montarUsuarioEmpresaDTO)
+                .filter(saldo -> saldo.getIdUsuarioEmpresa() != null
+                        && saldo.getIdUsuarioEmpresa().getIdUsuarioEmpresa() != null)
+                .collect(Collectors.toMap(
+                        saldo -> saldo.getIdUsuarioEmpresa().getIdUsuarioEmpresa(),
+                        Function.identity(),
+                        (primeiro, segundo) -> primeiro));
+
+        return vinculos.stream()
+                .map(vinculo -> UsuarioDTO.fromUsuarioEmpresa(
+                        vinculo,
+                        saldosPorVinculo.get(vinculo.getIdUsuarioEmpresa())))
                 .toList();
     }
 
+    @Transactional
     public UsuarioDTO criarUsuario(UsuarioRequestDTO usuarioRequestDTO) {
         validarEmailDisponivel(usuarioRequestDTO.getEmail(), null);
 
@@ -69,6 +94,7 @@ public class UsuarioService {
         return UsuarioDTO.fromModel(buscarUsuarioExistente(idUsuario));
     }
 
+    @Transactional
     public UsuarioDTO atualizarUsuario(Long idUsuario, UsuarioRequestDTO usuarioRequestDTO){
         UsuarioModel usuario = buscarUsuarioExistente(idUsuario);
 
@@ -81,9 +107,24 @@ public class UsuarioService {
         return UsuarioDTO.fromModel(usuarioRepository.save(usuario));
     }
 
+    // Exclusao logica: usuario vira inativo e os vinculos com empresas sao desativados,
+    // preservando historico de tarefas, XP e resgates.
+    @Transactional
+    @CacheEvict(value = "usuariosPorEmpresa", allEntries = true)
     public void excluirUsuario(Long idUsuario){
         UsuarioModel usuario = buscarUsuarioExistente(idUsuario);
-        usuarioRepository.delete(usuario);
+        usuario.setStatus(StatusUsuario.inativo);
+        usuarioRepository.save(usuario);
+
+        List<UsuarioEmpresaModel> vinculos =
+                usuarioEmpresaRepository.findAllByIdUsuario_IdUsuarioAndExcluidoIsNull(idUsuario);
+
+        for (UsuarioEmpresaModel vinculo : vinculos) {
+            vinculo.setAtivo(false);
+            vinculo.setExcluido(LocalDate.now());
+        }
+
+        usuarioEmpresaRepository.saveAll(vinculos);
     }
 
 
@@ -102,19 +143,11 @@ public class UsuarioService {
         usuarioRepository.save(usuario);
     }
 
-    private UsuarioDTO montarUsuarioEmpresaDTO(UsuarioEmpresaModel usuarioEmpresa) {
-        SaldoXpModel saldoXp = saldoXpRepository
-                .findByIdUsuarioEmpresa_IdUsuarioEmpresa(usuarioEmpresa.getIdUsuarioEmpresa())
-                .orElse(null);
-
-        return UsuarioDTO.fromUsuarioEmpresa(usuarioEmpresa, saldoXp);
-    }
-
     private UsuarioModel buscarUsuarioExistente(Long idUsuario) {
         return usuarioRepository.findById(idUsuario)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Usuario nao encontrado."
+                        "Usuário não encontrado."
                 ));
     }
 
@@ -126,7 +159,7 @@ public class UsuarioService {
         if (emailEmUso) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "Email ja cadastrado."
+                    "E-mail já cadastrado."
             );
         }
     }

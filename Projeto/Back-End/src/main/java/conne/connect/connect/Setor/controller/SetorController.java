@@ -4,8 +4,6 @@ import conne.connect.connect.Setor.model.SetorModel;
 import conne.connect.connect.Setor.service.SetorService;
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,8 +19,11 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RestController
 public class SetorController {
 
-    @Autowired
-    private SetorService setorService;
+    private final SetorService setorService;
+
+    public SetorController(SetorService setorService) {
+        this.setorService = setorService;
+    }
 
     @GetMapping
     public ResponseEntity<List<SetorModel>> findAll() {
@@ -44,8 +45,8 @@ public class SetorController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<SetorModel>> buscarPorId(@PathVariable("id") Long idSetor) {
-        return ResponseEntity.ok(setorService.buscarPorId(idSetor));
+    public ResponseEntity<SetorModel> buscarPorId(@PathVariable("id") Long idSetor) {
+        return ResponseEntity.of(setorService.buscarPorId(idSetor));
     }
 
     @PutMapping("/{id}")

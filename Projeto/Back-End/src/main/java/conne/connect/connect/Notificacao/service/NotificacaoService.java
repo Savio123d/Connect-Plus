@@ -5,10 +5,10 @@ import conne.connect.connect.Notificacao.model.NotificacaoModel;
 import conne.connect.connect.Notificacao.repository.NotificacaoRepository;
 import conne.connect.connect.NotificacoesSistem.dto.NotificacaoPushDTO;
 import conne.connect.connect.NotificacoesSistem.service.NotificacaoRealtimeService;
+import conne.connect.connect.Security.AutorizacaoService;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -20,22 +20,35 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class NotificacaoService {
 
-    @Autowired
-    private NotificacaoRepository notificacaoRepository;
+    private final NotificacaoRepository notificacaoRepository;
+    private final NotificacaoRealtimeService notificacaoRealtimeService;
+    private final AutorizacaoService autorizacaoService;
 
-    @Autowired
-    private NotificacaoRealtimeService notificacaoRealtimeService;
+    public NotificacaoService(
+            NotificacaoRepository notificacaoRepository,
+            NotificacaoRealtimeService notificacaoRealtimeService,
+            AutorizacaoService autorizacaoService
+    ) {
+        this.notificacaoRepository = notificacaoRepository;
+        this.notificacaoRealtimeService = notificacaoRealtimeService;
+        this.autorizacaoService = autorizacaoService;
+    }
 
     @Transactional(readOnly = true)
     public List<NotificacaoModel> findAll() {
-        return notificacaoRepository.findAll();
+        Long idEmpresa = autorizacaoService.empresaAtual();
+        return idEmpresa == null
+                ? List.of()
+                : notificacaoRepository.findByIdEmpresa_IdEmpresaAndExcluidoIsNull(idEmpresa);
     }
 
+    @Transactional
     @Caching(evict = {
             @CacheEvict(value = "notificacoesNaoLidas", allEntries = true),
             @CacheEvict(value = "notificacoesUltimas", allEntries = true)
     })
     public NotificacaoModel criarNotificacao(NotificacaoModel notificacaoModel) {
+        validarEscopoNotificacao(notificacaoModel);
         NotificacaoModel notificacaoSalva = notificacaoRepository.save(notificacaoModel);
 
         notificacaoRealtimeService.enviarParaUsuario(
@@ -48,9 +61,11 @@ public class NotificacaoService {
 
     @Transactional(readOnly = true)
     public Optional<NotificacaoModel> buscarPorId(Long idNotificacao) {
-        return notificacaoRepository.findById(idNotificacao);
+        return notificacaoRepository.findByIdNotificacaoAndExcluidoIsNull(idNotificacao)
+                .filter(this::podeAcessarNotificacao);
     }
 
+    @Transactional
     @Caching(evict = {
             @CacheEvict(value = "notificacoesNaoLidas", allEntries = true),
             @CacheEvict(value = "notificacoesUltimas", allEntries = true)
@@ -59,11 +74,8 @@ public class NotificacaoService {
             Long idNotificacao,
             NotificacaoModel notificacaoModel
     ) {
-        NotificacaoModel notificacao = notificacaoRepository.findById(idNotificacao)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Notificação não encontrada."
-                ));
+        NotificacaoModel notificacao = buscarNotificacaoExistente(idNotificacao);
+        validarEscopoNotificacao(notificacaoModel);
 
         notificacao.setIdEmpresa(notificacaoModel.getIdEmpresa());
         notificacao.setIdUsuarioEmpresa(notificacaoModel.getIdUsuarioEmpresa());
@@ -75,23 +87,20 @@ public class NotificacaoService {
         return notificacaoRepository.save(notificacao);
     }
 
+    @Transactional
     @Caching(evict = {
             @CacheEvict(value = "notificacoesNaoLidas", allEntries = true),
             @CacheEvict(value = "notificacoesUltimas", allEntries = true)
     })
     public void excluirNotificacao(Long idNotificacao) {
-        NotificacaoModel notificacao = notificacaoRepository.findById(idNotificacao)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Notificação não encontrada."
-                ));
-
+        NotificacaoModel notificacao = buscarNotificacaoExistente(idNotificacao);
         notificacao.setExcluido(LocalDate.now());
         notificacaoRepository.save(notificacao);
     }
 
     @Transactional(readOnly = true)
     public List<NotificacaoResponseDTO> buscarPorUsuarioEmpresa(Long idUsuarioEmpresa) {
+        validarDestinatario(idUsuarioEmpresa);
         return notificacaoRepository
                 .findByIdUsuarioEmpresa_IdUsuarioEmpresaAndExcluidoIsNullOrderByDataCriacaoDesc(
                         idUsuarioEmpresa
@@ -104,6 +113,7 @@ public class NotificacaoService {
     @Cacheable(value = "notificacoesUltimas", key = "#idUsuarioEmpresa")
     @Transactional(readOnly = true)
     public List<NotificacaoResponseDTO> buscarUltimasPorUsuarioEmpresa(Long idUsuarioEmpresa) {
+        validarDestinatario(idUsuarioEmpresa);
         return notificacaoRepository
                 .findTop5ByIdUsuarioEmpresa_IdUsuarioEmpresaAndExcluidoIsNullOrderByDataCriacaoDesc(
                         idUsuarioEmpresa
@@ -116,23 +126,20 @@ public class NotificacaoService {
     @Cacheable(value = "notificacoesNaoLidas", key = "#idUsuarioEmpresa")
     @Transactional(readOnly = true)
     public long contarNaoLidasPorUsuarioEmpresa(Long idUsuarioEmpresa) {
+        validarDestinatario(idUsuarioEmpresa);
         return notificacaoRepository
                 .countByIdUsuarioEmpresa_IdUsuarioEmpresaAndLidaFalseAndExcluidoIsNull(
                         idUsuarioEmpresa
                 );
     }
 
+    @Transactional
     @Caching(evict = {
             @CacheEvict(value = "notificacoesNaoLidas", allEntries = true),
             @CacheEvict(value = "notificacoesUltimas", allEntries = true)
     })
     public NotificacaoResponseDTO marcarComoLida(Long idNotificacao) {
-        NotificacaoModel notificacao = notificacaoRepository.findById(idNotificacao)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Notificação não encontrada."
-                ));
-
+        NotificacaoModel notificacao = buscarNotificacaoExistente(idNotificacao);
         notificacao.setLida(true);
 
         NotificacaoModel notificacaoSalva = notificacaoRepository.save(notificacao);
@@ -143,6 +150,59 @@ public class NotificacaoService {
         );
 
         return NotificacaoResponseDTO.fromModel(notificacaoSalva);
+    }
+
+    private NotificacaoModel buscarNotificacaoExistente(Long idNotificacao) {
+        NotificacaoModel notificacao = notificacaoRepository
+                .findByIdNotificacaoAndExcluidoIsNull(idNotificacao)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Notificação não encontrada."
+                ));
+        validarAcessoNotificacao(notificacao);
+        return notificacao;
+    }
+
+    private void validarEscopoNotificacao(NotificacaoModel notificacao) {
+        if (notificacao.getIdEmpresa() == null
+                || !autorizacaoService.mesmaEmpresa(notificacao.getIdEmpresa().getIdEmpresa())
+                || notificacao.getIdUsuarioEmpresa() == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "A notificação deve pertencer à empresa autenticada."
+            );
+        }
+
+        validarDestinatario(notificacao.getIdUsuarioEmpresa().getIdUsuarioEmpresa());
+    }
+
+    private void validarDestinatario(Long idUsuarioEmpresa) {
+        if (!autorizacaoService.vinculoDaEmpresa(idUsuarioEmpresa)
+                || (!autorizacaoService.proprioVinculo(idUsuarioEmpresa)
+                && !autorizacaoService.ehGestor())) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Você não pode acessar notificações de outro usuário."
+            );
+        }
+    }
+
+    private boolean podeAcessarNotificacao(NotificacaoModel notificacao) {
+        return notificacao.getIdEmpresa() != null
+                && autorizacaoService.mesmaEmpresa(notificacao.getIdEmpresa().getIdEmpresa())
+                && notificacao.getIdUsuarioEmpresa() != null
+                && (autorizacaoService.ehGestor()
+                || autorizacaoService.proprioVinculo(
+                        notificacao.getIdUsuarioEmpresa().getIdUsuarioEmpresa()));
+    }
+
+    private void validarAcessoNotificacao(NotificacaoModel notificacao) {
+        if (!podeAcessarNotificacao(notificacao)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Você não pode acessar esta notificação."
+            );
+        }
     }
 
     private NotificacaoPushDTO paraPushDTO(NotificacaoModel notificacao, String evento) {

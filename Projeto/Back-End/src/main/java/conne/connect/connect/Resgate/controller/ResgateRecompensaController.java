@@ -4,8 +4,6 @@ import conne.connect.connect.Resgate.model.ResgateRecompensaModel;
 import conne.connect.connect.Resgate.service.ResgateRecompensaService;
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,8 +19,11 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RestController
 public class ResgateRecompensaController {
 
-    @Autowired
-    private ResgateRecompensaService resgateRecompensaService;
+    private final ResgateRecompensaService resgateRecompensaService;
+
+    public ResgateRecompensaController(ResgateRecompensaService resgateRecompensaService) {
+        this.resgateRecompensaService = resgateRecompensaService;
+    }
 
     @GetMapping
     public ResponseEntity<List<ResgateRecompensaModel>> findAll() {
@@ -44,8 +45,8 @@ public class ResgateRecompensaController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<ResgateRecompensaModel>> buscarPorId(@PathVariable("id") Long idResgateRecompensa) {
-        return ResponseEntity.ok(resgateRecompensaService.buscarPorId(idResgateRecompensa));
+    public ResponseEntity<ResgateRecompensaModel> buscarPorId(@PathVariable("id") Long idResgateRecompensa) {
+        return ResponseEntity.of(resgateRecompensaService.buscarPorId(idResgateRecompensa));
     }
 
     @PutMapping("/{id}")

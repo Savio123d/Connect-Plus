@@ -1,5 +1,6 @@
 package conne.connect.connect.Feedback.service;
 
+import conne.connect.connect.Security.AutorizacaoService;
 import conne.connect.connect.Empresa.model.EmpresaModel;
 import conne.connect.connect.Empresa.repository.EmpresaRepository;
 import conne.connect.connect.Feedback.dto.Feedback360GestorDTO;
@@ -56,6 +57,7 @@ public class FeedbackService {
     private final ProjetoTelaRepository projetoTelaRepository;
     private final TarefaRepository tarefaRepository;
     private final NotificacaoService notificacaoService;
+    private final AutorizacaoService autorizacaoService;
 
     public FeedbackService(
             FeedbackRepository feedbackRepository,
@@ -66,7 +68,8 @@ public class FeedbackService {
             UsuarioEmpresaRepository usuarioEmpresaRepository,
             ProjetoTelaRepository projetoTelaRepository,
             TarefaRepository tarefaRepository,
-            NotificacaoService notificacaoService
+            NotificacaoService notificacaoService,
+            AutorizacaoService autorizacaoService
     ) {
         this.feedbackRepository = feedbackRepository;
         this.feedback360RodadaRepository = feedback360RodadaRepository;
@@ -77,6 +80,7 @@ public class FeedbackService {
         this.projetoTelaRepository = projetoTelaRepository;
         this.tarefaRepository = tarefaRepository;
         this.notificacaoService = notificacaoService;
+        this.autorizacaoService = autorizacaoService;
     }
 
     @Transactional(readOnly = true)
@@ -112,6 +116,7 @@ public class FeedbackService {
             String filtro
     ) {
         validarEmpresaId(empresaId);
+        autorizacaoService.validarAcessoAoVinculo(destinatarioUsuarioEmpresaId);
         buscarUsuarioEmpresaDaMesmaEmpresa(
                 destinatarioUsuarioEmpresaId,
                 empresaId,
@@ -183,6 +188,7 @@ public class FeedbackService {
             Long autorUsuarioEmpresaId
     ) {
         validarEmpresaId(empresaId);
+        autorizacaoService.validarVinculoAtual(autorUsuarioEmpresaId);
 
         UsuarioEmpresaModel avaliador = buscarUsuarioEmpresaDaMesmaEmpresa(
                 autorUsuarioEmpresaId,
@@ -205,6 +211,7 @@ public class FeedbackService {
     @Transactional(readOnly = true)
     public Feedback360StatusDTO buscarStatus360(Long empresaId, Long usuarioEmpresaId) {
         validarEmpresaId(empresaId);
+        autorizacaoService.validarVinculoAtual(usuarioEmpresaId);
 
         UsuarioEmpresaModel usuarioEmpresa = buscarUsuarioEmpresaDaMesmaEmpresa(
                 usuarioEmpresaId,
@@ -248,6 +255,7 @@ public class FeedbackService {
         }
 
         validarEmpresaId(dto.getEmpresaId());
+        autorizacaoService.validarVinculoAtual(dto.getGestorUsuarioEmpresaId());
 
         UsuarioEmpresaModel gestor = buscarUsuarioEmpresaDaMesmaEmpresa(
                 dto.getGestorUsuarioEmpresaId(),
@@ -278,6 +286,7 @@ public class FeedbackService {
         }
 
         validarEmpresaId(dto.getEmpresaId());
+        autorizacaoService.validarVinculoAtual(dto.getUsuarioEmpresaId());
 
         if (dto.getUsuarioEmpresaId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuário é obrigatório.");
@@ -335,6 +344,7 @@ public class FeedbackService {
             Long usuarioEmpresaId
     ) {
         validarEmpresaId(empresaId);
+        autorizacaoService.validarVinculoAtual(usuarioEmpresaId);
 
         UsuarioEmpresaModel usuarioEmpresa = buscarUsuarioEmpresaDaMesmaEmpresa(
                 usuarioEmpresaId,
@@ -386,6 +396,7 @@ public class FeedbackService {
             Long gestorUsuarioEmpresaId
     ) {
         validarEmpresaId(empresaId);
+        autorizacaoService.validarVinculoAtual(gestorUsuarioEmpresaId);
 
         UsuarioEmpresaModel gestor = buscarUsuarioEmpresaDaMesmaEmpresa(
                 gestorUsuarioEmpresaId,
@@ -523,6 +534,7 @@ public class FeedbackService {
     @Transactional
     public FeedbackResponseDTO criarFeedback(FeedbackRequestDTO dto) {
         validarFeedbackManual(dto);
+        autorizacaoService.validarVinculoAtual(dto.getAutorUsuarioEmpresaId());
 
         EmpresaModel empresa = buscarEmpresa(dto.getEmpresaId());
 
@@ -568,6 +580,7 @@ public class FeedbackService {
     @Transactional
     public FeedbackResponseDTO criarAvaliacao360(Feedback360RequestDTO dto) {
         validarAvaliacao360(dto);
+        autorizacaoService.validarVinculoAtual(dto.getAutorUsuarioEmpresaId());
 
         Feedback360AvaliacaoModel avaliacaoPendente = buscarAvaliacaoPendente(dto);
 
@@ -629,6 +642,8 @@ public class FeedbackService {
                         "Feedback não encontrado para esta empresa."
                 ));
 
+        autorizacaoService.validarAcessoAoVinculo(feedback.getIdAutorUsuarioEmpresa().getIdUsuarioEmpresa());
+
         if (Boolean.TRUE.equals(feedback.getAvaliacao360())) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
@@ -673,6 +688,7 @@ public class FeedbackService {
                         "Feedback não encontrado para esta empresa."
                 ));
 
+        autorizacaoService.validarAcessoAoVinculo(feedback.getIdAutorUsuarioEmpresa().getIdUsuarioEmpresa());
         feedback.setExcluido(LocalDate.now());
         feedbackRepository.save(feedback);
     }
@@ -792,7 +808,8 @@ public class FeedbackService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Projeto é obrigatório.");
         }
 
-        ProjetoTelaModel projeto = projetoTelaRepository.findById(projetoId)
+        ProjetoTelaModel projeto = projetoTelaRepository
+                .findByIdProjetoAndEmpresa_IdEmpresaAndExcluidoIsNull(projetoId, empresaId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Projeto não encontrado."
@@ -810,7 +827,8 @@ public class FeedbackService {
     }
 
     private TarefaModel buscarTarefaDaEmpresa(Long tarefaId, Long empresaId) {
-        TarefaModel tarefa = tarefaRepository.findById(tarefaId)
+        TarefaModel tarefa = tarefaRepository
+                .findByIdTarefaAndIdEmpresa_IdEmpresaAndExcluidoIsNull(tarefaId, empresaId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Tarefa não encontrada."
@@ -836,7 +854,11 @@ public class FeedbackService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, mensagemErro);
         }
 
-        UsuarioEmpresaModel usuarioEmpresa = usuarioEmpresaRepository.findById(usuarioEmpresaId)
+        UsuarioEmpresaModel usuarioEmpresa = usuarioEmpresaRepository
+                .findByIdUsuarioEmpresaAndIdEmpresa_IdEmpresaAndAtivoTrueAndExcluidoIsNull(
+                        usuarioEmpresaId,
+                        empresaId
+                )
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.BAD_REQUEST,
                         mensagemErro
@@ -1010,6 +1032,8 @@ public class FeedbackService {
                     "Empresa do usuário logado não encontrada."
             );
         }
+
+        autorizacaoService.validarEmpresaAtual(empresaId);
     }
 
     private void validarGestor(UsuarioEmpresaModel usuarioEmpresa) {

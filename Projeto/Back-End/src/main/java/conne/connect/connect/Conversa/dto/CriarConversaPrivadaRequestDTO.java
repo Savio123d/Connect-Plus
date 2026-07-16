@@ -10,6 +10,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class CriarConversaPrivadaRequestDTO {
 
-    @NotNull(message = "O destinatario e obrigatorio.")
+    @NotNull(message = "O destinatário é obrigatório.")
     private Long idDestinatarioUsuarioEmpresa;
 }

@@ -4,8 +4,6 @@ import conne.connect.connect.Equipe.model.EquipeModel;
 import conne.connect.connect.Equipe.service.EquipeService;
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,8 +19,11 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RestController
 public class EquipeController {
 
-    @Autowired
-    private EquipeService equipeService;
+    private final EquipeService equipeService;
+
+    public EquipeController(EquipeService equipeService) {
+        this.equipeService = equipeService;
+    }
 
     @GetMapping
     public ResponseEntity<List<EquipeModel>> findAll() {
@@ -44,8 +45,8 @@ public class EquipeController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<EquipeModel>> buscarPorId(@PathVariable("id") Long idEquipe) {
-        return ResponseEntity.ok(equipeService.buscarPorId(idEquipe));
+    public ResponseEntity<EquipeModel> buscarPorId(@PathVariable("id") Long idEquipe) {
+        return ResponseEntity.of(equipeService.buscarPorId(idEquipe));
     }
 
     @PutMapping("/{id}")

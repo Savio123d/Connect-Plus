@@ -13,7 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class CriarConversaGrupoRequestDTO {
 
-    @NotBlank(message = "O nome do grupo e obrigatorio.")
+    @NotBlank(message = "O nome do grupo é obrigatório.")
     private String nome;
 
     @NotEmpty(message = "Informe ao menos um participante para o grupo.")

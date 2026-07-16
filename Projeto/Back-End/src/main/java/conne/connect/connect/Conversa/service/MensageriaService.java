@@ -71,7 +71,7 @@ public class MensageriaService {
             Long idUsuarioEmpresaLogado,
             CriarConversaPrivadaRequestDTO requestDTO
     ) {
-        UsuarioEmpresaModel usuarioLogado = mensageriaAcessoService.buscarUsuarioEmpresaAtivo(idUsuarioEmpresaLogado);
+        UsuarioEmpresaModel usuarioLogado = mensageriaAcessoService.buscarUsuarioEmpresaAtivoDoToken(idUsuarioEmpresaLogado);
         UsuarioEmpresaModel destinatario = mensageriaAcessoService.buscarParticipanteDaMesmaEmpresa(
                 requestDTO.getIdDestinatarioUsuarioEmpresa(),
                 usuarioLogado
@@ -86,9 +86,10 @@ public class MensageriaService {
                 destinatario.getIdUsuarioEmpresa()
         );
 
-        if (conversaExistente.isPresent()) {
+        ConversaModel conversaPrivada = conversaExistente.orElse(null);
+        if (conversaPrivada != null) {
             return mensageriaConsultaService.montarConversaDetalhe(
-                    conversaExistente.get(),
+                    conversaPrivada,
                     idUsuarioEmpresaLogado
             );
         }
@@ -110,7 +111,7 @@ public class MensageriaService {
             Long idUsuarioEmpresaLogado,
             CriarConversaGrupoRequestDTO requestDTO
     ) {
-        UsuarioEmpresaModel usuarioLogado = mensageriaAcessoService.buscarUsuarioEmpresaAtivo(idUsuarioEmpresaLogado);
+        UsuarioEmpresaModel usuarioLogado = mensageriaAcessoService.buscarUsuarioEmpresaAtivoDoToken(idUsuarioEmpresaLogado);
         Set<Long> idsParticipantes = normalizarIdsParticipantes(requestDTO.getIdsParticipantes(), idUsuarioEmpresaLogado);
         validarQuantidadeMinimaParticipantes(idsParticipantes);
 
@@ -131,27 +132,27 @@ public class MensageriaService {
 
     @Transactional(readOnly = true)
     public List<ConversaResumoDTO> listarConversas(Long idUsuarioEmpresaLogado, TipoConversa tipo) {
-        UsuarioEmpresaModel usuarioLogado = mensageriaAcessoService.buscarUsuarioEmpresaAtivo(idUsuarioEmpresaLogado);
+        UsuarioEmpresaModel usuarioLogado = mensageriaAcessoService.buscarUsuarioEmpresaAtivoDoToken(idUsuarioEmpresaLogado);
         return mensageriaConsultaService.listarConversas(usuarioLogado, tipo);
     }
 
     @Transactional(readOnly = true)
     public ConversaDetalheDTO detalharConversa(Long idUsuarioEmpresaLogado, Long idConversa) {
-        UsuarioEmpresaModel usuarioLogado = mensageriaAcessoService.buscarUsuarioEmpresaAtivo(idUsuarioEmpresaLogado);
+        UsuarioEmpresaModel usuarioLogado = mensageriaAcessoService.buscarUsuarioEmpresaAtivoDoToken(idUsuarioEmpresaLogado);
         ConversaModel conversa = mensageriaAcessoService.buscarConversaComAcesso(idConversa, usuarioLogado);
         return mensageriaConsultaService.montarConversaDetalhe(conversa, idUsuarioEmpresaLogado);
     }
 
     @Transactional(readOnly = true)
     public List<MensagemDTO> listarMensagens(Long idUsuarioEmpresaLogado, Long idConversa) {
-        UsuarioEmpresaModel usuarioLogado = mensageriaAcessoService.buscarUsuarioEmpresaAtivo(idUsuarioEmpresaLogado);
+        UsuarioEmpresaModel usuarioLogado = mensageriaAcessoService.buscarUsuarioEmpresaAtivoDoToken(idUsuarioEmpresaLogado);
         ConversaModel conversa = mensageriaAcessoService.buscarConversaComAcesso(idConversa, usuarioLogado);
         return mensageriaConsultaService.listarMensagens(conversa.getIdConversa(), idUsuarioEmpresaLogado);
     }
 
     @Transactional
     public MensagemDTO enviarMensagem(Long idUsuarioEmpresaLogado, EnviarMensagemRequestDTO requestDTO) {
-        UsuarioEmpresaModel usuarioLogado = mensageriaAcessoService.buscarUsuarioEmpresaAtivo(idUsuarioEmpresaLogado);
+        UsuarioEmpresaModel usuarioLogado = mensageriaAcessoService.buscarUsuarioEmpresaAtivoDoToken(idUsuarioEmpresaLogado);
         validarMensagemParaEnvio(requestDTO);
 
         ConversaModel conversa = mensageriaAcessoService.buscarConversaComAcesso(
@@ -177,10 +178,10 @@ public class MensageriaService {
 
     @Transactional
     public MensagemDTO marcarMensagemComoLida(Long idUsuarioEmpresaLogado, Long idMensagem) {
-        UsuarioEmpresaModel usuarioLogado = mensageriaAcessoService.buscarUsuarioEmpresaAtivo(idUsuarioEmpresaLogado);
+        UsuarioEmpresaModel usuarioLogado = mensageriaAcessoService.buscarUsuarioEmpresaAtivoDoToken(idUsuarioEmpresaLogado);
         MensagemModel mensagem = mensageriaAcessoService.buscarMensagemComAcesso(idMensagem, usuarioLogado);
 
-        boolean jaLida = msgLeituraRepository.existsByIdMensagem_IdMensagemAndIdUsuarioEmpresa_IdUsuarioEmpresa(
+        boolean jaLida = msgLeituraRepository.existsByIdMensagem_IdMensagemAndIdUsuarioEmpresa_IdUsuarioEmpresaAndExcluidoIsNull(
                 idMensagem,
                 idUsuarioEmpresaLogado
         );
@@ -261,7 +262,7 @@ public class MensageriaService {
         if (requestDTO.getIdConversa() == null) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "A conversa e obrigatoria."
+                    "A conversa é obrigatória."
             );
         }
 

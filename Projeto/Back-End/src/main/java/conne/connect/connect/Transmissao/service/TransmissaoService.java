@@ -1,5 +1,6 @@
 package conne.connect.connect.Transmissao.service;
 
+import conne.connect.connect.Security.AutorizacaoService;
 import conne.connect.connect.Conversa.repository.ConversaParticipanteRepository;
 import conne.connect.connect.Transmissao.dto.TransmissaoTokenDTO;
 import conne.connect.connect.Usuario.model.UsuarioEmpresaModel;
@@ -24,6 +25,7 @@ public class TransmissaoService {
 
     private final ConversaParticipanteRepository conversaParticipanteRepository;
     private final UsuarioEmpresaRepository usuarioEmpresaRepository;
+    private final AutorizacaoService autorizacaoService;
 
     @Value("${livekit.url:ws://localhost:7880}")
     private String livekitUrl;
@@ -35,21 +37,25 @@ public class TransmissaoService {
     private String livekitApiSecret;
 
     public TransmissaoService(ConversaParticipanteRepository conversaParticipanteRepository,
-                              UsuarioEmpresaRepository usuarioEmpresaRepository) {
+                              UsuarioEmpresaRepository usuarioEmpresaRepository,
+                              AutorizacaoService autorizacaoService) {
         this.conversaParticipanteRepository = conversaParticipanteRepository;
         this.usuarioEmpresaRepository = usuarioEmpresaRepository;
+        this.autorizacaoService = autorizacaoService;
     }
 
     @Transactional(readOnly = true)
     public TransmissaoTokenDTO entrarNaConversa(Long idConversa, Long idUsuarioEmpresa) {
         if (idUsuarioEmpresa == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Header X-Usuario-Empresa-Id obrigatorio.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Header X-Usuario-Empresa-Id obrigatório.");
         }
+
+        autorizacaoService.validarVinculoAtual(idUsuarioEmpresa);
 
         UsuarioEmpresaModel usuarioEmpresa = usuarioEmpresaRepository.findById(idUsuarioEmpresa)
                 .filter(vinculo -> Boolean.TRUE.equals(vinculo.getAtivo()))
                 .filter(vinculo -> vinculo.getExcluido() == null)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario da empresa nao encontrado."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário da empresa não encontrado."));
 
         boolean participaDaConversa = conversaParticipanteRepository
                 .existsByIdConversa_IdConversaAndIdUsuarioEmpresa_IdUsuarioEmpresaAndAtivoTrueAndExcluidoIsNull(
@@ -58,12 +64,16 @@ public class TransmissaoService {
                 );
 
         if (!participaDaConversa) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Usuario nao participa dessa conversa.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Usuário não participa dessa conversa.");
         }
 
         String sala = "conversa-" + idConversa;
         String identidade = "usuario-empresa-" + idUsuarioEmpresa + "-" + UUID.randomUUID();
-        String nome = usuarioEmpresa.getIdUsuario().getNome();
+        String nome = usuarioEmpresa.getIdUsuario() != null
+                && usuarioEmpresa.getIdUsuario().getNome() != null
+                && !usuarioEmpresa.getIdUsuario().getNome().isBlank()
+                ? usuarioEmpresa.getIdUsuario().getNome()
+                : "Usuário";
 
         return new TransmissaoTokenDTO(
                 livekitUrl,

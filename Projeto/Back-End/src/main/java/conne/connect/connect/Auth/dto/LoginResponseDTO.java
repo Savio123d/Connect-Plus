@@ -9,6 +9,7 @@ public class LoginResponseDTO {
     private Long usuarioEmpresaId;
     private String papel;
     private String status;
+    private String token;
 
     public LoginResponseDTO() {
     }
@@ -85,5 +86,13 @@ public class LoginResponseDTO {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 }

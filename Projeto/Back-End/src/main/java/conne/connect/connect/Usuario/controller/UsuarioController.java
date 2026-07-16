@@ -7,8 +7,8 @@ import conne.connect.connect.Usuario.service.UsuarioService;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,17 +26,19 @@ public class UsuarioController {
 
     private final UsuarioService usuarioService;
 
-    @Autowired
     public UsuarioController(UsuarioService usuarioService) {
         this.usuarioService = usuarioService;
     }
 
+    @PreAuthorize("@autorizacao.ehGestor()")
     @GetMapping
     public ResponseEntity<List<UsuarioDTO>> findAll() {
         List<UsuarioDTO> usuarios = usuarioService.findAll();
         return ResponseEntity.ok(usuarios);
     }
 
+    // Escopo multi-tenant: só lista usuários da própria empresa.
+    @PreAuthorize("@autorizacao.mesmaEmpresa(#idEmpresa)")
     @GetMapping("/empresa/{idEmpresa}")
     public ResponseEntity<List<UsuarioDTO>> listarUsuariosDaEmpresa(
             @PathVariable Long idEmpresa
@@ -45,6 +47,7 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarios);
     }
 
+    @PreAuthorize("@autorizacao.ehGestor()")
     @PostMapping
     public ResponseEntity<UsuarioDTO> criarUsuario(
             @Valid @RequestBody UsuarioRequestDTO usuarioRequestDTO
@@ -60,17 +63,20 @@ public class UsuarioController {
         return ResponseEntity.created(uri).body(usuario);
     }
 
+    @PreAuthorize("@autorizacao.gestorDoUsuario(#idUsuario)")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deletar(@PathVariable("id") Long idUsuario) {
         usuarioService.excluirUsuario(idUsuario);
         return ResponseEntity.noContent().build();
     }
 
+    @PreAuthorize("@autorizacao.proprioUsuario(#idUsuario) or @autorizacao.usuarioDaEmpresa(#idUsuario)")
     @GetMapping("/{id}")
     public ResponseEntity<UsuarioDTO> buscarPorId(@PathVariable("id") Long idUsuario) {
         return ResponseEntity.ok(usuarioService.buscarPorId(idUsuario));
     }
 
+    @PreAuthorize("@autorizacao.gestorDoUsuario(#idUsuario)")
     @PutMapping("/{id}")
     public ResponseEntity<UsuarioDTO> atualizar(
             @PathVariable("id") Long idUsuario,
@@ -79,6 +85,8 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.atualizarUsuario(idUsuario, usuarioRequestDTO));
     }
 
+    // O próprio usuário troca a própria senha; o gestor pode redefinir a de qualquer um.
+    @PreAuthorize("@autorizacao.proprioUsuario(#idUsuario) or @autorizacao.gestorDoUsuario(#idUsuario)")
     @PatchMapping("/{id}/senha")
     public ResponseEntity<Void> alterarSenha(
             @PathVariable("id") Long idUsuario,

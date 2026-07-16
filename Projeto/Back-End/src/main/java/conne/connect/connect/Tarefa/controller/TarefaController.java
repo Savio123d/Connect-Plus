@@ -5,10 +5,11 @@ import conne.connect.connect.Tarefa.dto.TarefaResponseDTO;
 import conne.connect.connect.Tarefa.dto.TarefaStatusDTO;
 import conne.connect.connect.Tarefa.model.TarefaModel;
 import conne.connect.connect.Tarefa.service.TarefaService;
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -24,8 +25,11 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RestController
 public class TarefaController {
 
-    @Autowired
-    private TarefaService tarefaService;
+    private final TarefaService tarefaService;
+
+    public TarefaController(TarefaService tarefaService) {
+        this.tarefaService = tarefaService;
+    }
 
     @GetMapping
     public ResponseEntity<List<TarefaResponseDTO>> findAll() {
@@ -37,6 +41,8 @@ public class TarefaController {
         return ResponseEntity.ok(tarefas);
     }
 
+    // Escopo multi-tenant: só lista tarefas da própria empresa.
+    @PreAuthorize("@autorizacao.mesmaEmpresa(#empresaId)")
     @GetMapping("/empresa/{empresaId}")
     public ResponseEntity<List<TarefaResponseDTO>> listarPorEmpresa(@PathVariable("empresaId") Long empresaId) {
         List<TarefaResponseDTO> tarefas = tarefaService.listarPorEmpresa(empresaId)
@@ -54,7 +60,7 @@ public class TarefaController {
     }
 
     @PostMapping
-    public ResponseEntity<TarefaResponseDTO> criarTarefa(@RequestBody TarefaRequestDTO tarefaRequestDTO) {
+    public ResponseEntity<TarefaResponseDTO> criarTarefa(@Valid @RequestBody TarefaRequestDTO tarefaRequestDTO) {
         TarefaModel tarefa = tarefaService.criarTarefa(tarefaRequestDTO);
 
         URI uri = ServletUriComponentsBuilder
@@ -69,7 +75,7 @@ public class TarefaController {
     @PutMapping("/{id}")
     public ResponseEntity<TarefaResponseDTO> atualizar(
             @PathVariable("id") Long idTarefa,
-            @RequestBody TarefaRequestDTO tarefaRequestDTO
+            @Valid @RequestBody TarefaRequestDTO tarefaRequestDTO
     ) {
         TarefaModel tarefa = tarefaService.atualizarTarefa(idTarefa, tarefaRequestDTO);
         return ResponseEntity.ok(new TarefaResponseDTO(tarefa));
@@ -78,7 +84,7 @@ public class TarefaController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<TarefaResponseDTO> atualizarStatus(
             @PathVariable("id") Long idTarefa,
-            @RequestBody TarefaStatusDTO tarefaStatusDTO
+            @Valid @RequestBody TarefaStatusDTO tarefaStatusDTO
     ) {
         TarefaModel tarefa = tarefaService.atualizarStatus(idTarefa, tarefaStatusDTO.getStatus());
         return ResponseEntity.ok(new TarefaResponseDTO(tarefa));

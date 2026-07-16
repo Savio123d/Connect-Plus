@@ -7,5 +7,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface AssinaturaRepository extends JpaRepository<AssinaturaModel, Long> {
     Optional<AssinaturaModel> findByMercadoPagoPreapprovalId(String mercadoPagoPreapprovalId);
 
+    Optional<AssinaturaModel> findByMercadoPagoPreapprovalIdAndExcluidoIsNull(String mercadoPagoPreapprovalId);
+
     Optional<AssinaturaModel> findByMercadoPagoExternalReference(String mercadoPagoExternalReference);
+
+    Optional<AssinaturaModel> findByMercadoPagoExternalReferenceAndExcluidoIsNull(String mercadoPagoExternalReference);
+
+    Optional<AssinaturaModel> findFirstByIdEmpresa_IdEmpresaAndExcluidoIsNullOrderByIdAssinaturaDesc(Long idEmpresa);
 }

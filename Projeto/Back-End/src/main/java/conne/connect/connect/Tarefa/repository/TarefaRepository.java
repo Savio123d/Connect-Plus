@@ -1,17 +1,27 @@
 package conne.connect.connect.Tarefa.repository;
 
 import conne.connect.connect.Dashboard.projection.DesempenhoEquipeProjection;
+import conne.connect.connect.Tarefa.enums.StatusTarefa;
 import conne.connect.connect.Tarefa.model.TarefaModel;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface TarefaRepository extends JpaRepository<TarefaModel, Long> {
 
+    List<TarefaModel> findByExcluidoIsNull();
+
     List<TarefaModel> findByIdEmpresa_IdEmpresaAndExcluidoIsNull(Long idEmpresa);
 
+    Optional<TarefaModel> findByIdTarefaAndIdEmpresa_IdEmpresaAndExcluidoIsNull(Long idTarefa, Long idEmpresa);
+
     List<TarefaModel> findByIdProjeto_IdProjetoAndExcluidoIsNullOrderByIdTarefaAsc(Long idProjeto);
+
+    long countByIdProjeto_IdProjetoAndExcluidoIsNull(Long idProjeto);
+
+    long countByIdProjeto_IdProjetoAndStatusAndExcluidoIsNull(Long idProjeto, StatusTarefa status);
 
     @Query(value = """
             select cast(extract(month from concluida_em) as int) as mes,

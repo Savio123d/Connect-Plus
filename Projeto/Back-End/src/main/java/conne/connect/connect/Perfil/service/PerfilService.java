@@ -1,5 +1,6 @@
 package conne.connect.connect.Perfil.service;
 
+import conne.connect.connect.Security.AutorizacaoService;
 import conne.connect.connect.Perfil.dto.ConquistaPerfilDTO;
 import conne.connect.connect.Perfil.dto.HistoricoDesempenhoDTO;
 import conne.connect.connect.Perfil.dto.PerfilResponseDTO;
@@ -7,21 +8,26 @@ import conne.connect.connect.Perfil.dto.PerfilUsuarioDTO;
 import conne.connect.connect.Perfil.repository.PerfilRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 public class PerfilService {
 
     private final PerfilRepository perfilRepository;
+    private final AutorizacaoService autorizacaoService;
 
-    public PerfilService(PerfilRepository perfilRepository) {
+    public PerfilService(PerfilRepository perfilRepository, AutorizacaoService autorizacaoService) {
         this.perfilRepository = perfilRepository;
+        this.autorizacaoService = autorizacaoService;
     }
 
     public PerfilResponseDTO buscarPerfil(Long idUsuarioEmpresa) {
+        autorizacaoService.validarAcessoAoVinculo(idUsuarioEmpresa);
         if (idUsuarioEmpresa == null || idUsuarioEmpresa <= 0) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,

@@ -1,5 +1,6 @@
 package conne.connect.connect.Conversa.service;
 
+import conne.connect.connect.Security.AutorizacaoService;
 import conne.connect.connect.Conversa.model.ConversaModel;
 import conne.connect.connect.Conversa.model.MensagemModel;
 import conne.connect.connect.Conversa.repository.ConversaParticipanteRepository;
@@ -20,30 +21,39 @@ public class MensageriaAcessoService {
     private final ConversaRepository conversaRepository;
     private final MensagemRepository mensagemRepository;
     private final ConversaParticipanteRepository conversaParticipanteRepository;
+    private final AutorizacaoService autorizacaoService;
 
     public MensageriaAcessoService(
             UsuarioEmpresaRepository usuarioEmpresaRepository,
             ConversaRepository conversaRepository,
             MensagemRepository mensagemRepository,
-            ConversaParticipanteRepository conversaParticipanteRepository
+            ConversaParticipanteRepository conversaParticipanteRepository,
+            AutorizacaoService autorizacaoService
     ) {
         this.usuarioEmpresaRepository = usuarioEmpresaRepository;
         this.conversaRepository = conversaRepository;
         this.mensagemRepository = mensagemRepository;
         this.conversaParticipanteRepository = conversaParticipanteRepository;
+        this.autorizacaoService = autorizacaoService;
+    }
+
+    public UsuarioEmpresaModel buscarUsuarioEmpresaAtivoDoToken(Long idUsuarioEmpresa) {
+        autorizacaoService.validarVinculoAtual(idUsuarioEmpresa);
+        return buscarUsuarioEmpresaAtivo(idUsuarioEmpresa);
     }
 
     public UsuarioEmpresaModel buscarUsuarioEmpresaAtivo(Long idUsuarioEmpresa) {
-        UsuarioEmpresaModel usuarioEmpresa = usuarioEmpresaRepository.findById(idUsuarioEmpresa)
+        UsuarioEmpresaModel usuarioEmpresa = usuarioEmpresaRepository
+                .findByIdUsuarioEmpresaAndAtivoTrueAndExcluidoIsNull(idUsuarioEmpresa)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Usuario da empresa nao encontrado."
+                        "Usuário da empresa não encontrado."
                 ));
 
         if (!Boolean.TRUE.equals(usuarioEmpresa.getAtivo())) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
-                    "Usuario da empresa esta inativo."
+                    "Usuário da empresa está inativo."
             );
         }
 
@@ -65,19 +75,19 @@ public class MensageriaAcessoService {
         if (usuarioLogado.getIdUsuarioEmpresa().equals(destinatario.getIdUsuarioEmpresa())) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Nao e permitido criar conversa privada com o proprio usuario."
+                    "Não é permitido criar conversa privada com o próprio usuário."
             );
         }
     }
 
     public ConversaModel buscarConversaComAcesso(Long idConversa, UsuarioEmpresaModel usuarioLogado) {
-        ConversaModel conversa = conversaRepository.findByIdConversaAndIdEmpresa_IdEmpresa(
+        ConversaModel conversa = conversaRepository.findByIdConversaAndIdEmpresa_IdEmpresaAndExcluidoIsNull(
                         idConversa,
                         usuarioLogado.getIdEmpresa().getIdEmpresa()
                 )
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Conversa nao encontrada."
+                        "Conversa não encontrada."
                 ));
 
         validarParticipacaoAtiva(usuarioLogado.getIdUsuarioEmpresa(), conversa.getIdConversa());
@@ -85,16 +95,20 @@ public class MensageriaAcessoService {
     }
 
     public MensagemModel buscarMensagemComAcesso(Long idMensagem, UsuarioEmpresaModel usuarioLogado) {
-        MensagemModel mensagem = mensagemRepository.findById(idMensagem)
+        MensagemModel mensagem = mensagemRepository
+                .findByIdMensagemAndIdEmpresa_IdEmpresaAndExcluidoIsNullAndExcluidaEmIsNull(
+                        idMensagem,
+                        usuarioLogado.getIdEmpresa().getIdEmpresa()
+                )
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Mensagem nao encontrada."
+                        "Mensagem não encontrada."
                 ));
 
         validarMesmaEmpresa(
                 usuarioLogado.getIdEmpresa().getIdEmpresa(),
                 mensagem.getIdEmpresa().getIdEmpresa(),
-                "Voce nao pode acessar mensagens de outra empresa."
+                "Você não pode acessar mensagens de outra empresa."
         );
 
         validarParticipacaoAtiva(
@@ -107,7 +121,7 @@ public class MensageriaAcessoService {
 
     private void validarParticipacaoAtiva(Long idUsuarioEmpresa, Long idConversa) {
         boolean participaDaConversa = conversaParticipanteRepository
-                .existsByIdConversa_IdConversaAndIdUsuarioEmpresa_IdUsuarioEmpresaAndAtivoTrue(
+                .existsByIdConversa_IdConversaAndIdUsuarioEmpresa_IdUsuarioEmpresaAndAtivoTrueAndExcluidoIsNull(
                         idConversa,
                         idUsuarioEmpresa
                 );
@@ -115,7 +129,7 @@ public class MensageriaAcessoService {
         if (!participaDaConversa) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
-                    "Voce nao participa desta conversa."
+                    "Você não participa desta conversa."
             );
         }
     }
@@ -124,7 +138,7 @@ public class MensageriaAcessoService {
         validarMesmaEmpresa(
                 usuarioA.getIdEmpresa().getIdEmpresa(),
                 usuarioB.getIdEmpresa().getIdEmpresa(),
-                "Usuarios de empresas diferentes nao podem trocar mensagens."
+                "Usuários de empresas diferentes não podem trocar mensagens."
         );
     }
 

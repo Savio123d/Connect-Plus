@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.PatchMapping;
 
 @RestController
 @RequestMapping("/api/feedbacks")
-@CrossOrigin(origins = "http://localhost:4200")
 public class FeedbackController {
 
     private final FeedbackService feedbackService;

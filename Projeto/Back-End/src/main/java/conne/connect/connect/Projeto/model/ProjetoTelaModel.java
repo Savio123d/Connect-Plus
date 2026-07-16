@@ -72,12 +72,23 @@ public class ProjetoTelaModel {
     @Column(name = "avaliacao_360_obrigatoria", nullable = false)
     private Boolean avaliacao360Obrigatoria = false;
 
+    @Column(name = "excluido", columnDefinition = "DATE")
+    private LocalDate excluido;
+
     public Boolean getAvaliacao360Obrigatoria() {
         return avaliacao360Obrigatoria;
     }
 
     public void setAvaliacao360Obrigatoria(Boolean avaliacao360Obrigatoria) {
         this.avaliacao360Obrigatoria = avaliacao360Obrigatoria;
+    }
+
+    public LocalDate getExcluido() {
+        return excluido;
+    }
+
+    public void setExcluido(LocalDate excluido) {
+        this.excluido = excluido;
     }
 
 

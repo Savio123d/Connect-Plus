@@ -5,8 +5,6 @@ import conne.connect.connect.Xp.service.SaldoXpService;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,8 +21,11 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RestController
 public class SaldoXpController {
 
-    @Autowired
-    private SaldoXpService saldoXpService;
+    private final SaldoXpService saldoXpService;
+
+    public SaldoXpController(SaldoXpService saldoXpService) {
+        this.saldoXpService = saldoXpService;
+    }
 
     @GetMapping
     public ResponseEntity<List<SaldoXpModel>> findAll() {
@@ -52,8 +53,8 @@ public class SaldoXpController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<SaldoXpModel>> buscarPorId(@PathVariable("id") Long idSaldoXp) {
-        return ResponseEntity.ok(saldoXpService.buscarPorId(idSaldoXp));
+    public ResponseEntity<SaldoXpModel> buscarPorId(@PathVariable("id") Long idSaldoXp) {
+        return ResponseEntity.of(saldoXpService.buscarPorId(idSaldoXp));
     }
 
     @PutMapping("/{id}")

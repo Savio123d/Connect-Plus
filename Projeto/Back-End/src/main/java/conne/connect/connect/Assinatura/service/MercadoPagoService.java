@@ -92,7 +92,7 @@ public class MercadoPagoService {
 
             return executarRequest(request);
         } catch (JsonProcessingException ex) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Nao foi possivel montar a assinatura.");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Não foi possível montar a assinatura.");
         }
     }
 
@@ -117,7 +117,7 @@ public class MercadoPagoService {
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Falha ao comunicar com o Mercado Pago.");
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Comunicacao com o Mercado Pago interrompida.");
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Comunicação com o Mercado Pago interrompida.");
         }
     }
 

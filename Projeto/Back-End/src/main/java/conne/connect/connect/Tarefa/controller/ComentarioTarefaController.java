@@ -4,8 +4,6 @@ import conne.connect.connect.Tarefa.model.ComentarioTarefaModel;
 import conne.connect.connect.Tarefa.service.ComentarioTarefaService;
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,8 +19,11 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RestController
 public class ComentarioTarefaController {
 
-    @Autowired
-    private ComentarioTarefaService comentarioTarefaService;
+    private final ComentarioTarefaService comentarioTarefaService;
+
+    public ComentarioTarefaController(ComentarioTarefaService comentarioTarefaService) {
+        this.comentarioTarefaService = comentarioTarefaService;
+    }
 
     @GetMapping
     public ResponseEntity<List<ComentarioTarefaModel>> findAll() {
@@ -44,8 +45,8 @@ public class ComentarioTarefaController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<ComentarioTarefaModel>> buscarPorId(@PathVariable("id") Long idComentarioTarefa) {
-        return ResponseEntity.ok(comentarioTarefaService.buscarPorId(idComentarioTarefa));
+    public ResponseEntity<ComentarioTarefaModel> buscarPorId(@PathVariable("id") Long idComentarioTarefa) {
+        return ResponseEntity.of(comentarioTarefaService.buscarPorId(idComentarioTarefa));
     }
 
     @PutMapping("/{id}")

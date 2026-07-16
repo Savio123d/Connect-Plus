@@ -1,48 +1,50 @@
 package conne.connect.connect.Config;
 
-import conne.connect.connect.Trasmissão.handler.SinalizacaoWebSocketHandler;
+import conne.connect.connect.Security.TokenWebSocketHandshakeInterceptor;
+import conne.connect.connect.Transmissao.handler.SinalizacaoWebSocketHandler;
+import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Configuration
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
 
     private final ChatWebSocketHandler chatWebSocketHandler;
-    private final SinalizacaoWebSocketHandler  sinalizacaoWebSocketHandler;
+    private final SinalizacaoWebSocketHandler sinalizacaoWebSocketHandler;
+    private final TokenWebSocketHandshakeInterceptor tokenWebSocketHandshakeInterceptor;
+    private final String[] allowedOrigins;
 
-    // Mesmas origens do CORS HTTP (app.cors.allowed-origins).
-    @Value("${app.cors.allowed-origins}")
-    private String[] allowedOrigins;
-
-    public WebSocketConfig(ChatWebSocketHandler chatWebSocketHandler,  SinalizacaoWebSocketHandler sinalizacaoWebSocketHandler) {
-        this.sinalizacaoWebSocketHandler = sinalizacaoWebSocketHandler;
+    public WebSocketConfig(
+            ChatWebSocketHandler chatWebSocketHandler,
+            SinalizacaoWebSocketHandler sinalizacaoWebSocketHandler,
+            TokenWebSocketHandshakeInterceptor tokenWebSocketHandshakeInterceptor,
+            @Value("${app.cors.allowed-origins}") String[] allowedOrigins
+    ) {
         this.chatWebSocketHandler = chatWebSocketHandler;
+        this.sinalizacaoWebSocketHandler = sinalizacaoWebSocketHandler;
+        this.tokenWebSocketHandshakeInterceptor = tokenWebSocketHandshakeInterceptor;
+        this.allowedOrigins = allowedOrigins;
     }
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(chatWebSocketHandler, "/ws/chat")
+                .addInterceptors(tokenWebSocketHandshakeInterceptor)
                 .setAllowedOriginPatterns(limparOrigensPermitidas());
 
-        registry.addHandler(sinalizacaoWebSocketHandler, "/sinalizacao").setAllowedOriginPatterns(limparOrigensPermitidas());
-
-
+        registry.addHandler(sinalizacaoWebSocketHandler, "/sinalizacao")
+                .addInterceptors(tokenWebSocketHandshakeInterceptor)
+                .setAllowedOriginPatterns(limparOrigensPermitidas());
     }
 
     private String[] limparOrigensPermitidas() {
-        List<String> origensPermitidas = Arrays.stream(allowedOrigins)
+        return Arrays.stream(allowedOrigins)
                 .map(String::trim)
                 .filter(origem -> !origem.isEmpty())
-                .collect(Collectors.toList());
-
-        return origensPermitidas.toArray(new String[0]);
+                .toArray(String[]::new);
     }
 }

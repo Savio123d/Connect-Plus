@@ -6,8 +6,6 @@ import conne.connect.connect.Notificacao.service.NotificacaoService;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -16,8 +14,11 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RestController
 public class NotificacaoController {
 
-    @Autowired
-    private NotificacaoService notificacaoService;
+    private final NotificacaoService notificacaoService;
+
+    public NotificacaoController(NotificacaoService notificacaoService) {
+        this.notificacaoService = notificacaoService;
+    }
 
     @GetMapping
     public ResponseEntity<List<NotificacaoModel>> findAll() {
@@ -47,10 +48,10 @@ public class NotificacaoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<NotificacaoModel>> buscarPorId(
+    public ResponseEntity<NotificacaoModel> buscarPorId(
             @PathVariable("id") Long idNotificacao
     ) {
-        return ResponseEntity.ok(notificacaoService.buscarPorId(idNotificacao));
+        return ResponseEntity.of(notificacaoService.buscarPorId(idNotificacao));
     }
 
     @PutMapping("/{id}")

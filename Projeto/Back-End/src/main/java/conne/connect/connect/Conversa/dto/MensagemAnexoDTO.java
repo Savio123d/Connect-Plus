@@ -13,14 +13,14 @@ public class MensagemAnexoDTO {
 
     private Long id;
 
-    @NotBlank(message = "O nome do arquivo e obrigatorio.")
+    @NotBlank(message = "O nome do arquivo é obrigatório.")
     private String filename;
 
-    @NotBlank(message = "Os dados do anexo sao obrigatorios.")
+    @NotBlank(message = "Os dados do anexo são obrigatórios.")
     private String data;
 
     private String tipoMime;
 
-    @PositiveOrZero(message = "O tamanho do anexo nao pode ser negativo.")
+    @PositiveOrZero(message = "O tamanho do anexo não pode ser negativo.")
     private Integer tamanho;
 }

@@ -16,9 +16,11 @@ import conne.connect.connect.Usuario.repository.UsuarioEmpresaRepository;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
+@Transactional
 public class ConversaService {
 
     private final ConversaRepository conversaRepository;
@@ -36,6 +38,7 @@ public class ConversaService {
         this.usuarioEmpresaRepository = usuarioEmpresaRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<ConversaResumoDTO> listarConversas(Long idUsuarioEmpresaLogado) {
         validarUsuarioEmpresa(idUsuarioEmpresaLogado);
 
@@ -49,6 +52,7 @@ public class ConversaService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<MensagemDTO> listarMensagens(Long idConversa, Long idUsuarioEmpresaLogado) {
         validarParticipanteDaConversa(idConversa, idUsuarioEmpresaLogado);
 
@@ -85,18 +89,18 @@ public class ConversaService {
             Long idDestinatarioUsuarioEmpresa
     ) {
         if (idDestinatarioUsuarioEmpresa == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Destinatario obrigatorio.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Destinatário obrigatório.");
         }
 
         if (idUsuarioEmpresaLogado.equals(idDestinatarioUsuarioEmpresa)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nao e possivel conversar consigo mesmo.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não é possível conversar consigo mesmo.");
         }
 
         UsuarioEmpresaModel usuarioLogado = validarUsuarioEmpresa(idUsuarioEmpresaLogado);
         UsuarioEmpresaModel destinatario = validarUsuarioEmpresa(idDestinatarioUsuarioEmpresa);
 
         if (!usuarioLogado.getIdEmpresa().getIdEmpresa().equals(destinatario.getIdEmpresa().getIdEmpresa())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Usuarios de empresas diferentes.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Usuários de empresas diferentes.");
         }
 
         ConversaModel conversaExistente = buscarConversaPrivadaExistente(
@@ -154,7 +158,7 @@ public class ConversaService {
                 );
 
         if (!participa) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Usuario nao participa da conversa.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Usuário não participa da conversa.");
         }
 
         return usuarioEmpresa;
@@ -164,13 +168,13 @@ public class ConversaService {
         return usuarioEmpresaRepository.findById(idUsuarioEmpresa)
                 .filter(vinculo -> Boolean.TRUE.equals(vinculo.getAtivo()))
                 .filter(vinculo -> vinculo.getExcluido() == null)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vinculo usuario-empresa nao encontrado."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vínculo usuário-empresa não encontrado."));
     }
 
     private ConversaModel buscarConversa(Long idConversa) {
         return conversaRepository.findById(idConversa)
                 .filter(conversa -> conversa.getExcluido() == null)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversa nao encontrada."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversa não encontrada."));
     }
 
     private ConversaResumoDTO montarResumo(ConversaModel conversa, Long idUsuarioEmpresaLogado) {

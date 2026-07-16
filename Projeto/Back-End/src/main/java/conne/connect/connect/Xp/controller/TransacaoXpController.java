@@ -4,8 +4,6 @@ import conne.connect.connect.Xp.model.TransacaoXpModel;
 import conne.connect.connect.Xp.service.TransacaoXpService;
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,8 +19,11 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RestController
 public class TransacaoXpController {
 
-    @Autowired
-    private TransacaoXpService transacaoXpService;
+    private final TransacaoXpService transacaoXpService;
+
+    public TransacaoXpController(TransacaoXpService transacaoXpService) {
+        this.transacaoXpService = transacaoXpService;
+    }
 
     @GetMapping
     public ResponseEntity<List<TransacaoXpModel>> findAll() {
@@ -44,8 +45,8 @@ public class TransacaoXpController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<TransacaoXpModel>> buscarPorId(@PathVariable("id") Long idTransacaoXp) {
-        return ResponseEntity.ok(transacaoXpService.buscarPorId(idTransacaoXp));
+    public ResponseEntity<TransacaoXpModel> buscarPorId(@PathVariable("id") Long idTransacaoXp) {
+        return ResponseEntity.of(transacaoXpService.buscarPorId(idTransacaoXp));
     }
 
     @PutMapping("/{id}")

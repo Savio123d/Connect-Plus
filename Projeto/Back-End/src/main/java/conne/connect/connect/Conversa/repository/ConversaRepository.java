@@ -10,7 +10,10 @@ import org.springframework.data.repository.query.Param;
 
 public interface ConversaRepository extends JpaRepository<ConversaModel, Long> {
 
-    Optional<ConversaModel> findByIdConversaAndIdEmpresa_IdEmpresa(Long idConversa, Long idEmpresa);
+    Optional<ConversaModel> findByIdConversaAndIdEmpresa_IdEmpresaAndExcluidoIsNull(
+            Long idConversa,
+            Long idEmpresa
+    );
 
     @Query("""
             select distinct c
@@ -19,15 +22,19 @@ public interface ConversaRepository extends JpaRepository<ConversaModel, Long> {
             join ConversaParticipanteModel cp2 on cp2.idConversa = c
             where c.idEmpresa.idEmpresa = :idEmpresa
               and c.tipo = :tipo
+              and c.excluido is null
               and cp1.idUsuarioEmpresa.idUsuarioEmpresa = :idUsuarioEmpresaA
               and cp1.ativo = true
+              and cp1.excluido is null
               and cp2.idUsuarioEmpresa.idUsuarioEmpresa = :idUsuarioEmpresaB
               and cp2.ativo = true
+              and cp2.excluido is null
               and (
                     select count(cp)
                     from ConversaParticipanteModel cp
                     where cp.idConversa = c
                       and cp.ativo = true
+                      and cp.excluido is null
               ) = 2
             """)
     Optional<ConversaModel> findConversaPrivadaExistente(

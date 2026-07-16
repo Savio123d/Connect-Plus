@@ -1,5 +1,6 @@
 package conne.connect.connect.Projeto.service;
 
+import conne.connect.connect.Security.AutorizacaoService;
 import conne.connect.connect.Empresa.model.EmpresaModel;
 import conne.connect.connect.Empresa.repository.EmpresaRepository;
 import conne.connect.connect.Feedback.service.FeedbackService;
@@ -32,8 +33,11 @@ import java.util.List;
 import java.util.Set;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class ProjetoTelaService {
@@ -46,6 +50,7 @@ public class ProjetoTelaService {
     private final TarefaRepository tarefaRepository;
     private final ProjetoTelaMapper mapper;
     private final FeedbackService feedbackService;
+    private final AutorizacaoService autorizacaoService;
 
     public ProjetoTelaService(
         ProjetoTelaRepository projetoRepository,
@@ -55,7 +60,8 @@ public class ProjetoTelaService {
         TarefaService tarefaService,
         TarefaRepository tarefaRepository,
         ProjetoTelaMapper mapper,
-        FeedbackService feedbackService
+        FeedbackService feedbackService,
+        AutorizacaoService autorizacaoService
     ) {
         this.projetoRepository = projetoRepository;
         this.pessoaRepository = pessoaRepository;
@@ -65,13 +71,14 @@ public class ProjetoTelaService {
         this.tarefaRepository = tarefaRepository;
         this.mapper = mapper;
         this.feedbackService = feedbackService;
+        this.autorizacaoService = autorizacaoService;
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "projetosPorEmpresa", key = "#empresaId")
+    @Cacheable(value = "projetosPorEmpresa", key = "@autorizacao.empresaAtual() + ':' + #empresaId")
     public List<ProjetoResponseDTO> listar(Long empresaId) {
         validarEmpresaId(empresaId);
-        return mapper.toResponseList(projetoRepository.findByEmpresa_IdEmpresaOrderByIdProjetoDesc(empresaId));
+        return mapper.toResponseList(projetoRepository.findByEmpresa_IdEmpresaAndExcluidoIsNullOrderByIdProjetoDesc(empresaId));
     }
 
     @Transactional(readOnly = true)
@@ -133,7 +140,7 @@ public class ProjetoTelaService {
     @CacheEvict(value = "projetosPorEmpresa", allEntries = true)
     public ProjetoResponseDTO atualizarStatus(Long id, String statusTexto) {
         if (statusTexto == null || statusTexto.isBlank()) {
-            throw new IllegalArgumentException("Status do projeto e obrigatorio.");
+            throw new IllegalArgumentException("Status do projeto é obrigatório.");
         }
 
         ProjetoStatusTela status = ProjetoStatusTela.from(statusTexto);
@@ -164,21 +171,36 @@ public class ProjetoTelaService {
         return mapper.toResponse(projetoSalvo);
     }
 
+    // Exclusao logica: o projeto e suas tarefas recebem a data em "excluido",
+    // preservando o historico de XP ja concedido.
     @Transactional
-    @CacheEvict(value = "projetosPorEmpresa", allEntries = true)
+    @Caching(evict = {
+        @CacheEvict(value = "projetosPorEmpresa", allEntries = true),
+        @CacheEvict(value = "tarefasPorEmpresa", allEntries = true),
+        @CacheEvict(value = "tarefaPorId", allEntries = true)
+    })
     public void excluir(Long id) {
-        if (!projetoRepository.existsById(id)) {
-            throw new IllegalArgumentException("Projeto nao encontrado.");
+        ProjetoTelaModel projeto = buscarProjeto(id);
+
+        LocalDate hoje = LocalDate.now();
+        List<TarefaModel> tarefas =
+            tarefaRepository.findByIdProjeto_IdProjetoAndExcluidoIsNullOrderByIdTarefaAsc(id);
+
+        for (TarefaModel tarefa : tarefas) {
+            tarefa.setExcluido(hoje);
         }
 
-        projetoRepository.deleteById(id);
+        tarefaRepository.saveAll(tarefas);
+
+        projeto.setExcluido(hoje);
+        projetoRepository.save(projeto);
     }
 
     @Transactional
     @CacheEvict(value = "projetosPorEmpresa", allEntries = true)
     public ProjetoResponseDTO adicionarMembro(Long projetoId, Long usuarioId) {
         if (usuarioId == null) {
-            throw new IllegalArgumentException("Usuario e obrigatorio.");
+            throw new IllegalArgumentException("Usuário é obrigatório.");
         }
 
         ProjetoTelaModel projeto = buscarProjeto(projetoId);
@@ -199,13 +221,13 @@ public class ProjetoTelaService {
     @CacheEvict(value = "projetosPorEmpresa", allEntries = true)
     public ProjetoResponseDTO adicionarMarco(Long projetoId, ProjetoRequestDTO request) {
         if (request == null) {
-            throw new IllegalArgumentException("Dados do marco nao enviados.");
+            throw new IllegalArgumentException("Dados do marco não enviados.");
         }
 
         ProjetoTelaModel projeto = buscarProjeto(projetoId);
 
         if (request.titulo() == null || request.titulo().isBlank() || request.data() == null) {
-            throw new IllegalArgumentException("Titulo e data do marco sao obrigatorios.");
+            throw new IllegalArgumentException("Título e data do marco são obrigatórios.");
         }
 
         MarcoProjetoTelaModel marco = new MarcoProjetoTelaModel();
@@ -224,20 +246,20 @@ public class ProjetoTelaService {
     @CacheEvict(value = "projetosPorEmpresa", allEntries = true)
     public ProjetoResponseDTO adicionarTarefa(Long projetoId, ProjetoRequestDTO request) {
         if (request == null) {
-            throw new IllegalArgumentException("Dados da tarefa nao enviados.");
+            throw new IllegalArgumentException("Dados da tarefa não enviados.");
         }
 
         ProjetoTelaModel projeto = buscarProjeto(projetoId);
 
         if (request.titulo() == null || request.titulo().isBlank()) {
-            throw new IllegalArgumentException("Titulo da tarefa e obrigatorio.");
+            throw new IllegalArgumentException("Título da tarefa é obrigatório.");
         }
 
         Long empresaId = obterEmpresaIdDoProjeto(projeto);
         Long responsavelId = resolverResponsavelId(projeto, request);
 
         if (responsavelId == null) {
-            throw new IllegalArgumentException("Responsavel da tarefa e obrigatorio.");
+            throw new IllegalArgumentException("Responsável da tarefa é obrigatório.");
         }
 
         PessoaProjetoTelaModel responsavel = buscarPessoaDaEmpresa(responsavelId, empresaId);
@@ -268,24 +290,31 @@ public class ProjetoTelaService {
 
 
     private EmpresaModel buscarEmpresa(Long empresaId) {
+        validarEmpresaId(empresaId);
         return empresaRepository.findById(empresaId)
-            .orElseThrow(() -> new IllegalArgumentException("Empresa nao encontrada."));
+            .filter(empresa -> empresa.getExcluido() == null)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa não encontrada."));
     }
 
     private ProjetoTelaModel buscarProjeto(Long id) {
-        return projetoRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Projeto nao encontrado."));
+        return projetoRepository
+            .findByIdProjetoAndEmpresa_IdEmpresaAndExcluidoIsNull(id, autorizacaoService.empresaAtual())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Projeto não encontrado."));
     }
 
     private PessoaProjetoTelaModel buscarPessoaDaEmpresa(Long idUsuarioEmpresa, Long empresaId) {
-        UsuarioEmpresaModel usuarioEmpresa = usuarioEmpresaRepository.findById(idUsuarioEmpresa)
-            .orElseThrow(() -> new IllegalArgumentException("Usuario da empresa nao encontrado."));
+        UsuarioEmpresaModel usuarioEmpresa = usuarioEmpresaRepository
+            .findByIdUsuarioEmpresaAndIdEmpresa_IdEmpresaAndAtivoTrueAndExcluidoIsNull(
+                idUsuarioEmpresa,
+                empresaId
+            )
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário da empresa não encontrado."));
 
         if (!Boolean.TRUE.equals(usuarioEmpresa.getAtivo())
             || usuarioEmpresa.getExcluido() != null
             || usuarioEmpresa.getIdEmpresa() == null
             || !empresaId.equals(usuarioEmpresa.getIdEmpresa().getIdEmpresa())) {
-            throw new IllegalArgumentException("Usuario nao pertence a empresa do projeto.");
+            throw new IllegalArgumentException("Usuário não pertence à empresa do projeto.");
         }
 
         return sincronizarPessoaDoProjeto(usuarioEmpresa);
@@ -293,7 +322,7 @@ public class ProjetoTelaService {
 
     private PessoaProjetoTelaModel sincronizarPessoaDoProjeto(UsuarioEmpresaModel usuarioEmpresa) {
         UsuarioModel usuario = usuarioEmpresa.getIdUsuario();
-        String nome = usuario != null ? usuario.getNome() : "Usuario";
+        String nome = usuario != null ? usuario.getNome() : "Usuário";
         String email = usuario != null ? usuario.getEmail() : "usuario-" + usuarioEmpresa.getIdUsuarioEmpresa() + "@connect.local";
         PessoaProjetoTelaModel pessoa = pessoaRepository
             .findByUsuarioEmpresa_IdUsuarioEmpresa(usuarioEmpresa.getIdUsuarioEmpresa())
@@ -317,34 +346,36 @@ public class ProjetoTelaService {
 
     private void validarCriacao(ProjetoRequestDTO request) {
         if (request == null) {
-            throw new IllegalArgumentException("Dados do projeto nao enviados.");
+            throw new IllegalArgumentException("Dados do projeto não enviados.");
         }
         validarEmpresaId(request.empresaId());
         if (request.nome() == null || request.nome().isBlank()) {
-            throw new IllegalArgumentException("Nome do projeto e obrigatorio.");
+            throw new IllegalArgumentException("Nome do projeto é obrigatório.");
         }
         if (request.descricao() == null || request.descricao().isBlank()) {
-            throw new IllegalArgumentException("Descricao do projeto e obrigatoria.");
+            throw new IllegalArgumentException("Descrição do projeto é obrigatória.");
         }
         if (request.prazo() == null) {
-            throw new IllegalArgumentException("Prazo do projeto e obrigatorio.");
+            throw new IllegalArgumentException("Prazo do projeto é obrigatório.");
         }
         if (request.liderId() == null) {
-            throw new IllegalArgumentException("Lider do projeto e obrigatorio.");
+            throw new IllegalArgumentException("Líder do projeto é obrigatório.");
         }
     }
 
     private void validarEmpresaId(Long empresaId) {
         if (empresaId == null || empresaId <= 0) {
-            throw new IllegalArgumentException("Empresa do usuario logado nao encontrada.");
+            throw new IllegalArgumentException("Empresa do usuário logado não encontrada.");
         }
+
+        autorizacaoService.validarEmpresaAtual(empresaId);
     }
 
     private void validarProjetoDaEmpresa(ProjetoTelaModel projeto, Long empresaId) {
         Long empresaDoProjeto = obterEmpresaIdDoProjeto(projeto);
 
         if (!empresaId.equals(empresaDoProjeto)) {
-            throw new IllegalArgumentException("Projeto nao pertence a empresa informada.");
+            throw new IllegalArgumentException("Projeto não pertence à empresa informada.");
         }
     }
 
@@ -439,22 +470,22 @@ public class ProjetoTelaService {
     }
 
     private void recalcularProgresso(ProjetoTelaModel projeto) {
-        List<TarefaModel> tarefas = projeto.getIdProjeto() != null
-            ? tarefaRepository.findByIdProjeto_IdProjetoAndExcluidoIsNullOrderByIdTarefaAsc(projeto.getIdProjeto())
-            : List.of();
+        // Counts no banco evitam carregar todas as tarefas do projeto so para medir progresso.
+        long totalTarefas = projeto.getIdProjeto() != null
+            ? tarefaRepository.countByIdProjeto_IdProjetoAndExcluidoIsNull(projeto.getIdProjeto())
+            : 0L;
+        long tarefasConcluidas = projeto.getIdProjeto() != null
+            ? tarefaRepository.countByIdProjeto_IdProjetoAndStatusAndExcluidoIsNull(
+                projeto.getIdProjeto(), StatusTarefa.concluida)
+            : 0L;
 
-        int totalTarefas = tarefas.size();
-        int tarefasConcluidas = (int) tarefas.stream()
-            .filter(tarefa -> tarefa.getStatus() == StatusTarefa.concluida)
-            .count();
-
-        int totalMarcos = projeto.getMarcos().size();
-        int marcosConcluidos = (int) projeto.getMarcos().stream()
+        long totalMarcos = projeto.getMarcos().size();
+        long marcosConcluidos = projeto.getMarcos().stream()
             .filter(marco -> marco.getStatus() == MarcoStatusProjetoTela.CONCLUIDO)
             .count();
 
-        int totalItens = totalTarefas + totalMarcos;
-        int totalConcluidos = tarefasConcluidas + marcosConcluidos;
+        long totalItens = totalTarefas + totalMarcos;
+        long totalConcluidos = tarefasConcluidas + marcosConcluidos;
 
         if (totalItens > 0) {
             projeto.setProgresso((int) Math.round((totalConcluidos * 100.0) / totalItens));

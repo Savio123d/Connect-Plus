@@ -73,7 +73,7 @@ public class MensageriaRealtimeService {
 
     private void notificarParticipantesDaConversa(Long idConversa, ChatEventoDTO evento) {
         List<Long> idsParticipantes = conversaParticipanteRepository
-                .findByIdConversa_IdConversaAndAtivoTrueOrderByEntrouEmAsc(idConversa)
+                .findByIdConversa_IdConversaAndAtivoTrueAndExcluidoIsNullOrderByEntrouEmAsc(idConversa)
                 .stream()
                 .map(ConversaParticipanteModel::getIdUsuarioEmpresa)
                 .map(usuarioEmpresa -> usuarioEmpresa.getIdUsuarioEmpresa())

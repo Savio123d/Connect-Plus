@@ -6,7 +6,6 @@ import conne.connect.connect.Recompensa.dto.LojaResgateRequestDTO;
 import conne.connect.connect.Recompensa.service.RecompensaService;
 import java.net.URI;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,8 +23,11 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RestController
 public class LojaController {
 
-    @Autowired
-    private RecompensaService recompensaService;
+    private final RecompensaService recompensaService;
+
+    public LojaController(RecompensaService recompensaService) {
+        this.recompensaService = recompensaService;
+    }
 
     @GetMapping
     public ResponseEntity<List<LojaItemDTO>> listar(

@@ -1,5 +1,6 @@
 package conne.connect.connect.NotificacoesSistem.websockt;
 
+import conne.connect.connect.Security.TokenWebSocketHandshakeInterceptor;
 import conne.connect.connect.NotificacoesSistem.service.NotificacaoRealtimeService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -24,6 +25,14 @@ public class NotificacaoWebSocketHandler extends TextWebSocketHandler {
 
         if (idUsuarioEmpresa == null) {
             session.close(CloseStatus.BAD_DATA);
+            return;
+        }
+
+        Long idUsuarioEmpresaAutenticado = (Long) session.getAttributes().get(
+                TokenWebSocketHandshakeInterceptor.ATRIBUTO_USUARIO_EMPRESA
+        );
+        if (!idUsuarioEmpresa.equals(idUsuarioEmpresaAutenticado)) {
+            session.close(CloseStatus.POLICY_VIOLATION);
             return;
         }
 

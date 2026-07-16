@@ -99,13 +99,13 @@ public class ProjetoTelaMapper {
 
     private String nomeResponsavel(UsuarioEmpresaModel usuarioEmpresa) {
         if (usuarioEmpresa == null) {
-            return "Nao atribuido";
+            return "Não atribuído";
         }
 
         UsuarioModel usuario = usuarioEmpresa.getIdUsuario();
         return usuario != null && usuario.getNome() != null
             ? usuario.getNome()
-            : "Usuario #" + usuarioEmpresa.getIdUsuarioEmpresa();
+            : "Usuário #" + usuarioEmpresa.getIdUsuarioEmpresa();
     }
 
     private PrioridadeProjetoTela prioridadeProjeto(PrioridadeTarefa prioridade) {

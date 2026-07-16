@@ -4,6 +4,7 @@ import conne.connect.connect.Auth.dto.LoginRequestDTO;
 import conne.connect.connect.Auth.dto.LoginResponseDTO;
 import conne.connect.connect.Empresa.enums.StatusEmpresa;
 import conne.connect.connect.Empresa.model.EmpresaModel;
+import conne.connect.connect.Security.TokenService;
 import conne.connect.connect.Usuario.enums.StatusUsuario;
 import conne.connect.connect.Usuario.model.UsuarioEmpresaModel;
 import conne.connect.connect.Usuario.model.UsuarioModel;
@@ -12,6 +13,7 @@ import conne.connect.connect.Usuario.repository.UsuarioRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -20,23 +22,24 @@ public class AuthService {
     private final UsuarioRepository usuarioRepository;
     private final UsuarioEmpresaRepository usuarioEmpresaRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TokenService tokenService;
 
     public AuthService(
             UsuarioRepository usuarioRepository,
             UsuarioEmpresaRepository usuarioEmpresaRepository,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            TokenService tokenService
     ) {
         this.usuarioRepository = usuarioRepository;
         this.usuarioEmpresaRepository = usuarioEmpresaRepository;
         this.passwordEncoder = passwordEncoder;
+        this.tokenService = tokenService;
     }
 
+    @Transactional(readOnly = true)
     public LoginResponseDTO login(LoginRequestDTO loginRequestDTO) {
         UsuarioModel usuario = usuarioRepository.findByEmail(loginRequestDTO.getEmail())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.UNAUTHORIZED,
-                        "Email ou senha invalidos."
-                ));
+                .orElseThrow(this::credenciaisInvalidas);
 
         boolean senhaCorreta = passwordEncoder.matches(
                 loginRequestDTO.getSenha(),
@@ -44,43 +47,28 @@ public class AuthService {
         );
 
         if (!senhaCorreta) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNAUTHORIZED,
-                    "Email ou senha invalidos."
-            );
+            throw credenciaisInvalidas();
         }
 
         if (usuario.getStatus() != StatusUsuario.ativo) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "Usuario inativo."
-            );
+            throw credenciaisInvalidas();
         }
 
         UsuarioEmpresaModel usuarioEmpresa = usuarioEmpresaRepository
                 .findFirstByIdUsuario_IdUsuarioAndAtivoTrueAndExcluidoIsNull(usuario.getIdUsuario())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.FORBIDDEN,
-                        "Usuario nao possui vinculo ativo com uma empresa."
-                ));
+                .orElseThrow(this::credenciaisInvalidas);
 
         EmpresaModel empresa = usuarioEmpresa.getIdEmpresa();
 
         if (empresa == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "Empresa vinculada nao encontrada."
-            );
+            throw credenciaisInvalidas();
         }
 
         if (empresa.getStatus() != StatusEmpresa.ativa || empresa.getExcluido() != null) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "Empresa vinculada nao esta ativa."
-            );
+            throw credenciaisInvalidas();
         }
 
-        return new LoginResponseDTO(
+        LoginResponseDTO resposta = new LoginResponseDTO(
                 usuario.getIdUsuario(),
                 usuario.getNome(),
                 usuario.getEmail(),
@@ -88,6 +76,22 @@ public class AuthService {
                 usuarioEmpresa.getIdUsuarioEmpresa(),
                 usuarioEmpresa.getPapel().name(),
                 usuario.getStatus().name()
+        );
+
+        resposta.setToken(tokenService.gerarToken(
+                usuario.getIdUsuario(),
+                empresa.getIdEmpresa(),
+                usuarioEmpresa.getIdUsuarioEmpresa(),
+                usuarioEmpresa.getPapel().name()
+        ));
+
+        return resposta;
+    }
+
+    private ResponseStatusException credenciaisInvalidas() {
+        return new ResponseStatusException(
+                HttpStatus.UNAUTHORIZED,
+                "E-mail ou senha inválidos."
         );
     }
 }

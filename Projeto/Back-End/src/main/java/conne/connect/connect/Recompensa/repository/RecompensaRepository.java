@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface RecompensaRepository extends JpaRepository<RecompensaModel, Long> {
 
+    List<RecompensaModel> findByExcluidoIsNull();
+
     List<RecompensaModel> findByIdEmpresa_IdEmpresaAndExcluidoIsNullOrderByNomeAsc(Long idEmpresa);
 
     List<RecompensaModel> findByIdEmpresa_IdEmpresaAndAtivaTrueAndExcluidoIsNullOrderByNomeAsc(Long idEmpresa);

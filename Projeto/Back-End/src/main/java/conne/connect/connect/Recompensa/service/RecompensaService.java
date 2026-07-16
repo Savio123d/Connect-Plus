@@ -1,5 +1,6 @@
 package conne.connect.connect.Recompensa.service;
 
+import conne.connect.connect.Security.AutorizacaoService;
 import conne.connect.connect.Empresa.model.EmpresaModel;
 import conne.connect.connect.Empresa.repository.EmpresaRepository;
 import conne.connect.connect.Recompensa.dto.LojaItemDTO;
@@ -20,7 +21,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,41 +29,52 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class RecompensaService {
 
-    @Autowired
-    private RecompensaRepository recompensaRepository;
+    private final RecompensaRepository recompensaRepository;
+    private final AutorizacaoService autorizacaoService;
+    private final EmpresaRepository empresaRepository;
+    private final UsuarioEmpresaRepository usuarioEmpresaRepository;
+    private final SaldoXpRepository saldoXpRepository;
+    private final TransacaoXpRepository transacaoXpRepository;
+    private final ResgateRecompensaRepository resgateRecompensaRepository;
 
-    @Autowired
-    private EmpresaRepository empresaRepository;
-
-    @Autowired
-    private UsuarioEmpresaRepository usuarioEmpresaRepository;
-
-    @Autowired
-    private SaldoXpRepository saldoXpRepository;
-
-    @Autowired
-    private TransacaoXpRepository transacaoXpRepository;
-
-    @Autowired
-    private ResgateRecompensaRepository resgateRecompensaRepository;
+    public RecompensaService(
+            RecompensaRepository recompensaRepository,
+            EmpresaRepository empresaRepository,
+            UsuarioEmpresaRepository usuarioEmpresaRepository,
+            SaldoXpRepository saldoXpRepository,
+            TransacaoXpRepository transacaoXpRepository,
+            ResgateRecompensaRepository resgateRecompensaRepository,
+            AutorizacaoService autorizacaoService
+    ) {
+        this.recompensaRepository = recompensaRepository;
+        this.empresaRepository = empresaRepository;
+        this.usuarioEmpresaRepository = usuarioEmpresaRepository;
+        this.saldoXpRepository = saldoXpRepository;
+        this.transacaoXpRepository = transacaoXpRepository;
+        this.resgateRecompensaRepository = resgateRecompensaRepository;
+        this.autorizacaoService = autorizacaoService;
+    }
 
     @Transactional(readOnly = true)
     public List<RecompensaModel> findAll() {
-        return recompensaRepository.findAll();
+        return recompensaRepository.findByIdEmpresa_IdEmpresaAndExcluidoIsNullOrderByNomeAsc(autorizacaoService.empresaAtual());
     }
 
+    @Transactional
     public RecompensaModel criarRecompensa(RecompensaModel recompensaModel) {
+        validarEscopo(recompensaModel);
         return recompensaRepository.save(recompensaModel);
     }
 
     @Transactional(readOnly = true)
     public Optional<RecompensaModel> buscarPorId(Long idRecompensa) {
-        return recompensaRepository.findById(idRecompensa);
+        return recompensaRepository.findByIdRecompensaAndIdEmpresa_IdEmpresaAndExcluidoIsNull(idRecompensa, autorizacaoService.empresaAtual());
     }
 
+    @Transactional
     public RecompensaModel atualizarRecompensa(Long idRecompensa, RecompensaModel recompensaModel) {
-        RecompensaModel recompensa = recompensaRepository.findById(idRecompensa).get();
-        recompensa.setIdEmpresa(recompensaModel.getIdEmpresa());
+        validarEscopo(recompensaModel);
+        RecompensaModel recompensa = buscarRecompensaExistente(idRecompensa);
         recompensa.setNome(recompensaModel.getNome());
         recompensa.setDescricao(recompensaModel.getDescricao());
         recompensa.setXpNecessario(recompensaModel.getXpNecessario());
@@ -71,13 +82,31 @@ public class RecompensaService {
         return recompensaRepository.save(recompensa);
     }
 
+    @Transactional
     public void excluirRecompensa(Long idRecompensa) {
-        recompensaRepository.deleteById(idRecompensa);
+        RecompensaModel recompensa = buscarRecompensaExistente(idRecompensa);
+        recompensa.setAtiva(false);
+        recompensa.setExcluido(LocalDate.now());
+        recompensaRepository.save(recompensa);
+    }
+
+    private void validarEscopo(RecompensaModel registro) {
+        autorizacaoService.validarEmpresaAtual(
+                registro.getIdEmpresa() != null ? registro.getIdEmpresa().getIdEmpresa() : null
+        );
+    }
+
+    private RecompensaModel buscarRecompensaExistente(Long idRecompensa) {
+        return buscarPorId(idRecompensa)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recompensa não encontrada."));
     }
 
     @Transactional(readOnly = true)
     public List<LojaItemDTO> listarItensLoja(Long idEmpresa, Long idUsuarioEmpresa, boolean somenteAtivas) {
         validarIdEmpresa(idEmpresa);
+        if (idUsuarioEmpresa != null) {
+            autorizacaoService.validarAcessoAoVinculo(idUsuarioEmpresa);
+        }
 
         List<RecompensaModel> recompensas = somenteAtivas
                 ? recompensaRepository.findByIdEmpresa_IdEmpresaAndAtivaTrueAndExcluidoIsNullOrderByNomeAsc(idEmpresa)
@@ -90,6 +119,9 @@ public class RecompensaService {
 
     @Transactional(readOnly = true)
     public LojaItemDTO buscarItemLoja(Long idRecompensa, Long idEmpresa, Long idUsuarioEmpresa) {
+        if (idUsuarioEmpresa != null) {
+            autorizacaoService.validarAcessoAoVinculo(idUsuarioEmpresa);
+        }
         RecompensaModel recompensa = buscarRecompensaDaEmpresa(idRecompensa, idEmpresa);
         return toLojaItemDTO(recompensa, idUsuarioEmpresa);
     }
@@ -146,6 +178,7 @@ public class RecompensaService {
     public LojaItemDTO resgatarItemLoja(Long idRecompensa, LojaResgateRequestDTO request) {
         Long idEmpresa = request.getIdEmpresa();
         Long idUsuarioEmpresa = request.getIdUsuarioEmpresa();
+        autorizacaoService.validarVinculoAtual(idUsuarioEmpresa);
         int quantidade = request.getQuantidade() == null || request.getQuantidade() < 1 ? 1 : request.getQuantidade();
 
         RecompensaModel recompensa = buscarRecompensaDaEmpresa(idRecompensa, idEmpresa);
@@ -153,23 +186,31 @@ public class RecompensaService {
         validarVinculoEmpresa(usuarioEmpresa, idEmpresa);
 
         if (Boolean.FALSE.equals(recompensa.getAtiva())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Recompensa indisponivel para resgate.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Recompensa indisponível para resgate.");
         }
 
         if (recompensa.getQuantidadeDisponivel() != null && recompensa.getQuantidadeDisponivel() < quantidade) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quantidade insuficiente em estoque.");
         }
 
-        int xpGasto = recompensa.getXpNecessario() * quantidade;
-        SaldoXpModel saldo = saldoXpRepository
-                .findByIdUsuarioEmpresa_IdUsuarioEmpresaAndIdEmpresa_IdEmpresa(idUsuarioEmpresa, idEmpresa)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Saldo XP nao encontrado para este usuario."));
-
-        if (saldo.getXpTotal() < xpGasto) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Saldo XP insuficiente para resgatar esta recompensa.");
+        if (recompensa.getXpNecessario() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Recompensa sem custo de XP configurado.");
         }
 
-        saldo.setXpTotal(saldo.getXpTotal() - xpGasto);
+        int xpGasto = recompensa.getXpNecessario() * quantidade;
+        SaldoXpModel saldo = saldoXpRepository
+                .findByIdUsuarioEmpresa_IdUsuarioEmpresaAndIdEmpresa_IdEmpresaAndExcluidoIsNull(
+                        idUsuarioEmpresa,
+                        idEmpresa
+                )
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Saldo de XP não encontrado para este usuário."));
+
+        int saldoAtual = saldo.getXpTotal() != null ? saldo.getXpTotal() : 0;
+        if (saldoAtual < xpGasto) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Saldo de XP insuficiente para resgatar esta recompensa.");
+        }
+
+        saldo.setXpTotal(saldoAtual - xpGasto);
         saldoXpRepository.save(saldo);
 
         TransacaoXpModel transacao = new TransacaoXpModel();
@@ -230,7 +271,7 @@ public class RecompensaService {
 
     private void aplicarRequest(RecompensaModel recompensa, LojaItemRequestDTO request) {
         if (request.getNome() == null || request.getNome().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nome da recompensa e obrigatorio.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nome da recompensa é obrigatório.");
         }
 
         if (request.getCustoXp() == null || request.getCustoXp() < 1) {
@@ -252,7 +293,7 @@ public class RecompensaService {
 
         return recompensaRepository
                 .findByIdRecompensaAndIdEmpresa_IdEmpresaAndExcluidoIsNull(idRecompensa, idEmpresa)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recompensa nao encontrada para esta empresa."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recompensa não encontrada para esta empresa."));
     }
 
     private EmpresaModel buscarEmpresa(Long idEmpresa) {
@@ -260,28 +301,29 @@ public class RecompensaService {
 
         return empresaRepository
                 .findById(idEmpresa)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa nao encontrada."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa não encontrada."));
     }
 
     private UsuarioEmpresaModel buscarUsuarioEmpresa(Long idUsuarioEmpresa) {
         if (idUsuarioEmpresa == null || idUsuarioEmpresa < 1) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuario empresa e obrigatorio.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuário-empresa é obrigatório.");
         }
 
         return usuarioEmpresaRepository
                 .findById(idUsuarioEmpresa)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario empresa nao encontrado."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário-empresa não encontrado."));
     }
 
     private void validarVinculoEmpresa(UsuarioEmpresaModel usuarioEmpresa, Long idEmpresa) {
         if (!usuarioEmpresa.getIdEmpresa().getIdEmpresa().equals(idEmpresa)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Usuario nao pertence a empresa informada.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Usuário não pertence à empresa informada.");
         }
     }
 
     private void validarIdEmpresa(Long idEmpresa) {
+        autorizacaoService.validarEmpresaAtual(idEmpresa);
         if (idEmpresa == null || idEmpresa < 1) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Empresa e obrigatoria para acessar a loja.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Empresa é obrigatória para acessar a loja.");
         }
     }
 

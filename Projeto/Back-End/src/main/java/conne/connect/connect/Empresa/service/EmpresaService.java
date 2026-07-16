@@ -1,6 +1,10 @@
 package conne.connect.connect.Empresa.service;
 
+import conne.connect.connect.Security.AutorizacaoService;
 import conne.connect.connect.Assinatura.dto.AssinaturaCadastroResultadoDTO;
+import conne.connect.connect.Assinatura.enums.StatusAssinatura;
+import conne.connect.connect.Assinatura.model.AssinaturaModel;
+import conne.connect.connect.Assinatura.repository.AssinaturaRepository;
 import conne.connect.connect.Assinatura.service.AssinaturaService;
 import conne.connect.connect.Empresa.dto.CadastroEmpresaDTO;
 import conne.connect.connect.Empresa.dto.CadastroEmpresaResponseDTO;
@@ -8,6 +12,7 @@ import conne.connect.connect.Empresa.enums.StatusEmpresa;
 import conne.connect.connect.Empresa.model.EmpresaModel;
 import conne.connect.connect.Empresa.repository.EmpresaRepository;
 import conne.connect.connect.Plano.enums.TipoPlano;
+import conne.connect.connect.Plano.model.PlanoModel;
 import conne.connect.connect.Usuario.dto.CadastroUsuarioEmpresaDTO;
 import conne.connect.connect.Usuario.enums.PapelEmpresa;
 import conne.connect.connect.Usuario.enums.StatusUsuario;
@@ -15,9 +20,9 @@ import conne.connect.connect.Usuario.model.UsuarioEmpresaModel;
 import conne.connect.connect.Usuario.model.UsuarioModel;
 import conne.connect.connect.Usuario.repository.UsuarioEmpresaRepository;
 import conne.connect.connect.Usuario.repository.UsuarioRepository;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,29 +33,51 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class EmpresaService {
 
-    @Autowired
-    private EmpresaRepository empresaRepository;
+    private final EmpresaRepository empresaRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final UsuarioEmpresaRepository usuarioEmpresaRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final AssinaturaService assinaturaService;
+    private final AssinaturaRepository assinaturaRepository;
+    private final AutorizacaoService autorizacaoService;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private UsuarioEmpresaRepository usuarioEmpresaRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private AssinaturaService assinaturaService;
+    public EmpresaService(
+            EmpresaRepository empresaRepository,
+            UsuarioRepository usuarioRepository,
+            UsuarioEmpresaRepository usuarioEmpresaRepository,
+            PasswordEncoder passwordEncoder,
+            AssinaturaService assinaturaService,
+            AssinaturaRepository assinaturaRepository,
+            AutorizacaoService autorizacaoService
+    ) {
+        this.empresaRepository = empresaRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.usuarioEmpresaRepository = usuarioEmpresaRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.assinaturaService = assinaturaService;
+        this.assinaturaRepository = assinaturaRepository;
+        this.autorizacaoService = autorizacaoService;
+    }
 
     @Transactional(readOnly = true)
     public List<EmpresaModel> findAll() {
-        return empresaRepository.findAll();
+        Long idEmpresa = autorizacaoService.empresaAtual();
+        if (idEmpresa == null) {
+            return List.of();
+        }
+
+        return buscarPorId(idEmpresa).map(List::of).orElseGet(List::of);
     }
 
     @Transactional(readOnly = true)
     public Optional<EmpresaModel> buscarPorId(Long idEmpresa) {
-        return empresaRepository.findById(idEmpresa);
+        Long empresaAtual = autorizacaoService.empresaAtual();
+        if (empresaAtual != null && !empresaAtual.equals(idEmpresa)) {
+            return Optional.empty();
+        }
+
+        return empresaRepository.findById(idEmpresa)
+                .filter(empresa -> empresa.getExcluido() == null);
     }
 
     @Transactional
@@ -104,6 +131,7 @@ public class EmpresaService {
     public void cadastrarUsuarioEmpresa(Long idEmpresa, CadastroUsuarioEmpresaDTO dto) {
         EmpresaModel empresa = buscarEmpresaExistente(idEmpresa);
         validarEmailDisponivel(dto.getEmail());
+        validarLimiteDeUsuariosDoPlano(idEmpresa);
 
         UsuarioModel usuario = new UsuarioModel();
         usuario.setNome(dto.getNome());
@@ -120,6 +148,7 @@ public class EmpresaService {
         usuarioEmpresaRepository.save(usuarioEmpresa);
     }
 
+    @Transactional
     public EmpresaModel atualizarEmpresa(Long idEmpresa, EmpresaModel empresaModel) {
         EmpresaModel empresa = buscarEmpresaExistente(idEmpresa);
 
@@ -150,24 +179,61 @@ public class EmpresaService {
         return empresaRepository.save(empresa);
     }
 
+    @Transactional
     public void excluirEmpresa(Long idEmpresa) {
-        empresaRepository.deleteById(idEmpresa);
+        EmpresaModel empresa = buscarEmpresaExistente(idEmpresa);
+        empresa.setStatus(StatusEmpresa.inativa);
+        empresa.setExcluido(LocalDate.now());
+        empresaRepository.save(empresa);
     }
 
     private EmpresaModel buscarEmpresaExistente(Long idEmpresa) {
-        return empresaRepository.findById(idEmpresa)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa nao encontrada."));
+        return buscarPorId(idEmpresa)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Empresa não encontrada."));
+    }
+
+    private void validarLimiteDeUsuariosDoPlano(Long idEmpresa) {
+        AssinaturaModel assinatura = assinaturaRepository
+                .findFirstByIdEmpresa_IdEmpresaAndExcluidoIsNullOrderByIdAssinaturaDesc(idEmpresa)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "Empresa não possui assinatura."
+                ));
+
+        if (assinatura.getStatus() != StatusAssinatura.ativa) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Assinatura precisa estar ativa para adicionar usuários."
+            );
+        }
+
+        PlanoModel plano = assinatura.getIdPlano();
+        Integer maxUsuarios = plano != null ? plano.getMaxUsuarios() : null;
+        if (maxUsuarios == null || maxUsuarios < 1) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Plano não possui limite de usuários válido."
+            );
+        }
+
+        Long usuariosAtivos = usuarioEmpresaRepository.countUsuariosAtivosPorEmpresa(idEmpresa);
+        if (usuariosAtivos != null && usuariosAtivos >= maxUsuarios) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Limite de usuários do plano atingido (" + maxUsuarios + ")."
+            );
+        }
     }
 
     private void validarCnpjDisponivel(String cnpj) {
         if (cnpj != null && empresaRepository.existsByCnpj(cnpj)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "CNPJ ja cadastrado.");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "CNPJ já cadastrado.");
         }
     }
 
     private void validarEmailDisponivel(String email) {
         if (usuarioRepository.existsByEmail(email)) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email ja cadastrado.");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "E-mail já cadastrado.");
         }
     }
 }

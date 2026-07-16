@@ -86,28 +86,35 @@ public class AssinaturaService {
 
     @Transactional
     public void processarWebhook(Map<String, Object> payload, Map<String, String> parametros) {
-        String tipo = texto(payload.get("type"));
-        String topico = texto(payload.get("topic"));
+        Map<String, Object> payloadSeguro = payload != null ? payload : Map.of();
+        Map<String, String> parametrosSeguros = parametros != null ? parametros : Map.of();
+        String tipo = primeiroComTexto(texto(payloadSeguro.get("type")), parametrosSeguros.get("type"));
+        String topico = primeiroComTexto(texto(payloadSeguro.get("topic")), parametrosSeguros.get("topic"));
 
-        if (!"subscription_preapproval".equals(tipo) && !"subscription_preapproval".equals(topico)) {
+        if (!notificacaoDeAssinatura(tipo) && !notificacaoDeAssinatura(topico)) {
             return;
         }
 
-        String preapprovalId = idNotificado(payload, parametros);
+        String preapprovalId = idNotificado(payloadSeguro, parametrosSeguros);
         if (preapprovalId == null || preapprovalId.isBlank()) {
             return;
         }
 
         MercadoPagoAssinaturaDTO assinaturaMercadoPago = mercadoPagoService.buscarAssinatura(preapprovalId);
         Optional<AssinaturaModel> assinaturaEncontrada = assinaturaRepository
-                .findByMercadoPagoPreapprovalId(preapprovalId)
-                .or(() -> assinaturaRepository.findByMercadoPagoExternalReference(
-                        assinaturaMercadoPago.getExternalReference()));
+                .findByMercadoPagoPreapprovalIdAndExcluidoIsNull(preapprovalId);
 
-        assinaturaEncontrada.ifPresent(assinatura -> {
+        if (assinaturaEncontrada.isEmpty() && temTexto(assinaturaMercadoPago.getExternalReference())) {
+            assinaturaEncontrada = assinaturaRepository.findByMercadoPagoExternalReferenceAndExcluidoIsNull(
+                    assinaturaMercadoPago.getExternalReference());
+        }
+
+        AssinaturaModel assinatura = assinaturaEncontrada.orElse(null);
+        if (assinatura != null && assinaturaPremium(assinatura)) {
             aplicarRetornoMercadoPago(assinatura, assinaturaMercadoPago);
+            assinatura.setStatus(mapearStatus(assinaturaMercadoPago.getStatus()));
             assinaturaRepository.save(assinatura);
-        });
+        }
     }
 
     private PlanoModel buscarOuCriarPlano(TipoPlano tipoPlano) {
@@ -155,11 +162,22 @@ public class AssinaturaService {
         assinatura.setMercadoPagoStatus(retornoMercadoPago.getStatus());
         assinatura.setMercadoPagoInitPoint(retornoMercadoPago.getInitPoint());
         assinatura.setMercadoPagoSandboxInitPoint(retornoMercadoPago.getSandboxInitPoint());
-        assinatura.setStatus(mapearStatus(retornoMercadoPago.getStatus()));
     }
 
     private boolean temTexto(String valor) {
         return valor != null && !valor.isBlank();
+    }
+
+    private String primeiroComTexto(String primeiro, String segundo) {
+        return temTexto(primeiro) ? primeiro : segundo;
+    }
+
+    private boolean notificacaoDeAssinatura(String valor) {
+        return "subscription_preapproval".equals(valor);
+    }
+
+    private boolean assinaturaPremium(AssinaturaModel assinatura) {
+        return assinatura.getIdPlano() != null && assinatura.getIdPlano().getTipo() == TipoPlano.premium;
     }
 
     private StatusAssinatura mapearStatus(String statusMercadoPago) {

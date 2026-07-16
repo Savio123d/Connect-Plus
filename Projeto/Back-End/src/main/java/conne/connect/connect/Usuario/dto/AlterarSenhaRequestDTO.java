@@ -5,10 +5,10 @@ import jakarta.validation.constraints.Size;
 
 public class AlterarSenhaRequestDTO {
 
-    @NotBlank(message = "A senha atual e obrigatoria.")
+    @NotBlank(message = "A senha atual é obrigatória.")
     private String senhaAtual;
 
-    @NotBlank(message = "A nova senha e obrigatoria.")
+    @NotBlank(message = "A nova senha é obrigatória.")
     @Size(min = 6, message = "A nova senha deve ter pelo menos 6 caracteres.")
     private String novaSenha;
 

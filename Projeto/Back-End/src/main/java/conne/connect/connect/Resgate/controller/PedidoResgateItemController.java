@@ -4,8 +4,6 @@ import conne.connect.connect.Resgate.model.PedidoResgateItemModel;
 import conne.connect.connect.Resgate.service.PedidoResgateItemService;
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,8 +19,11 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RestController
 public class PedidoResgateItemController {
 
-    @Autowired
-    private PedidoResgateItemService pedidoResgateItemService;
+    private final PedidoResgateItemService pedidoResgateItemService;
+
+    public PedidoResgateItemController(PedidoResgateItemService pedidoResgateItemService) {
+        this.pedidoResgateItemService = pedidoResgateItemService;
+    }
 
     @GetMapping
     public ResponseEntity<List<PedidoResgateItemModel>> findAll() {
@@ -44,8 +45,8 @@ public class PedidoResgateItemController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Optional<PedidoResgateItemModel>> buscarPorId(@PathVariable("id") Long idPedidoResgateItem) {
-        return ResponseEntity.ok(pedidoResgateItemService.buscarPorId(idPedidoResgateItem));
+    public ResponseEntity<PedidoResgateItemModel> buscarPorId(@PathVariable("id") Long idPedidoResgateItem) {
+        return ResponseEntity.of(pedidoResgateItemService.buscarPorId(idPedidoResgateItem));
     }
 
     @PutMapping("/{id}")
