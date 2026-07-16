@@ -18,6 +18,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -95,6 +96,10 @@ public class UsuarioService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "usuariosPorEmpresa", allEntries = true),
+            @CacheEvict(value = "vinculoAutenticacao", allEntries = true)
+    })
     public UsuarioDTO atualizarUsuario(Long idUsuario, UsuarioRequestDTO usuarioRequestDTO){
         UsuarioModel usuario = buscarUsuarioExistente(idUsuario);
 
@@ -108,9 +113,13 @@ public class UsuarioService {
     }
 
     // Exclusao logica: usuario vira inativo e os vinculos com empresas sao desativados,
-    // preservando historico de tarefas, XP e resgates.
+    // preservando historico de tarefas, XP e resgates. Invalida tambem o snapshot
+    // de autenticacao para revogar o acesso imediatamente.
     @Transactional
-    @CacheEvict(value = "usuariosPorEmpresa", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "usuariosPorEmpresa", allEntries = true),
+            @CacheEvict(value = "vinculoAutenticacao", allEntries = true)
+    })
     public void excluirUsuario(Long idUsuario){
         UsuarioModel usuario = buscarUsuarioExistente(idUsuario);
         usuario.setStatus(StatusUsuario.inativo);

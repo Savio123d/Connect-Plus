@@ -149,6 +149,7 @@ public class EmpresaService {
     }
 
     @Transactional
+    @CacheEvict(value = "vinculoAutenticacao", allEntries = true)
     public EmpresaModel atualizarEmpresa(Long idEmpresa, EmpresaModel empresaModel) {
         EmpresaModel empresa = buscarEmpresaExistente(idEmpresa);
 
@@ -180,6 +181,7 @@ public class EmpresaService {
     }
 
     @Transactional
+    @CacheEvict(value = "vinculoAutenticacao", allEntries = true)
     public void excluirEmpresa(Long idEmpresa) {
         EmpresaModel empresa = buscarEmpresaExistente(idEmpresa);
         empresa.setStatus(StatusEmpresa.inativa);

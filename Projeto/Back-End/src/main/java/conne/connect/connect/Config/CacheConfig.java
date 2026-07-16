@@ -74,6 +74,15 @@ public class CacheConfig {
                         .recordStats()
                         .build());
 
+        // Validação do token por request: TTL curto para revogar acesso
+        // (usuário desativado / papel alterado) em no máximo 60s.
+        manager.registerCustomCache("vinculoAutenticacao",
+                Caffeine.newBuilder()
+                        .expireAfterWrite(60, TimeUnit.SECONDS)
+                        .maximumSize(5000)
+                        .recordStats()
+                        .build());
+
         return manager;
     }
 }

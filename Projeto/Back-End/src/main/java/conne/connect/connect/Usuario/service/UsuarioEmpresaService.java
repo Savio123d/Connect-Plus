@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,8 +44,12 @@ public class UsuarioEmpresaService {
         return usuarioEmpresaRepository.findByIdUsuarioEmpresaAndAtivoTrueAndExcluidoIsNull(idUsuarioEmpresa);
     }
 
+    // Também invalida o snapshot de autenticação: papel/status novos valem imediatamente.
     @Transactional
-    @CacheEvict(value = "usuariosPorEmpresa", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "usuariosPorEmpresa", allEntries = true),
+            @CacheEvict(value = "vinculoAutenticacao", key = "#idUsuarioEmpresa")
+    })
     public UsuarioEmpresaModel atualizarUsuarioEmpresa(Long idUsuarioEmpresa, UsuarioEmpresaModel usuarioEmpresaModel) {
         UsuarioEmpresaModel usuarioEmpresa = buscarVinculoExistente(idUsuarioEmpresa);
         validarSetorDaEmpresa(usuarioEmpresaModel);
@@ -55,7 +60,10 @@ public class UsuarioEmpresaService {
     }
 
     @Transactional
-    @CacheEvict(value = "usuariosPorEmpresa", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "usuariosPorEmpresa", allEntries = true),
+            @CacheEvict(value = "vinculoAutenticacao", key = "#idUsuarioEmpresa")
+    })
     public void excluirUsuarioEmpresa(Long idUsuarioEmpresa) {
         UsuarioEmpresaModel usuarioEmpresa = buscarVinculoExistente(idUsuarioEmpresa);
         usuarioEmpresa.setAtivo(false);

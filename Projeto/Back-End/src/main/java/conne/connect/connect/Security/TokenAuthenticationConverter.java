@@ -1,9 +1,6 @@
 package conne.connect.connect.Security;
 
-import conne.connect.connect.Empresa.enums.StatusEmpresa;
-import conne.connect.connect.Usuario.enums.StatusUsuario;
-import conne.connect.connect.Usuario.model.UsuarioEmpresaModel;
-import conne.connect.connect.Usuario.repository.UsuarioEmpresaRepository;
+import conne.connect.connect.Security.VinculoAutenticacaoService.VinculoAutenticado;
 import java.util.List;
 import java.util.Locale;
 import org.springframework.core.convert.converter.Converter;
@@ -13,20 +10,18 @@ import org.springframework.security.oauth2.server.resource.InvalidBearerTokenExc
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.oauth2.server.resource.authentication.AbstractOAuth2TokenAuthenticationToken;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class TokenAuthenticationConverter
         implements Converter<Jwt, AbstractOAuth2TokenAuthenticationToken<Jwt>> {
 
-    private final UsuarioEmpresaRepository usuarioEmpresaRepository;
+    private final VinculoAutenticacaoService vinculoAutenticacaoService;
 
-    public TokenAuthenticationConverter(UsuarioEmpresaRepository usuarioEmpresaRepository) {
-        this.usuarioEmpresaRepository = usuarioEmpresaRepository;
+    public TokenAuthenticationConverter(VinculoAutenticacaoService vinculoAutenticacaoService) {
+        this.vinculoAutenticacaoService = vinculoAutenticacaoService;
     }
 
     @Override
-    @Transactional(readOnly = true)
     public AbstractOAuth2TokenAuthenticationToken<Jwt> convert(Jwt jwt) {
         Long idUsuario = numero(jwt.getSubject(), "sub");
         Long idEmpresa = numero(jwt.getClaim(TokenService.CLAIM_EMPRESA), TokenService.CLAIM_EMPRESA);
@@ -36,25 +31,23 @@ public class TokenAuthenticationConverter
         );
         String papelDoToken = jwt.getClaimAsString(TokenService.CLAIM_PAPEL);
 
-        UsuarioEmpresaModel vinculo = usuarioEmpresaRepository
-                .findByIdUsuarioEmpresaAndAtivoTrueAndExcluidoIsNull(idUsuarioEmpresa)
-                .orElseThrow(() -> tokenInvalido("Vínculo de usuário inativo ou inexistente."));
+        // Snapshot cacheado (60s): revalida o vínculo sem uma consulta por requisição.
+        VinculoAutenticado vinculo = vinculoAutenticacaoService.buscar(idUsuarioEmpresa);
 
-        if (vinculo.getIdUsuario() == null
-                || vinculo.getIdUsuario().getStatus() != StatusUsuario.ativo
-                || !idUsuario.equals(vinculo.getIdUsuario().getIdUsuario())) {
+        if (vinculo == null) {
+            throw tokenInvalido("Vínculo de usuário inativo ou inexistente.");
+        }
+
+        if (!vinculo.usuarioAtivo() || !idUsuario.equals(vinculo.idUsuario())) {
             throw tokenInvalido("Usuário do token não está ativo.");
         }
 
-        if (vinculo.getIdEmpresa() == null
-                || vinculo.getIdEmpresa().getStatus() != StatusEmpresa.ativa
-                || vinculo.getIdEmpresa().getExcluido() != null
-                || !idEmpresa.equals(vinculo.getIdEmpresa().getIdEmpresa())) {
+        if (!vinculo.empresaAtiva() || !idEmpresa.equals(vinculo.idEmpresa())) {
             throw tokenInvalido("Empresa do token não está ativa.");
         }
 
-        String papelAtual = vinculo.getPapel().name();
-        if (papelDoToken == null || !papelAtual.equalsIgnoreCase(papelDoToken)) {
+        String papelAtual = vinculo.papel();
+        if (papelDoToken == null || papelAtual == null || !papelAtual.equalsIgnoreCase(papelDoToken)) {
             throw tokenInvalido("Papel do usuário foi alterado. Faça login novamente.");
         }
 
@@ -63,7 +56,7 @@ public class TokenAuthenticationConverter
                 List.of(new SimpleGrantedAuthority(
                         "ROLE_" + papelAtual.toUpperCase(Locale.ROOT)
                 )),
-                vinculo.getIdUsuario().getEmail()
+                vinculo.email()
         );
     }
 
